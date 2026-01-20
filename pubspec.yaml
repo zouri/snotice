@@ -1,0 +1,33 @@
+name: snotice_new
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  flutter_local_notifications: ^17.0.0
+  system_tray: ^2.0.3
+  provider: ^6.1.1
+  shared_preferences: ^2.2.2
+  logger: ^2.0.2+1
+  convert: ^3.1.1
+  desktop_multi_window: ^0.3.0
+  window_manager: ^0.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  mockito: ^5.4.4
+  build_runner: ^2.4.8
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/icons/
