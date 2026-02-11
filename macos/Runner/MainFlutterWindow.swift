@@ -1,7 +1,11 @@
 import Cocoa
 import CoreGraphics
 import FlutterMacOS
-import desktop_multi_window
+import flutter_local_notifications
+import screen_retriever_macos
+import shared_preferences_foundation
+import system_tray
+import window_manager
 
 class MainFlutterWindow: NSWindow {
   private var flashToken: Int = 0
@@ -13,15 +17,21 @@ class MainFlutterWindow: NSWindow {
     self.contentViewController = flutterViewController
     self.setFrame(windowFrame, display: true)
 
-    RegisterGeneratedPlugins(registry: flutterViewController)
+    registerMacOSPlugins(registry: flutterViewController)
     registerFlashChannel(controller: flutterViewController)
 
-    // 支持多窗口插件
-    FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
-      RegisterGeneratedPlugins(registry: controller)
-    }
-
     super.awakeFromNib()
+  }
+
+  private func registerMacOSPlugins(registry: FlutterPluginRegistry) {
+    FlutterLocalNotificationsPlugin.register(
+      with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
+    ScreenRetrieverMacosPlugin.register(
+      with: registry.registrar(forPlugin: "ScreenRetrieverMacosPlugin"))
+    SharedPreferencesPlugin.register(
+      with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
+    SystemTrayPlugin.register(with: registry.registrar(forPlugin: "SystemTrayPlugin"))
+    WindowManagerPlugin.register(with: registry.registrar(forPlugin: "WindowManagerPlugin"))
   }
 
   private func registerFlashChannel(controller: FlutterViewController) {
@@ -81,6 +91,11 @@ class MainFlutterWindow: NSWindow {
     let flashColor = parseColor(colorString).withAlphaComponent(1.0)
     let shieldingLevel = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()))
     var windows: [NSWindow] = []
+    let shouldMoveToActiveSpace = !NSApp.isActive
+
+    if shouldMoveToActiveSpace {
+      NSApp.activate(ignoringOtherApps: true)
+    }
 
     for screen in screens {
       let frame = screen.frame
@@ -98,7 +113,11 @@ class MainFlutterWindow: NSWindow {
       window.alphaValue = 0
       window.hasShadow = false
       window.ignoresMouseEvents = true
-      window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+      if shouldMoveToActiveSpace {
+        window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary, .stationary]
+      } else {
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+      }
       window.setFrame(frame, display: true)
       window.orderFrontRegardless()
       windows.append(window)
@@ -187,5 +206,4 @@ class MainFlutterWindow: NSWindow {
       return .red
     }
   }
-
 }

@@ -1,27 +1,27 @@
-# SNotice 构建和测试指南
+# SNotice Build and Test Guide
 
-## 环境要求
+## Environment Requirements
 
-- Flutter SDK 3.10.7 或更高版本
+- Flutter SDK 3.10.7 or higher
 - macOS 10.15+ / Ubuntu 20.04+ / Windows 10+
-- 系统开发工具（Xcode for macOS, Visual Studio for Windows, etc.）
+- System development tools (Xcode for macOS, Visual Studio for Windows, etc.)
 
-## 快速开始
+## Quick Start
 
-### 1. 安装依赖
+### 1. Install Dependencies
 
 ```bash
 export PUB_HOSTED_URL="https://pub.flutter-io.cn"
 flutter pub get
 ```
 
-### 2. 代码检查
+### 2. Code Analysis
 
 ```bash
 flutter analyze
 ```
 
-### 3. 运行应用
+### 3. Run Application
 
 ```bash
 # macOS
@@ -34,43 +34,43 @@ flutter run -d linux
 flutter run -d windows
 ```
 
-## 测试步骤
+## Testing Steps
 
-### 基础功能测试
+### Basic Functionality Testing
 
-1. **启动应用**
-   - 打开应用
-   - 检查主界面是否正常显示
-   - 检查系统托盘图标是否出现
+1. **Start Application**
+   - Launch the app
+   - Verify main screen displays correctly
+   - Check system tray icon appears
 
-2. **启动服务器**
-   - 点击 "Start Server" 按钮
-   - 检查状态是否变为 "Server Running"
-   - 检查端口显示是否正确（默认 8080）
+2. **Start Server**
+   - Click "Start Server" button
+   - Verify status changes to "Server Running"
+   - Verify port displays correctly (default 8642)
 
-3. **发送测试通知**
-   - 进入 "Test" 页面
-   - 选择预设或手动输入通知内容
-   - 点击 "Send Notification"
-   - 检查系统通知是否正常显示
+3. **Send Test Notification**
+   - Go to "Test" page
+   - Select preset or enter notification content manually
+   - Click "Send Notification"
+   - Verify system notification displays correctly
 
-### API 测试
+### API Testing
 
-在服务器运行后，使用以下命令测试 API：
+Test the API while the server is running:
 
-#### 测试发送通知
+#### Test Sending Notification
 
 ```bash
-curl -X POST http://localhost:8080/api/notify \
+curl -X POST http://localhost:8642/api/notify \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "API 测试",
-    "body": "这是一条通过 API 发送的通知",
+    "title": "API Test",
+    "body": "This is a notification sent via API",
     "priority": "high"
   }'
 ```
 
-预期响应：
+Expected Response:
 ```json
 {
   "success": true,
@@ -79,90 +79,117 @@ curl -X POST http://localhost:8080/api/notify \
 }
 ```
 
-#### 测试获取状态
+#### Test Getting Status
 
 ```bash
-curl http://localhost:8080/api/status
+curl http://localhost:8642/api/status
 ```
 
-预期响应：
+Expected Response:
 ```json
 {
   "running": true,
-  "port": 8080,
-  "uptime": <运行秒数>
+  "port": 8642,
+  "uptime": <seconds_running>
 }
 ```
 
-#### 测试获取配置
+#### Test Getting Configuration
 
 ```bash
-curl http://localhost:8080/api/config
+curl http://localhost:8642/api/config
 ```
 
-预期响应：
+Expected Response:
 ```json
 {
-  "port": 8080,
+  "port": 8642,
   "allowedIPs": ["127.0.0.1", "::1"],
   "autoStart": true,
   "showNotifications": true
 }
 ```
 
-#### 测试更新配置
+#### Test Updating Configuration
 
 ```bash
-curl -X POST http://localhost:8080/api/config \
+curl -X POST http://localhost:8642/api/config \
   -H "Content-Type: application/json" \
   -d '{
-    "port": 8080,
+    "port": 8642,
     "allowedIPs": ["127.0.0.1"],
     "autoStart": false
   }'
 ```
 
-### 配置测试
+### Configuration Testing
 
-1. **修改端口**
-   - 进入 "Settings" 页面
-   - 修改端口为 8081
-   - 保存设置
-   - 重启服务器
-   - 使用新端口测试 API
+1. **Change Port**
+   - Go to "Settings" page
+   - Change port to 8081
+   - Save settings
+   - Restart server
+   - Test API with new port
 
-2. **IP 白名单测试**
-   - 进入 "Settings" 页面
-   - 添加一个不存在的 IP（如 192.168.1.100）
-   - 保存设置
-   - 从该 IP（如果可能）发送请求应该被拒绝
-   - 清空白名单后应该允许所有请求
+2. **IP Whitelist Testing**
+   - Go to "Settings" page
+   - Add a non-existent IP (e.g., 192.168.1.100)
+   - Save settings
+   - Requests from that IP should be rejected (if possible)
+   - Clear whitelist to allow all requests
 
-3. **自动启动测试**
-   - 启用 "Auto Start"
-   - 保存设置
-   - 重启应用
-   - 检查服务器是否自动启动
+3. **Auto Start Testing**
+   - Enable "Auto Start"
+   - Save settings
+   - Restart application
+   - Verify server starts automatically
 
-### 日志测试
+### Log Testing
 
-1. **查看日志**
-   - 进入 "Logs" 页面
-   - 检查是否显示所有类型的日志
+1. **View Logs**
+   - Go to "Logs" page
+   - Verify all log types are displayed
 
-2. **筛选日志**
-   - 点击筛选按钮
-   - 选择 "Requests"
-   - 检查是否只显示请求日志
-   - 选择 "Notifications"
-   - 检查是否只显示通知日志
+2. **Filter Logs**
+   - Click filter button
+   - Select "Requests"
+   - Verify only request logs are shown
+   - Select "Notifications"
+   - Verify only notification logs are shown
 
-3. **清除日志**
-   - 点击清除按钮
-   - 确认清除
-   - 检查日志是否被清空
+3. **Clear Logs**
+   - Click clear button
+   - Confirm clear
+   - Verify logs are cleared
 
-## 构建发布版本
+### Flash Screen Testing
+
+1. **Via UI**
+   - Go to "Test" page
+   - Select Category: "Flash (Screen)"
+   - Choose a color
+   - Set duration
+   - Click "Send Notification"
+   - Verify full-screen flash appears
+
+2. **Via API**
+   ```bash
+   curl -X POST http://localhost:8642/api/notify \
+     -H "Content-Type: application/json" \
+     -d '{
+       "title": "Alert",
+       "body": "Screen flash",
+       "category": "flash",
+       "flashColor": "gray",
+       "flashDuration": 800
+     }'
+   ```
+   - Verify full-screen overlay appears
+   - Verify it covers all applications
+   - Verify overlay is semi-transparent
+   - Verify overlay closes automatically
+
+## Building Release Versions
 
 ### macOS
 
@@ -170,14 +197,14 @@ curl -X POST http://localhost:8080/api/config \
 flutter build macos --release
 ```
 
-输出文件：`build/macos/Build/Products/Release/snotice_new.app`
+Output: `build/macos/Build/Products/Release/snotice_new.app`
 
-创建 DMG（可选）：
+Create DMG (optional):
 ```bash
-# 安装 create-dmg 工具
+# Install create-dmg tool
 brew install create-dmg
 
-# 创建 DMG 文件
+# Create DMG file
 create-dmg \
   --volname "SNotice" \
   --volicon "assets/icons/app_icon.icns" \
@@ -195,15 +222,15 @@ create-dmg \
 flutter build linux --release
 ```
 
-输出目录：`build/linux/x64/release/bundle/`
+Output: `build/linux/x64/release/bundle/`
 
-创建 DEB 包（可选）：
+Create DEB package (optional):
 ```bash
-# 使用 linuxdeploy
+# Use linuxdeploy
 wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
 chmod +x linuxdeploy-x86_64.AppImage
 
-# 创建 AppImage
+# Create AppImage
 ./linuxdeploy-x86_64.AppImage \
   --appdir SNotice.AppDir \
   --executable build/linux/x64/release/bundle/snotice_new \
@@ -217,9 +244,9 @@ chmod +x linuxdeploy-x86_64.AppImage
 flutter build windows --release
 ```
 
-输出目录：`build\windows\runner\Release\`
+Output: `build\windows\runner\Release\`
 
-使用 Inno Setup 创建安装包（可选）：
+Create installer using Inno Setup (optional):
 ```iss
 [Setup]
 AppName=SNotice
@@ -234,51 +261,55 @@ Source: "build\windows\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion
 Name: "{userdesktop}\SNotice"; Filename: "{app}\snotice_new.exe"
 ```
 
-## 常见问题
+## Common Issues
 
-### Q: 应用无法启动
-A: 确保已安装所有依赖并运行 `flutter pub get`
+### Q: Application won't start
+A: Ensure all dependencies are installed by running `flutter pub get`
 
-### Q: HTTP 服务器无法启动
-A: 检查端口是否被占用，尝试更换端口
+### Q: HTTP server won't start
+A: Check if the port is already in use, try changing the port
 
-### Q: 通知无法显示
-A: 检查系统通知权限，确保应用有权限显示通知
+### Q: Notifications not displaying
+A: Check system notification permissions, ensure app has permission to display notifications
 
-### Q: IP 白名单不工作
-A: 确保输入的 IP 地址格式正确（如 127.0.0.1）
+### Q: IP whitelist not working
+A: Ensure IP address format is correct (e.g., 127.0.0.1)
 
-### Q: 构建失败
-A: 确保已安装平台特定的开发工具：
+### Q: Build fails
+A: Ensure platform-specific development tools are installed:
 - macOS: Xcode
-- Linux: GTK+3.0 开发库
-- Windows: Visual Studio 2019 或更高版本
+- Linux: GTK+3.0 development libraries
+- Windows: Visual Studio 2019 or higher
 
-## 性能优化建议
+### Q: Flash screen overlay not appearing
+A: Ensure `category` is set to `"flash"` in the API request and check desktop_multi_window plugin is properly installed
 
-1. **日志轮转**：当前日志在内存中，考虑添加磁盘持久化和轮转
-2. **连接池**：HTTP 服务器可以使用连接池优化性能
-3. **异步处理**：确保所有 I/O 操作都是异步的
-4. **资源清理**：确保在应用退出时正确清理资源
+## Performance Optimization Suggestions
 
-## 安全建议
+1. **Log Rotation**: Current logs are in-memory, consider adding disk persistence and rotation
+2. **Connection Pooling**: HTTP server can use connection pooling for performance
+3. **Async Processing**: Ensure all I/O operations are async
+4. **Resource Cleanup**: Ensure resources are properly cleaned up when app exits
 
-1. **使用 HTTPS**：在生产环境中考虑使用 HTTPS
-2. **更强的认证**：考虑添加 API 密钥或 OAuth
-3. **输入验证**：确保所有输入都经过严格验证
-4. **日志脱敏**：不要在日志中记录敏感信息
+## Security Suggestions
 
-## 下一步
+1. **Use HTTPS**: Consider using HTTPS in production environments
+2. **Stronger Authentication**: Consider adding API keys or OAuth
+3. **Input Validation**: Ensure all inputs are strictly validated
+4. **Log Sanitization**: Don't log sensitive information
 
-1. 完成所有基础功能测试
-2. 在目标平台上构建和测试
-3. 修复发现的问题
-4. 准备发布文档和安装包
-5. 创建用户指南
+## Next Steps
 
-## 支持
+1. Complete all basic functionality testing
+2. Build and test on target platforms
+3. Fix any discovered issues
+4. Prepare release documentation and installers
+5. Create user guide
 
-如有问题，请查看：
-- [Project Plan](plan.md)
-- [Progress Report](progress.md)
-- [Flutter Documentation](https://docs.flutter.dev/)
+## Support
+
+For issues or questions:
+- Check the [Project Plan](plan.md)
+- Review the [Progress Report](progress.md)
+- Refer to [Flutter Documentation](https://docs.flutter.dev/)
+- Check [Flash Screen Documentation](flash-screen.md)

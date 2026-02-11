@@ -38,7 +38,7 @@ flutter run -d windows
 ### Send a Notification
 
 ```bash
-curl -X POST http://localhost:8080/api/notify \
+curl -X POST http://localhost:8642/api/notify \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Hello",
@@ -50,7 +50,7 @@ curl -X POST http://localhost:8080/api/notify \
 ### Flash Screen Notification
 
 ```bash
-curl -X POST http://localhost:8080/api/notify \
+curl -X POST http://localhost:8642/api/notify \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Alert",
@@ -65,11 +65,11 @@ curl -X POST http://localhost:8080/api/notify \
 
 For detailed documentation, see the [docs](./docs) directory:
 
-- [Full README](./docs/README.md) - Complete project documentation
-- [Flash Screen Feature](./docs/flash-screen/implementation.md) - Flash screen notifications
-- [Build and Test](./docs/build_and_test.md) - Building and testing guide
-- [Project Plan](./docs/plan.md) - Detailed project plan
+- [Full Documentation](./docs/README.md) - Complete project documentation
+- [Project Plan](./docs/plan.md) - Detailed project plan and architecture
 - [Progress Report](./docs/progress.md) - Implementation status
+- [Build and Test Guide](./docs/build_and_test.md) - Building and testing instructions
+- [Flash Screen Feature](./docs/flash-screen.md) - Flash screen overlay documentation
 
 ## Technology Stack
 
@@ -79,6 +79,8 @@ For detailed documentation, see the [docs](./docs) directory:
 - **State Management**: provider
 - **Persistence**: shared_preferences
 - **System Tray**: system_tray
+- **Multi-window**: desktop_multi_window
+- **Window Management**: window_manager
 
 ## Development
 

@@ -1,98 +1,105 @@
-# SNotice 项目实施进度
+# SNotice Implementation Progress
 
-## 已完成的工作
+## Completed Work
 
-### 1. 项目初始化
-- ✅ 创建了完整的项目目录结构
-- ✅ 更新了 `pubspec.yaml` 添加所有必需的依赖包
-- ✅ 配置了 assets 目录结构
-- ✅ 配置了 macOS 网络服务器权限
+### 1. Project Initialization
+- ✅ Created complete project directory structure
+- ✅ Updated `pubspec.yaml` with all required dependencies
+- ✅ Configured assets directory structure
+- ✅ Configured macOS network server permissions
 
-### 2. 核心模型
-- ✅ `NotificationRequest` - 通知请求模型
-- ✅ `AppConfig` - 应用配置模型（包含 copyWith 方法）
-- ✅ `LogEntry` - 日志条目模型
+### 2. Core Models
+- ✅ `NotificationRequest` - Notification request model
+- ✅ `AppConfig` - Application configuration model (includes copyWith method)
+- ✅ `LogEntry` - Log entry model
 
-### 3. 服务层
-- ✅ `LoggerService` - 日志服务（记录各种类型的日志）
-- ✅ `NotificationService` - 通知服务（支持跨平台）
-- ✅ `HttpServerService` - HTTP 服务器服务（使用 shelf）
-- ✅ `ConfigService` - 配置持久化服务
-- ✅ `TrayService` - 系统托盘服务（基础实现）
+### 3. Services Layer
+- ✅ `LoggerService` - Logging service (records various log types)
+- ✅ `NotificationService` - Notification service (cross-platform support)
+- ✅ `HttpServerService` - HTTP server service (uses shelf)
+- ✅ `ConfigService` - Configuration persistence service
+- ✅ `TrayService` - System tray service (basic implementation)
+- ✅ `FlashOverlayService` - Flash screen overlay service
 
-### 4. 状态管理
-- ✅ `ConfigProvider` - 配置状态管理
-- ✅ `LogProvider` - 日志状态管理
-- ✅ `ServerProvider` - 服务器状态管理
+### 4. State Management
+- ✅ `ConfigProvider` - Configuration state management
+- ✅ `LogProvider` - Log state management
+- ✅ `ServerProvider` - Server state management
 
-### 5. 用户界面
-- ✅ `MainScreen` - 主界面（显示服务器状态、统计信息、导航）
-- ✅ `SettingsScreen` - 设置界面（端口、IP 白名单、自动启动等）
-- ✅ `LogScreen` - 日志界面（查看和筛选日志）
-- ✅ `TestScreen` - 测试界面（发送测试通知）
+### 5. User Interface
+- ✅ `MainScreen` - Main screen (server status, statistics, navigation)
+- ✅ `SettingsScreen` - Settings screen (port, IP whitelist, auto-start)
+- ✅ `LogScreen` - Log screen (view and filter logs)
+- ✅ `TestScreen` - Test screen (send test notifications)
 
-### 6. 工具类
-- ✅ `ResponseUtil` - HTTP 响应工具类
-- ✅ `AppConstants` - 应用常量定义
+### 6. Utilities
+- ✅ `ResponseUtil` - HTTP response utility
+- ✅ `AppConstants` - Application constants
 
-### 7. 主程序
-- ✅ `main.dart` - 应用入口，初始化所有服务和 providers
+### 7. Main Application
+- ✅ `main.dart` - Application entry point, initializes all services and providers
+- ✅ `overlay_main.dart` - Flash screen overlay entry point
 
-### 8. 文档
-- ✅ `docs/plan.md` - 完整的项目计划和文档
-- ✅ `docs/test_api.sh` - API 测试脚本
+### 8. Documentation
+- ✅ `README.md` - Project overview
+- ✅ `docs/plan.md` - Complete project plan
+- ✅ `docs/flash-screen.md` - Flash screen feature documentation
+- ✅ `AGENTS.md` - AI assistant knowledge base
 
-## 代码质量
+## Code Quality
 
-### 分析结果
-- ✅ 所有编译错误已修复
-- ℹ️ 剩余 13 个 info/warning（主要是代码风格建议）
+### Analysis Results
+- ✅ All compilation errors fixed
+- ℹ️ Remaining info/warnings are code style suggestions
 
-### 依赖包
-所有依赖包已成功安装：
-- `shelf` - HTTP 服务器
-- `shelf_router` - 路由
-- `flutter_local_notifications` - 本地通知
-- `system_tray` - 系统托盘
-- `provider` - 状态管理
-- `shared_preferences` - 配置持久化
-- `logger` - 日志记录
+### Dependencies
+All dependencies successfully installed:
+- `shelf` - HTTP server
+- `shelf_router` - Routing
+- `flutter_local_notifications` - Local notifications
+- `system_tray` - System tray
+- `provider` - State management
+- `shared_preferences` - Configuration persistence
+- `logger` - Logging
+- `desktop_multi_window` - Multi-window support
+- `window_manager` - Window management
 
-## 待完成的工作
+## Remaining Work
 
-### 1. 资源文件
-- ❌ 创建实际的托盘图标文件（.png 和 .ico）
-- ❌ 可能需要应用图标
+### 1. Assets
+- ❌ Create actual tray icon files (.png and .ico)
+- ❌ Create application icon
 
-### 2. 系统托盘完善
-- ⚠️ `TrayService` 需要完善菜单项的点击事件处理
-- ⚠️ 确保跨平台兼容性
+### 2. System Tray Enhancement
+- ⚠️ `TrayService` needs menu click event handling completion
+- ⚠️ Ensure cross-platform compatibility
 
-### 3. 平台测试
-- ❌ 在 macOS 上测试构建和运行
-- ❌ 在 Linux 上测试构建和运行
-- ❌ 在 Windows 上测试构建和运行
+### 3. Platform Testing
+- ❌ Test build and run on macOS
+- ❌ Test build and run on Linux
+- ❌ Test build and run on Windows
 
-### 4. 功能测试
-- ❌ 测试 HTTP API 端点
-- ❌ 测试通知功能
-- ❌ 测试 IP 白名单验证
-- ❌ 测试配置持久化
-- ❌ 测试日志记录
+### 4. Functional Testing
+- ❌ Test all HTTP API endpoints
+- ❌ Test notification functionality
+- ❌ Test IP whitelist validation
+- ❌ Test configuration persistence
+- ❌ Test logging functionality
+- ❌ Test flash screen overlay on all platforms
 
-### 5. 代码优化
-- ℹ️ 修复 linter 警告（可选）
-- ℹ️ 优化性能（如需要）
-- ℹ️ 添加单元测试（可选）
+### 5. Code Optimization
+- ℹ️ Fix linter warnings (optional)
+- ℹ️ Optimize performance (if needed)
+- ℹ️ Add unit tests (optional)
 
-### 6. 打包和发布
-- ❌ 构建各平台的 release 版本
-- ❌ 创建安装包（.dmg, .deb, .msi）
-- ❌ 编写用户文档
+### 6. Packaging and Release
+- ❌ Build release versions for all platforms
+- ❌ Create installers (.dmg, .deb, .msi)
+- ❌ Write user documentation
 
-## 快速开始
+## Quick Start
 
-### 运行应用
+### Run Application
 
 ```bash
 # macOS
@@ -105,93 +112,86 @@ flutter run -d linux
 flutter run -d windows
 ```
 
-### 测试 API
+### Test API
 
-在应用运行后，使用提供的测试脚本：
-
-```bash
-# 给脚本执行权限
-chmod +x docs/test_api.sh
-
-# 运行测试
-./docs/test_api.sh
-```
-
-或者使用 curl 手动测试：
+After the application is running, test with:
 
 ```bash
-curl -X POST http://localhost:8080/api/notify \
+curl -X POST http://localhost:8642/api/notify \
   -H "Content-Type: application/json" \
-  -d '{"title": "测试", "body": "通知内容"}'
+  -d '{"title":"Test","body":"Notification"}'
 ```
 
-## 项目结构
+## Project Structure
 
 ```
 snotice_new/
-├── docs/                      # 文档
-│   ├── plan.md               # 项目计划
-│   └── test_api.sh           # API 测试脚本
-├── lib/                       # Dart 源代码
-│   ├── config/               # 配置
-│   ├── models/               # 数据模型
-│   ├── providers/            # 状态管理
-│   ├── services/             # 服务层
-│   ├── ui/                   # 用户界面
-│   ├── utils/                # 工具类
-│   └── main.dart             # 应用入口
-├── assets/                    # 资源文件
-│   └── icons/               # 图标占位符
-├── macos/                     # macOS 平台代码
-├── linux/                     # Linux 平台代码
-├── windows/                   # Windows 平台代码
-└── pubspec.yaml              # 项目配置
-
+├── docs/                      # Documentation
+│   ├── plan.md               # Project plan
+│   ├── flash-screen.md        # Flash screen feature
+│   └── progress.md           # Implementation progress
+├── lib/                       # Dart source code
+│   ├── config/               # Configuration
+│   ├── models/               # Data models
+│   ├── providers/            # State management
+│   ├── services/             # Services layer
+│   ├── ui/                   # User interface
+│   ├── utils/                # Utilities
+│   ├── main.dart             # Application entry
+│   └── overlay_main.dart     # Overlay entry
+├── assets/                    # Resource files
+│   └── icons/               # Icons
+├── macos/                     # macOS platform code
+├── linux/                     # Linux platform code
+├── windows/                   # Windows platform code
+└── pubspec.yaml              # Project configuration
 ```
 
-## 下一步建议
+## Next Steps
 
-1. **立即行动**：
-   - 创建托盘图标（可以使用任何图标生成工具）
-   - 在当前平台（macOS）上运行并测试应用
+### Immediate Actions
+1. Create tray icons (can use any icon generation tool)
+2. Run and test the application on current platform (macOS)
 
-2. **短期**：
-   - 测试所有 HTTP API 端点
-   - 修复托盘菜单的点击事件
-   - 完善错误处理
+### Short-term
+1. Test all HTTP API endpoints
+2. Fix tray menu click events
+3. Improve error handling
 
-3. **中期**：
-   - 在其他平台上测试
-   - 添加单元测试
-   - 优化用户体验
+### Medium-term
+1. Test on other platforms (Linux, Windows)
+2. Add unit tests
+3. Optimize user experience
 
-4. **长期**：
-   - 构建发布版本
-   - 编写用户文档
-   - 考虑添加高级功能（如通知历史、通知模板等）
+### Long-term
+1. Build release versions
+2. Write user documentation
+3. Consider adding advanced features (notification history, templates, etc.)
 
-## 技术栈总结
+## Technology Stack Summary
 
-- **框架**: Flutter 3.10.7+
-- **HTTP 服务器**: shelf
-- **本地通知**: flutter_local_notifications
-- **状态管理**: provider
-- **持久化**: shared_preferences
-- **日志**: logger
-- **系统托盘**: system_tray
+- **Framework**: Flutter 3.10.7+
+- **HTTP Server**: shelf
+- **Local Notifications**: flutter_local_notifications
+- **State Management**: provider
+- **Persistence**: shared_preferences
+- **Logging**: logger
+- **System Tray**: system_tray
+- **Multi-window**: desktop_multi_window
+- **Window Management**: window_manager
 
-## 支持的平台
+## Supported Platforms
 
 - ✅ macOS
 - ✅ Linux (Ubuntu, etc.)
 - ✅ Windows
 
-## 许可证
+## License
 
 MIT
 
 ---
 
-**最后更新**: 2026-01-13
-**当前版本**: 0.1.0
-**状态**: 开发阶段 - 基础功能已实现，需要测试和完善
+**Last Updated**: 2026-02-11
+**Current Version**: 0.1.0
+**Status**: Development Phase - Core features implemented, testing in progress

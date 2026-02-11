@@ -1,5 +1,5 @@
 class AppConstants {
-  static const String defaultPort = '8080';
+  static const String defaultPort = '8642';
   static const String appName = 'SNotice';
   static const String appVersion = '0.1.0';
 

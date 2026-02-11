@@ -10,6 +10,7 @@ A cross-platform desktop notification webhook application for macOS, Linux, and 
 - 📝 **Logging**: Complete request and notification history
 - 📋 **System Tray**: Minimizable to system tray
 - 🔒 **IP Whitelist**: Simple IP-based access control
+- 🎨 **Flash Screen**: Full-screen overlay notifications with custom colors
 
 ## Quick Start
 
@@ -38,7 +39,7 @@ flutter run -d windows
 ### Send a Notification
 
 ```bash
-curl -X POST http://localhost:8080/api/notify \
+curl -X POST http://localhost:8642/api/notify \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Hello",
@@ -47,23 +48,37 @@ curl -X POST http://localhost:8080/api/notify \
   }'
 ```
 
+### Flash Screen Notification
+
+```bash
+curl -X POST http://localhost:8642/api/notify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Alert",
+    "body": "Screen flash",
+    "category": "flash",
+    "flashColor": "gray",
+    "flashDuration": 800
+  }'
+```
+
 ### Get Server Status
 
 ```bash
-curl http://localhost:8080/api/status
+curl http://localhost:8642/api/status
 ```
 
 ### Get/Update Configuration
 
 ```bash
 # Get config
-curl http://localhost:8080/api/config
+curl http://localhost:8642/api/config
 
 # Update config
-curl -X POST http://localhost:8080/api/config \
+curl -X POST http://localhost:8642/api/config \
   -H "Content-Type: application/json" \
   -d '{
-    "port": 8080,
+    "port": 8642,
     "allowedIPs": ["127.0.0.1"]
   }'
 ```
@@ -81,7 +96,9 @@ Send a notification to the system.
   "body": "string (required)",
   "icon": "string (optional)",
   "priority": "low|normal|high (optional, default: normal)",
-  "category": "string (optional)",
+  "category": "string (optional, use 'flash' for screen flash)",
+  "flashColor": "string (optional, for flash category, default: #FF0000)",
+  "flashDuration": "int (optional, for flash category, default: 500)",
   "payload": "object (optional)"
 }
 ```
@@ -103,7 +120,7 @@ Get the current server status.
 ```json
 {
   "running": true,
-  "port": 8080,
+  "port": 8642,
   "uptime": 3600
 }
 ```
@@ -115,7 +132,7 @@ Get the current configuration.
 **Response:**
 ```json
 {
-  "port": 8080,
+  "port": 8642,
   "allowedIPs": ["127.0.0.1", "::1"],
   "autoStart": true,
   "showNotifications": true
@@ -129,7 +146,7 @@ Update the configuration.
 **Request Body:**
 ```json
 {
-  "port": 8080,
+  "port": 8642,
   "allowedIPs": ["127.0.0.1"],
   "autoStart": true,
   "showNotifications": true
@@ -138,8 +155,10 @@ Update the configuration.
 
 ## Documentation
 
-- [Project Plan](docs/plan.md) - Detailed project plan and architecture
-- [Progress Report](docs/progress.md) - Implementation status and next steps
+- [Project Plan](plan.md) - Detailed project plan and architecture
+- [Progress Report](progress.md) - Implementation status and next steps
+- [Flash Screen Feature](flash-screen.md) - Flash screen overlay documentation
+- [Build and Test Guide](build_and_test.md) - Building and testing instructions
 
 ## Technology Stack
 

@@ -1,130 +1,123 @@
-# SNotice - 跨平台通知 Webhook 应用
+# SNotice Project Plan
 
-## 项目概述
+## Project Overview
 
-SNotice 是一个运行在 macOS、Ubuntu (Linux) 和 Windows 上的桌面应用，通过 HTTP API 提供系统通知功能，相当于一个通知 Webhook。
+SNotice is a cross-platform desktop notification webhook application built with Flutter. It runs an HTTP server (default port 8642) that accepts REST API requests to trigger system notifications on macOS, Linux, and Windows. The app features a settings UI, request logging, system tray integration, and flash screen overlay notifications.
 
-## 核心功能
+## Technology Stack
 
-- **跨平台支持**: macOS、Linux、Windows
-- **HTTP API**: RESTful 接口发送系统通知
-- **富文本通知**: 支持标题、内容、图标、优先级、分类等参数
-- **配置界面**: 可配置端口、IP 白名单等
-- **日志记录**: 记录通知历史和 HTTP 请求
-- **系统托盘**: 最小化托盘，右键菜单控制
-- **IP 白名单**: 简单的 IP 限制验证
+- **Framework**: Flutter 3.10.7+
+- **HTTP Server**: shelf
+- **Local Notifications**: flutter_local_notifications
+- **System Tray**: system_tray
+- **State Management**: provider
+- **Configuration Persistence**: shared_preferences
+- **Logging**: logger
+- **Multi-window**: desktop_multi_window (for flash screen feature)
+- **Window Management**: window_manager
 
-## 技术栈
-
-- **框架**: Flutter 3.10.7+
-- **HTTP 服务器**: shelf
-- **本地通知**: flutter_local_notifications
-- **系统托盘**: system_tray
-- **状态管理**: provider
-- **配置持久化**: shared_preferences
-- **日志**: logger
-
-## 项目结构
+## Project Structure
 
 ```
 lib/
-├── main.dart                          # 应用入口
+├── main.dart                          # Application entry point
 ├── config/
-│   └── constants.dart                  # 常量定义
+│   └── constants.dart                  # Application constants
 ├── models/
-│   ├── notification_request.dart      # 通知请求模型
-│   ├── app_config.dart                # 应用配置模型
-│   └── log_entry.dart                 # 日志条目模型
+│   ├── notification_request.dart         # Notification request model
+│   ├── app_config.dart                 # Application configuration model
+│   └── log_entry.dart                 # Log entry model
 ├── services/
-│   ├── http_server_service.dart       # HTTP 服务
-│   ├── notification_service.dart      # 通知服务
-│   ├── tray_service.dart              # 托盘服务
-│   ├── config_service.dart           # 配置服务
-│   └── logger_service.dart           # 日志服务
+│   ├── http_server_service.dart         # HTTP server service
+│   ├── notification_service.dart        # Notification service
+│   ├── tray_service.dart               # System tray service
+│   ├── config_service.dart             # Configuration service
+│   ├── logger_service.dart             # Logging service
+│   └── flash_overlay_service.dart      # Flash screen overlay service
 ├── providers/
-│   ├── config_provider.dart          # 配置状态管理
-│   ├── log_provider.dart             # 日志状态管理
-│   └── server_provider.dart          # 服务器状态管理
+│   ├── config_provider.dart            # Configuration state management
+│   ├── log_provider.dart               # Log state management
+│   └── server_provider.dart           # Server state management
 ├── ui/
-│   ├── main_screen.dart              # 主界面
-│   ├── settings_screen.dart          # 设置界面
-│   ├── log_screen.dart               # 日志界面
-│   └── test_screen.dart              # 测试界面
+│   ├── main_screen.dart               # Main interface
+│   ├── settings_screen.dart           # Settings interface
+│   ├── log_screen.dart                # Log interface
+│   └── test_screen.dart              # Test interface
 └── utils/
-    └── response_util.dart            # 响应工具类
+    ├── response_util.dart             # HTTP response utilities
+    └── ip_utils.dart                # IP address utilities
 ```
 
-## API 接口
+## API Endpoints
 
-### 发送通知
+### POST /api/notify
 
-```http
-POST /api/notify
-Content-Type: application/json
+Send a notification to the system.
 
+**Request Body:**
+```json
 {
-  "title": "通知标题",
-  "body": "通知内容",
-  "icon": "path/to/icon.png",
-  "priority": "high",
-  "category": "alert"
+  "title": "string (required)",
+  "body": "string (required)",
+  "icon": "string (optional)",
+  "priority": "low|normal|high (optional, default: normal)",
+  "category": "string (optional)",
+  "flashColor": "string (optional, for flash category)",
+  "flashDuration": "int (optional, default: 500, for flash category)",
+  "payload": "object (optional)"
 }
 ```
 
-**响应:**
+**Response:**
 ```json
 {
   "success": true,
-  "message": "通知已发送",
+  "message": "Notification sent",
   "timestamp": "2026-01-13T10:30:00.000Z"
 }
 ```
 
-### 获取服务状态
+### GET /api/status
 
-```http
-GET /api/status
-```
+Get the current server status.
 
-**响应:**
+**Response:**
 ```json
 {
   "running": true,
-  "port": 8080,
+  "port": 8642,
   "uptime": 3600
 }
 ```
 
-### 获取配置
+### GET /api/config
 
-```http
-GET /api/config
-```
+Get the current configuration.
 
-**响应:**
+**Response:**
 ```json
 {
-  "port": 8080,
+  "port": 8642,
   "allowedIPs": ["127.0.0.1", "::1"],
   "autoStart": true,
   "showNotifications": true
 }
 ```
 
-### 更新配置
+### POST /api/config
 
-```http
-POST /api/config
-Content-Type: application/json
+Update the configuration.
 
+**Request Body:**
+```json
 {
-  "port": 8080,
+  "port": 8642,
   "allowedIPs": ["127.0.0.1"],
   "autoStart": false
 }
 ```
 
-## 数据模型
+## Data Models
 
 ### NotificationRequest
 
@@ -134,7 +127,9 @@ class NotificationRequest {
   String body;
   String? icon;
   String? priority; // low, normal, high
-  String? category;
+  String? category; // "flash" for screen flash
+  String? flashColor;
+  int? flashDuration;
   Map<String, dynamic>? payload;
 }
 ```
@@ -161,140 +156,56 @@ class LogEntry {
 }
 ```
 
-## 实施步骤
+## Usage Examples
 
-### 第一步：更新依赖包
-
-在 `pubspec.yaml` 添加以下依赖：
-
-```yaml
-dependencies:
-  shelf: ^1.4.1
-  shelf_router: ^1.1.4
-  flutter_local_notifications: ^17.0.0
-  system_tray: ^2.0.3
-  provider: ^6.1.1
-  shared_preferences: ^2.2.2
-  logger: ^2.0.2+1
-  convert: ^3.1.1
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^6.0.0
-  mockito: ^5.4.4
-  build_runner: ^2.4.8
-```
-
-### 第二步：创建目录结构
-
-创建所有必要的目录和空文件。
-
-### 第三步：实现核心服务
-
-**1. 配置服务** (`config_service.dart`)
-- 加载/保存配置
-- 默认配置管理
-- 使用 shared_preferences 持久化
-
-**2. HTTP 服务** (`http_server_service.dart`)
-- 使用 shelf 实现 HTTP 服务器
-- 端点实现
-- IP 白名单验证
-
-**3. 通知服务** (`notification_service.dart`)
-- 初始化各平台通知
-- 支持富文本参数
-- 处理平台差异
-
-**4. 系统托盘服务** (`tray_service.dart`)
-- 托盘图标管理
-- 右键菜单
-
-**5. 日志服务** (`logger_service.dart`)
-- 记录 HTTP 请求
-- 记录通知发送历史
-- 日志级别管理
-
-### 第四步：实现数据模型
-
-创建所有数据模型类。
-
-### 第五步：实现状态管理
-
-创建 provider 类管理应用状态。
-
-### 第六步：实现 UI 界面
-
-创建所有 UI 界面。
-
-### 第七步：平台特定配置
-
-**macOS** (`macos/Runner/Release.entitlements`)
-```xml
-<key>com.apple.security.network.server</key>
-<true/>
-```
-
-### 第八步：主程序入口
-
-实现 `main.dart` 初始化所有服务。
-
-### 第九步：测试和优化
-
-- 测试各平台通知功能
-- 测试 HTTP API 端点
-- 测试配置持久化
-- 优化性能和内存使用
-
-## 使用示例
-
-### cURL 示例
+### cURL Example
 
 ```bash
-curl -X POST http://localhost:8080/api/notify \
+curl -X POST http://localhost:8642/api/notify \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "测试通知",
-    "body": "这是一条来自 SNotice 的通知",
+    "title": "Test Notification",
+    "body": "This is a notification from SNotice",
     "priority": "high"
   }'
 ```
 
-### JavaScript 示例
+### Flash Screen Example
 
-```javascript
-fetch('http://localhost:8080/api/notify', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    title: '通知标题',
-    body: '通知内容',
-    priority: 'normal'
-  })
-})
-.then(response => response.json())
-.then(data => console.log(data));
+```bash
+curl -X POST http://localhost:8642/api/notify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Alert",
+    "body": "Screen flash",
+    "category": "flash",
+    "flashColor": "gray",
+    "flashDuration": 800
+  }'
 ```
 
-## 安全性
+## Security Considerations
 
-- **IP 白名单**: 默认只允许 localhost 访问
-- **端口可配置**: 避免端口冲突
-- **输入验证**: 验证所有输入参数
+- **IP Whitelist**: Default allows only localhost access
+- **Configurable Port**: Avoid port conflicts
+- **Input Validation**: Validate all input parameters
+- **HTTPS Support**: Consider using HTTPS in production environments
 
-## 性能考虑
+## Performance Considerations
 
-- 异步处理通知发送
-- 日志轮转避免内存溢出
-- HTTP 连接池复用
+- Async notification sending
+- Log rotation to prevent memory overflow
+- HTTP connection pooling
+- In-memory log storage with auto-rotation (max 1000 entries)
 
-## 许可证
+## Platform-Specific Notes
+
+- **macOS**: Native notifications and system tray
+- **Linux**: GTK-based notifications and tray
+- **Windows**: Windows notifications and system tray
+
+Each platform requires building the respective target before running in release mode.
+
+## License
 
 MIT
-
-## 作者
-
-SNotice Team

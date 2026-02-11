@@ -1,36 +1,41 @@
+import 'dart:io';
+
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:desktop_multi_window/desktop_multi_window.dart';
+
 import 'config/constants.dart';
-import 'services/logger_service.dart';
-import 'services/notification_service.dart';
-import 'services/http_server_service.dart';
-import 'services/config_service.dart';
-import 'services/tray_service.dart';
-import 'services/flash_overlay_service.dart';
+import 'overlay_main.dart' as overlay;
 import 'providers/config_provider.dart';
 import 'providers/log_provider.dart';
 import 'providers/server_provider.dart';
+import 'services/config_service.dart';
+import 'services/flash_overlay_service.dart';
+import 'services/http_server_service.dart';
+import 'services/logger_service.dart';
+import 'services/notification_service.dart';
+import 'services/tray_service.dart';
 import 'ui/main_screen.dart';
-import 'overlay_main.dart' as overlay;
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 获取当前窗口控制器
-  final controller = await WindowController.fromCurrentEngine();
-  
-  // 检查是否为覆盖窗口（参数不为空且包含闪烁参数）
-  if (controller.arguments.isNotEmpty) {
-    try {
-      final arguments = controller.arguments;
-      // 如果参数包含color，说明是闪烁窗口
-      if (arguments.contains('color')) {
-        overlay.overlayMain(args);
-        return;
+  // macOS 已使用原生闪屏实现，不需要 desktop_multi_window 启动判断。
+  if (!Platform.isMacOS) {
+    final controller = await WindowController.fromCurrentEngine();
+
+    // 检查是否为覆盖窗口（参数不为空且包含闪烁参数）
+    if (controller.arguments.isNotEmpty) {
+      try {
+        final arguments = controller.arguments;
+        // 如果参数包含color，说明是闪烁窗口
+        if (arguments.contains('color')) {
+          overlay.overlayMain(args);
+          return;
+        }
+      } catch (_) {
+        // 忽略解析错误
       }
-    } catch (e) {
-      // 忽略解析错误
     }
   }
 
@@ -49,7 +54,10 @@ Future<void> _startMainApp() async {
   // 创建 FlashOverlayService
   final flashOverlayService = FlashOverlayService(loggerService);
 
-  final notificationService = NotificationService(loggerService, flashOverlayService);
+  final notificationService = NotificationService(
+    loggerService,
+    flashOverlayService,
+  );
   await notificationService.initialize();
   await notificationService.requestPermissions();
 
