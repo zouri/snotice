@@ -14,13 +14,11 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
-    registerScreenChannel(controller: flutterViewController)
     registerFlashChannel(controller: flutterViewController)
 
     // 支持多窗口插件
     FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
       RegisterGeneratedPlugins(registry: controller)
-      self.registerScreenChannel(controller: controller)
     }
 
     super.awakeFromNib()
@@ -190,69 +188,4 @@ class MainFlutterWindow: NSWindow {
     }
   }
 
-  private func registerScreenChannel(controller: FlutterViewController) {
-    let channel = FlutterMethodChannel(
-      name: "snotice/screen",
-      binaryMessenger: controller.engine.binaryMessenger
-    )
-
-    channel.setMethodCallHandler { call, result in
-      switch call.method {
-      case "getMainScreenFrame":
-        let screen = controller.view.window?.screen ?? NSScreen.main
-        guard let frame = screen?.frame else {
-          result(
-            FlutterError(
-              code: "no_screen",
-              message: "Unable to access macOS screen frame",
-              details: nil
-            )
-          )
-          return
-        }
-
-        result([
-          "width": frame.size.width,
-          "height": frame.size.height,
-          "x": frame.origin.x,
-          "y": frame.origin.y
-        ])
-      case "configureOverlayWindow":
-        guard let window = controller.view.window else {
-          result(
-            FlutterError(
-              code: "no_window",
-              message: "Unable to access overlay window",
-              details: nil
-            )
-          )
-          return
-        }
-
-        let screen = window.screen ?? NSScreen.main
-        guard let frame = screen?.frame else {
-          result(
-            FlutterError(
-              code: "no_screen",
-              message: "Unable to access macOS screen frame",
-              details: nil
-            )
-          )
-          return
-        }
-
-        window.level = .screenSaver
-        window.collectionBehavior.insert(.canJoinAllSpaces)
-        window.collectionBehavior.insert(.fullScreenAuxiliary)
-        window.backgroundColor = .clear
-        window.isOpaque = false
-        window.setFrame(frame, display: true)
-        window.orderFrontRegardless()
-
-        result(true)
-      default:
-        result(FlutterMethodNotImplemented)
-      }
-    }
-  }
 }

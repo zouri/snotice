@@ -18,14 +18,10 @@ class TrayService {
   }
 
   Future<void> _initTray() async {
-    final String path;
-
-    if (Platform.isWindows) {
-      path = 'assets/icons/tray_icon.ico';
-    } else if (Platform.isMacOS) {
-      path = 'assets/icons/tray_icon.png';
-    } else {
-      path = 'assets/icons/tray_icon.png';
+    final path = _resolveTrayIconPath();
+    if (path == null) {
+      print('Tray icon not found. Skipping tray initialization.');
+      return;
     }
 
     try {
@@ -43,6 +39,22 @@ class TrayService {
     } catch (e) {
       print('Failed to initialize system tray: $e');
     }
+  }
+
+  String? _resolveTrayIconPath() {
+    final candidates = <String>[
+      if (Platform.isWindows) 'assets/icons/tray_icon.ico',
+      'assets/icons/tray_icon.png',
+      if (Platform.isMacOS)
+        'macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png',
+    ];
+
+    for (final path in candidates) {
+      if (File(path).existsSync()) {
+        return path;
+      }
+    }
+    return null;
   }
 
   Future<void> _initMenu() async {

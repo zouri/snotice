@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -49,34 +47,12 @@ Future<void> _configureOverlayWindow() async {
     await windowManager.setSkipTaskbar(true);
     await windowManager.setAlwaysOnTop(true);
 
-    // macOS: 设置窗口级别为 screenSaver 以覆盖菜单栏，并调整到屏幕尺寸
-    if (Platform.isMacOS) {
-      final configured = await _configureMacOverlayWindow();
-      if (!configured) {
-        await windowManager.setFullScreen(true);
-      }
-    } else {
-      // 非 macOS 平台使用系统全屏
-      await windowManager.setFullScreen(true);
-    }
+    // 使用系统全屏
+    await windowManager.setFullScreen(true);
 
     // 显示窗口
     await windowManager.show();
   });
-}
-
-const MethodChannel _screenChannel = MethodChannel('snotice/screen');
-
-Future<bool> _configureMacOverlayWindow() async {
-  try {
-    final result = await _screenChannel.invokeMethod<bool>(
-      'configureOverlayWindow',
-    );
-    return result ?? false;
-  } catch (e) {
-    debugPrint('Failed to configure macOS overlay window: $e');
-    return false;
-  }
 }
 
 class FlashOverlayApp extends StatelessWidget {
