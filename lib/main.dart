@@ -8,6 +8,7 @@ import 'config/constants.dart';
 import 'overlay_main.dart' as overlay;
 import 'providers/config_provider.dart';
 import 'providers/log_provider.dart';
+import 'providers/reminder_provider.dart';
 import 'providers/server_provider.dart';
 import 'services/config_service.dart';
 import 'services/flash_overlay_service.dart';
@@ -64,6 +65,7 @@ Future<void> _startMainApp() async {
   final logProvider = LogProvider(loggerService);
   final configProvider = ConfigProvider()..updateConfig(config);
   final serverProvider = ServerProvider();
+  final reminderProvider = ReminderProvider(loggerService, notificationService);
 
   final httpServerService = HttpServerService(
     notificationService: notificationService,
@@ -93,6 +95,7 @@ Future<void> _startMainApp() async {
         ChangeNotifierProvider.value(value: configProvider),
         ChangeNotifierProvider.value(value: logProvider),
         ChangeNotifierProvider.value(value: serverProvider),
+        ChangeNotifierProvider.value(value: reminderProvider),
         Provider.value(value: loggerService),
         Provider.value(value: notificationService),
         Provider.value(value: configService),
