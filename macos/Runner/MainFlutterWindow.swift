@@ -9,7 +9,7 @@ import window_manager
 
 class MainFlutterWindow: NSWindow {
   private var flashToken: Int = 0
-  private var flashOverlayWindows: [NSWindow] = []
+  private var flashOverlayWindows: [NSPanel] = []
 
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()
@@ -89,36 +89,32 @@ class MainFlutterWindow: NSWindow {
     }
 
     let flashColor = parseColor(colorString).withAlphaComponent(1.0)
-    let shieldingLevel = NSWindow.Level(rawValue: Int(CGShieldingWindowLevel()))
-    var windows: [NSWindow] = []
-    let shouldMoveToActiveSpace = !NSApp.isActive
-
-    if shouldMoveToActiveSpace {
-      NSApp.activate(ignoringOtherApps: true)
-    }
+    // Use screenSaver level to ensure the overlay appears on all spaces and covers the menu bar
+    let overlayLevel = NSWindow.Level.screenSaver
+    var windows: [NSPanel] = []
 
     for screen in screens {
       let frame = screen.frame
-      let window = NSWindow(
+      let window = NSPanel(
         contentRect: frame,
-        styleMask: [.borderless],
+        styleMask: [.borderless, .nonactivatingPanel],
         backing: .buffered,
         defer: false
       )
 
-      window.level = shieldingLevel
+      window.level = overlayLevel
       window.isOpaque = false
       window.isReleasedWhenClosed = false
       window.backgroundColor = flashColor
       window.alphaValue = 0
       window.hasShadow = false
       window.ignoresMouseEvents = true
-      if shouldMoveToActiveSpace {
-        window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary, .stationary]
-      } else {
-        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-      }
-      window.setFrame(frame, display: true)
+      // Use canJoinAllSpaces to follow the user across virtual desktops (Spaces)
+      // Avoid fullScreenPrimary as it may restrict the window to the primary space only
+      window.collectionBehavior = [
+        .canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle,
+      ]
+      window.setFrame(frame, display: false)
       window.orderFrontRegardless()
       windows.append(window)
     }
@@ -136,7 +132,8 @@ class MainFlutterWindow: NSWindow {
       }
     }
 
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(fadeInMs + holdMs)) { [weak self] in
+    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(fadeInMs + holdMs)) {
+      [weak self] in
       guard let self else {
         return
       }
