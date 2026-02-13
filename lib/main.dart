@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'config/constants.dart';
 import 'overlay_main.dart' as overlay;
@@ -45,6 +47,10 @@ void main(List<String> args) async {
 }
 
 Future<void> _startMainApp() async {
+  if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+    await windowManager.ensureInitialized();
+  }
+
   final loggerService = LoggerService();
   loggerService.info('Starting SNotice...');
 
@@ -74,20 +80,28 @@ Future<void> _startMainApp() async {
   );
   serverProvider.setHttpServerService(httpServerService);
 
-  final trayService = TrayService(
-    onStartStop: () {
+  late final TrayService trayService;
+  trayService = TrayService(
+    onStartStop: () async {
       if (serverProvider.isRunning) {
-        serverProvider.stop();
+        await serverProvider.stop();
       } else {
-        serverProvider.start();
+        await serverProvider.start();
       }
     },
-    onExit: () {
-      loggerService.info('Exiting application');
-    },
+    onShowWindow: () => _showMainWindow(loggerService),
+    onExit: () => _exitApplication(
+      loggerService: loggerService,
+      serverProvider: serverProvider,
+      trayService: trayService,
+    ),
   );
 
-  await trayService.initialize();
+  serverProvider.addListener(() {
+    unawaited(trayService.updateMenu(serverProvider.isRunning));
+  });
+
+  await trayService.initialize(isServerRunning: serverProvider.isRunning);
 
   runApp(
     MultiProvider(
@@ -107,6 +121,37 @@ Future<void> _startMainApp() async {
   if (config.autoStart) {
     await serverProvider.start();
   }
+}
+
+Future<void> _showMainWindow(LoggerService loggerService) async {
+  try {
+    if (await windowManager.isMinimized()) {
+      await windowManager.restore();
+    }
+    await windowManager.show();
+    await windowManager.focus();
+  } catch (e) {
+    loggerService.error('Failed to show main window: $e');
+  }
+}
+
+Future<void> _exitApplication({
+  required LoggerService loggerService,
+  required ServerProvider serverProvider,
+  required TrayService trayService,
+}) async {
+  loggerService.info('Exiting application');
+
+  try {
+    if (serverProvider.isRunning) {
+      await serverProvider.stop();
+    }
+  } catch (e) {
+    loggerService.error('Failed to stop server during exit: $e');
+  }
+
+  await trayService.dispose();
+  exit(0);
 }
 
 class SNoticeApp extends StatelessWidget {

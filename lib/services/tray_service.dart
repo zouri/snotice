@@ -1,96 +1,122 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:system_tray/system_tray.dart';
+
 import '../config/constants.dart';
 
+typedef TrayActionCallback = FutureOr<void> Function();
+
 class TrayService {
-  final VoidCallback? onStartStop;
-  final VoidCallback? onShowWindow;
-  final VoidCallback? onExit;
+  final TrayActionCallback? onStartStop;
+  final TrayActionCallback? onShowWindow;
+  final TrayActionCallback? onExit;
 
   final SystemTray _systemTray = SystemTray();
+  bool _isServerRunning = false;
+  bool _trayReady = false;
 
   TrayService({this.onStartStop, this.onShowWindow, this.onExit});
 
-  Future<void> initialize() async {
+  Future<void> initialize({bool isServerRunning = false}) async {
+    _isServerRunning = isServerRunning;
     await _initTray();
-    await _initMenu();
+    if (_trayReady) {
+      await _buildMenu();
+    }
   }
 
   Future<void> _initTray() async {
     final path = _resolveTrayIconPath();
-    if (path == null) {
-      print('Tray icon not found. Skipping tray initialization.');
-      return;
-    }
 
     try {
       await _systemTray.initSystemTray(
-        title: AppConstants.appName,
+        title: Platform.isMacOS ? '' : null,
         iconPath: path,
+        toolTip: AppConstants.appName,
       );
 
+      _trayReady = true;
+
       _systemTray.registerSystemTrayEventHandler((eventName) {
-        if (eventName == 'kSystemTrayEventClick' ||
-            eventName == 'kSystemTrayEventRightClick') {
+        if (eventName == kSystemTrayEventDoubleClick) {
+          _runAction(onShowWindow);
+          return;
+        }
+
+        if ((eventName == kSystemTrayEventClick ||
+                eventName == kSystemTrayEventRightClick) &&
+            !Platform.isLinux) {
           _systemTray.popUpContextMenu();
         }
       });
     } catch (e) {
-      print('Failed to initialize system tray: $e');
+      stderr.writeln('Failed to initialize system tray: $e');
     }
   }
 
-  String? _resolveTrayIconPath() {
-    final candidates = <String>[
-      if (Platform.isWindows) 'assets/icons/tray_icon.ico',
-      'assets/icons/tray_icon.png',
-      if (Platform.isMacOS)
-        'macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png',
-    ];
-
-    for (final path in candidates) {
-      if (File(path).existsSync()) {
-        return path;
-      }
+  String _resolveTrayIconPath() {
+    if (Platform.isWindows) {
+      return 'assets/icons/tray_icon.ico';
     }
-    return null;
+    return 'assets/icons/tray_icon.png';
   }
 
-  Future<void> _initMenu() async {
-    try {
-      final menu = Menu();
-      await _systemTray.setContextMenu(menu);
-    } catch (e) {
-      print('Failed to initialize menu: $e');
-    }
-  }
-
-  void updateMenu(bool isServerRunning) {
+  Future<void> _buildMenu() async {
     try {
       final menu = Menu();
 
-      final actionLabel = isServerRunning ? 'Stop Server' : 'Start Server';
+      final actionLabel = _isServerRunning ? '停止服务' : '启动服务';
 
-      menu.buildFrom([
-        MenuItemLabel(label: actionLabel),
+      await menu.buildFrom([
+        MenuItemLabel(
+          label: '打开主界面',
+          onClicked: (_) => _runAction(onShowWindow),
+        ),
+        if (onStartStop != null)
+          MenuItemLabel(
+            label: actionLabel,
+            onClicked: (_) => _runAction(onStartStop),
+          ),
         MenuSeparator(),
-        MenuItemLabel(label: 'Show Window'),
-        MenuSeparator(),
-        MenuItemLabel(label: 'Exit'),
+        MenuItemLabel(label: '退出', onClicked: (_) => _runAction(onExit)),
       ]);
 
-      _systemTray.setContextMenu(menu);
+      await _systemTray.setContextMenu(menu);
+      await _systemTray.setToolTip(
+        _isServerRunning
+            ? '${AppConstants.appName}（服务运行中）'
+            : '${AppConstants.appName}（服务未运行）',
+      );
     } catch (e) {
-      print('Failed to update menu: $e');
+      stderr.writeln('Failed to build tray menu: $e');
     }
   }
 
-  void dispose() {
+  Future<void> updateMenu(bool isServerRunning) async {
+    _isServerRunning = isServerRunning;
+    if (_trayReady) {
+      await _buildMenu();
+    }
+  }
+
+  Future<void> _runAction(TrayActionCallback? action) async {
+    if (action == null) {
+      return;
+    }
+
     try {
-      _systemTray.destroy();
+      await action();
     } catch (e) {
-      print('Failed to destroy tray: $e');
+      stderr.writeln('Tray action failed: $e');
+    }
+  }
+
+  Future<void> dispose() async {
+    try {
+      await _systemTray.destroy();
+    } catch (e) {
+      stderr.writeln('Failed to destroy tray: $e');
     }
   }
 }
