@@ -45,28 +45,6 @@ class Reminder {
     };
   }
 
-  Reminder copyWith({
-    String? id,
-    String? title,
-    String? body,
-    DateTime? scheduledTime,
-    DateTime? createdAt,
-    String? type,
-    String? flashColor,
-    int? flashDuration,
-  }) {
-    return Reminder(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      body: body ?? this.body,
-      scheduledTime: scheduledTime ?? this.scheduledTime,
-      createdAt: createdAt ?? this.createdAt,
-      type: type ?? this.type,
-      flashColor: flashColor ?? this.flashColor,
-      flashDuration: flashDuration ?? this.flashDuration,
-    );
-  }
-
   bool get isExpired => DateTime.now().isAfter(scheduledTime);
 
   Duration get timeUntilReminder {

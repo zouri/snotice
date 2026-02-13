@@ -9,7 +9,6 @@ import 'package:window_manager/window_manager.dart';
 import 'config/constants.dart';
 import 'overlay_main.dart' as overlay;
 import 'providers/config_provider.dart';
-import 'providers/log_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/server_provider.dart';
 import 'services/config_service.dart';
@@ -68,17 +67,15 @@ Future<void> _startMainApp() async {
   await notificationService.initialize();
   await notificationService.requestPermissions();
 
-  final logProvider = LogProvider(loggerService);
-  final configProvider = ConfigProvider()..updateConfig(config);
-  final serverProvider = ServerProvider();
-  final reminderProvider = ReminderProvider(loggerService, notificationService);
-
   final httpServerService = HttpServerService(
     notificationService: notificationService,
     logger: loggerService,
     config: config,
   );
-  serverProvider.setHttpServerService(httpServerService);
+
+  final configProvider = ConfigProvider()..updateConfig(config);
+  final serverProvider = ServerProvider(httpServerService);
+  final reminderProvider = ReminderProvider(loggerService, notificationService);
 
   late final TrayService trayService;
   trayService = TrayService(
@@ -107,7 +104,6 @@ Future<void> _startMainApp() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: configProvider),
-        ChangeNotifierProvider.value(value: logProvider),
         ChangeNotifierProvider.value(value: serverProvider),
         ChangeNotifierProvider.value(value: reminderProvider),
         Provider.value(value: loggerService),

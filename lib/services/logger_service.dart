@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import '../models/log_entry.dart';
 import '../config/constants.dart';
 
@@ -24,7 +26,7 @@ class LoggerService {
       _logs.removeAt(0);
     }
 
-    print('[${entry.timestamp.toIso8601String()}] [$type] $message');
+    developer.log(message, name: 'SNotice.$type', time: entry.timestamp);
   }
 
   void info(String message, {Map<String, dynamic>? data}) {
@@ -49,17 +51,5 @@ class LoggerService {
 
   void clear() {
     _logs.clear();
-  }
-
-  List<LogEntry> filterByType(String type) {
-    return _logs.where((log) => log.type == type).toList();
-  }
-
-  List<LogEntry> filterByDateRange(DateTime start, DateTime end) {
-    return _logs
-        .where(
-          (log) => log.timestamp.isAfter(start) && log.timestamp.isBefore(end),
-        )
-        .toList();
   }
 }

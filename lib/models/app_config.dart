@@ -1,20 +1,20 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../config/constants.dart';
 import '../utils/ip_utils.dart';
 
 class AppConfig {
-  int port;
-  List<String> allowedIPs;
-  bool autoStart;
-  bool showNotifications;
+  final int port;
+  final List<String> allowedIPs;
+  final bool autoStart;
+  final bool showNotifications;
 
   AppConfig({
     this.port = 8642,
-    this.allowedIPs = AppConstants.defaultAllowedIPs,
+    List<String>? allowedIPs,
     this.autoStart = true,
     this.showNotifications = true,
-  });
+  }) : allowedIPs = List.unmodifiable(
+         allowedIPs ?? AppConstants.defaultAllowedIPs,
+       );
 
   factory AppConfig.fromJson(Map<String, dynamic> json) {
     return AppConfig(
@@ -36,20 +36,6 @@ class AppConfig {
       'autoStart': autoStart,
       'showNotifications': showNotifications,
     };
-  }
-
-  Future<void> save() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('app_config', jsonEncode(toJson()));
-  }
-
-  static Future<AppConfig> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final configJson = prefs.getString('app_config');
-    if (configJson != null) {
-      return AppConfig.fromJson(jsonDecode(configJson));
-    }
-    return AppConfig();
   }
 
   bool isIPAllowed(String ip) {

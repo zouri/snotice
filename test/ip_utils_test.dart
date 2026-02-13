@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/utils/ip_utils.dart';
-import '../lib/models/app_config.dart';
+import 'package:snotice_new/models/app_config.dart';
+import 'package:snotice_new/utils/ip_utils.dart';
 
 void main() {
   group('IPUtils Tests', () {

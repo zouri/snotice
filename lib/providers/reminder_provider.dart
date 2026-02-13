@@ -11,14 +11,13 @@ class ReminderProvider extends ChangeNotifier {
   final LoggerService _logger;
   final NotificationService _notificationService;
   final List<Reminder> _reminders = [];
-  final Set<String> _triggeredReminders = {}; // Track triggered reminder IDs
+  final Set<String> _triggeredReminders = {};
   Timer? _timer;
 
   ReminderProvider(this._logger, this._notificationService) {
     _init();
   }
 
-  List<Reminder> get reminders => List.unmodifiable(_reminders);
   List<Reminder> get activeReminders =>
       _reminders.where((r) => !r.isExpired).toList();
   List<Reminder> get expiredReminders =>
@@ -37,23 +36,16 @@ class ReminderProvider extends ChangeNotifier {
   }
 
   void _checkExpiredReminders() {
-    final now = DateTime.now();
     final expiredReminders = _reminders
-        .where(
-          (r) =>
-              r.scheduledTime.isBefore(now) &&
-              !_triggeredReminders.contains(r.id),
-        )
+        .where((r) => r.isExpired && !_triggeredReminders.contains(r.id))
         .toList();
 
     for (final reminder in expiredReminders) {
-      // Mark as triggered to avoid duplicate triggers
       _triggeredReminders.add(reminder.id);
-      _triggerReminder(reminder);
+      unawaited(_triggerReminder(reminder));
     }
 
-    // Always notify listeners to update countdown timers on UI
-    if (expiredReminders.isNotEmpty || activeReminders.isNotEmpty) {
+    if (expiredReminders.isNotEmpty || _reminders.any((r) => !r.isExpired)) {
       notifyListeners();
     }
   }
@@ -71,16 +63,7 @@ class ReminderProvider extends ChangeNotifier {
           ),
         );
         notifyListeners();
-
-        // Re-schedule all active reminders
-        for (final reminder in _reminders) {
-          if (!reminder.isExpired) {
-            _scheduleReminder(reminder);
-            _logger.info(
-              'Rescheduled reminder: ${reminder.title} at ${reminder.scheduledTime}',
-            );
-          }
-        }
+        _checkExpiredReminders();
       }
     } catch (e) {
       _logger.error('Failed to load reminders: $e');
@@ -130,33 +113,10 @@ class ReminderProvider extends ChangeNotifier {
       'Reminder added: ${reminder.title} at ${reminder.scheduledTime}',
     );
 
-    // Schedule the reminder
-    _scheduleReminder(reminder);
-
     return reminder;
   }
 
-  void _scheduleReminder(Reminder reminder) {
-    // Don't schedule if already triggered
-    if (_triggeredReminders.contains(reminder.id)) {
-      return;
-    }
-
-    final delay = reminder.scheduledTime.difference(DateTime.now());
-    if (delay > Duration.zero) {
-      Future.delayed(delay, () {
-        _triggerReminder(reminder);
-      });
-    }
-  }
-
-  void _triggerReminder(Reminder reminder) async {
-    // Skip if already triggered or reminder was removed
-    if (_triggeredReminders.contains(reminder.id)) {
-      return;
-    }
-
-    // Double check reminder still exists
+  Future<void> _triggerReminder(Reminder reminder) async {
     if (!_reminders.any((r) => r.id == reminder.id)) {
       return;
     }
@@ -174,7 +134,6 @@ class ReminderProvider extends ChangeNotifier {
     );
 
     await _notificationService.showNotification(request);
-
     notifyListeners();
   }
 
@@ -183,7 +142,7 @@ class ReminderProvider extends ChangeNotifier {
     if (index != -1) {
       final reminder = _reminders[index];
       _reminders.removeAt(index);
-      _triggeredReminders.remove(id); // Remove from triggered set
+      _triggeredReminders.remove(id);
       _saveReminders();
       notifyListeners();
       _logger.info('Reminder removed: ${reminder.title}');
@@ -198,21 +157,13 @@ class ReminderProvider extends ChangeNotifier {
         .toSet();
 
     _reminders.removeWhere((r) => r.isExpired);
-    _triggeredReminders.removeAll(expiredIds); // Clean up triggered set
+    _triggeredReminders.removeAll(expiredIds);
     final removed = count - _reminders.length;
     if (removed > 0) {
       _saveReminders();
       notifyListeners();
       _logger.info('Cleared $removed expired reminders');
     }
-  }
-
-  void clearAll() {
-    _reminders.clear();
-    _triggeredReminders.clear(); // Clean up triggered set
-    _saveReminders();
-    notifyListeners();
-    _logger.info('Cleared all reminders');
   }
 
   @override

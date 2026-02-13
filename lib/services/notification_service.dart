@@ -82,7 +82,7 @@ class NotificationService {
         request.title,
         request.body,
         notificationDetails,
-        payload: request.payload != null ? request.payload.toString() : null,
+        payload: request.payload?.toString(),
       );
 
       _logger.notification(

@@ -36,9 +36,4 @@ class ConfigService {
       rethrow;
     }
   }
-
-  Future<void> resetConfig() async {
-    await saveConfig(AppConfig());
-    _logger.info('Config reset to default');
-  }
 }

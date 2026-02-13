@@ -44,7 +44,7 @@ class HttpServerService {
       final handler = Pipeline()
           .addMiddleware(_corsMiddleware())
           .addMiddleware(_ipWhitelistMiddleware())
-          .addHandler(router);
+          .addHandler(router.call);
 
       _server = await shelf_io.serve(
         handler,

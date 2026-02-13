@@ -11,23 +11,13 @@ class ConfigProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updatePort(int port) {
-    _config.port = port;
-    notifyListeners();
-  }
-
-  void updateAllowedIPs(List<String> ips) {
-    _config.allowedIPs = ips;
-    notifyListeners();
-  }
-
   void toggleAutoStart() {
-    _config.autoStart = !_config.autoStart;
+    _config = _config.copyWith(autoStart: !_config.autoStart);
     notifyListeners();
   }
 
   void toggleShowNotifications() {
-    _config.showNotifications = !_config.showNotifications;
+    _config = _config.copyWith(showNotifications: !_config.showNotifications);
     notifyListeners();
   }
 }
