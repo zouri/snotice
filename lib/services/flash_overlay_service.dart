@@ -31,7 +31,11 @@ class FlashOverlayService {
       }
 
       // 创建参数（JSON字符串）
-      final arguments = jsonEncode({'color': color, 'duration': duration});
+      final arguments = jsonEncode({
+        'windowType': 'flash',
+        'color': color,
+        'duration': duration,
+      });
 
       // 创建新窗口（隐藏启动，稍后配置）
       final controller = await WindowController.create(

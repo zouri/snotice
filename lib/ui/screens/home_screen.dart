@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/server_provider.dart';
 import '../../providers/reminder_provider.dart';
+import '../../services/upcoming_window_service.dart';
 import '../../models/reminder.dart';
 import '../widgets/home/template_panel.dart';
 import '../widgets/home/active_reminders_panel.dart';
@@ -66,6 +67,18 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       actions: [
+        IconButton(
+          icon: const Icon(Icons.picture_in_picture_alt),
+          tooltip: '切换独立悬浮窗',
+          onPressed: () async {
+            final success = await context
+                .read<UpcomingWindowService>()
+                .toggleWindow();
+            if (!success && context.mounted) {
+              _showSnackBar('悬浮窗操作失败，请重试或重启应用');
+            }
+          },
+        ),
         // 服务器状态指示器
         Consumer<ServerProvider>(
           builder: (context, serverProvider, _) {

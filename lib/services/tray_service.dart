@@ -12,6 +12,7 @@ class TrayService {
   final TrayActionCallback? onStartStop;
   final TrayActionCallback? onShowWindow;
   final TrayActionCallback? onOpenSettings;
+  final TrayActionCallback? onToggleUpcomingWindow;
   final TrayActionCallback? onExit;
   final TemplateActionCallback? onCreateFromTemplate;
 
@@ -23,6 +24,7 @@ class TrayService {
     this.onStartStop,
     this.onShowWindow,
     this.onOpenSettings,
+    this.onToggleUpcomingWindow,
     this.onExit,
     this.onCreateFromTemplate,
   });
@@ -123,6 +125,16 @@ class TrayService {
           ),
         );
 
+        menuItems.add(MenuSeparator());
+      }
+
+      if (onToggleUpcomingWindow != null) {
+        menuItems.add(
+          MenuItemLabel(
+            label: '切换悬浮窗',
+            onClicked: (_) => _runAction(onToggleUpcomingWindow),
+          ),
+        );
         menuItems.add(MenuSeparator());
       }
 

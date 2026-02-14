@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -8,6 +9,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'config/constants.dart';
 import 'overlay_main.dart' as overlay;
+import 'upcoming_window_main.dart' as upcoming;
 import 'providers/config_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/server_provider.dart';
@@ -21,6 +23,7 @@ import 'services/sound_service.dart';
 import 'services/stats_service.dart';
 import 'services/template_service.dart';
 import 'services/tray_service.dart';
+import 'services/upcoming_window_service.dart';
 import 'ui/screens/home_screen.dart';
 import 'ui/settings_screen.dart';
 
@@ -30,27 +33,51 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // macOS 已使用原生闪屏实现，不需要 desktop_multi_window 启动判断。
-  if (!Platform.isMacOS) {
-    final controller = await WindowController.fromCurrentEngine();
+  if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+    try {
+      final controller = await WindowController.fromCurrentEngine();
+      final arguments = _parseWindowArguments(controller.arguments);
+      final windowType = arguments['windowType'] as String?;
 
-    // 检查是否为覆盖窗口（参数不为空且包含闪烁参数）
-    if (controller.arguments.isNotEmpty) {
-      try {
-        final arguments = controller.arguments;
-        // 如果参数包含color，说明是闪烁窗口
-        if (arguments.contains('color')) {
-          overlay.overlayMain(args);
-          return;
-        }
-      } catch (_) {
-        // 忽略解析错误
+      // 即将到期提醒悬浮窗入口（独立窗口）
+      if (windowType == 'upcoming') {
+        upcoming.upcomingWindowMain(args);
+        return;
       }
+
+      // 非 macOS 使用 Flutter 覆盖窗口实现闪屏
+      if (!Platform.isMacOS &&
+          (windowType == 'flash' || arguments.containsKey('color'))) {
+        overlay.overlayMain(args);
+        return;
+      }
+    } catch (_) {
+      // Fallback to main app when multi-window context is unavailable.
     }
   }
 
   // 正常启动主应用
   await _startMainApp();
+}
+
+Map<String, dynamic> _parseWindowArguments(String rawArguments) {
+  if (rawArguments.isEmpty) {
+    return {};
+  }
+
+  try {
+    final decoded = jsonDecode(rawArguments);
+    if (decoded is Map<String, dynamic>) {
+      return decoded;
+    }
+    if (decoded is Map) {
+      return decoded.map((key, value) => MapEntry(key.toString(), value));
+    }
+  } catch (_) {
+    // Ignore invalid arguments.
+  }
+
+  return {};
 }
 
 Future<void> _startMainApp() async {
@@ -98,6 +125,7 @@ Future<void> _startMainApp() async {
     statsService,
   );
   final templateProvider = TemplateProvider(templateService, loggerService);
+  final upcomingWindowService = UpcomingWindowService(loggerService);
 
   late final TrayService trayService;
   trayService = TrayService(
@@ -116,6 +144,9 @@ Future<void> _startMainApp() async {
         reminderProvider.createFromTemplate(template);
         loggerService.info('Created reminder from tray: ${template.name}');
       }
+    },
+    onToggleUpcomingWindow: () async {
+      await upcomingWindowService.toggleWindow();
     },
     onExit: () => _exitApplication(
       loggerService: loggerService,
@@ -143,6 +174,7 @@ Future<void> _startMainApp() async {
         Provider.value(value: configService),
         Provider.value(value: statsService),
         Provider.value(value: soundService),
+        Provider.value(value: upcomingWindowService),
       ],
       child: const SNoticeApp(),
     ),
