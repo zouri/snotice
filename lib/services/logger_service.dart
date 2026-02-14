@@ -41,6 +41,10 @@ class LoggerService {
     log('WARNING', message, data: data);
   }
 
+  void debug(String message, {Map<String, dynamic>? data}) {
+    log('DEBUG', message, data: data);
+  }
+
   void request(String message, {Map<String, dynamic>? data}) {
     log('REQUEST', message, data: data);
   }

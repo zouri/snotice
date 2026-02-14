@@ -19,6 +19,7 @@ dependencies:
   convert: ^3.1.1
   desktop_multi_window: ^0.3.0
   window_manager: ^0.5.1
+  audioplayers: ^5.0.0
 
 dev_dependencies:
   flutter_test:
@@ -31,3 +32,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/
+    - assets/sounds/

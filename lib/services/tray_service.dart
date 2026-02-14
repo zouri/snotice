@@ -6,17 +6,26 @@ import 'package:system_tray/system_tray.dart';
 import '../config/constants.dart';
 
 typedef TrayActionCallback = FutureOr<void> Function();
+typedef TemplateActionCallback = FutureOr<void> Function(String templateId);
 
 class TrayService {
   final TrayActionCallback? onStartStop;
   final TrayActionCallback? onShowWindow;
+  final TrayActionCallback? onOpenSettings;
   final TrayActionCallback? onExit;
+  final TemplateActionCallback? onCreateFromTemplate;
 
   final SystemTray _systemTray = SystemTray();
   bool _isServerRunning = false;
   bool _trayReady = false;
 
-  TrayService({this.onStartStop, this.onShowWindow, this.onExit});
+  TrayService({
+    this.onStartStop,
+    this.onShowWindow,
+    this.onOpenSettings,
+    this.onExit,
+    this.onCreateFromTemplate,
+  });
 
   Future<void> initialize({bool isServerRunning = false}) async {
     _isServerRunning = isServerRunning;
@@ -65,23 +74,86 @@ class TrayService {
   Future<void> _buildMenu() async {
     try {
       final menu = Menu();
-
       final actionLabel = _isServerRunning ? '停止服务' : '启动服务';
 
-      await menu.buildFrom([
+      // 构建菜单项列表 - 使用 MenuItemBase 作为类型
+      final menuItems = <MenuItemBase>[];
+
+      // 打开主界面
+      menuItems.add(
         MenuItemLabel(
           label: '打开主界面',
           onClicked: (_) => _runAction(onShowWindow),
         ),
-        if (onStartStop != null)
+      );
+
+      menuItems.add(MenuSeparator());
+
+      // 快速提醒子菜单
+      if (onCreateFromTemplate != null) {
+        menuItems.add(
+          SubMenu(
+            label: '⚡ 快速提醒',
+            children: [
+              MenuItemLabel(
+                label: '☕ 休息 (25分钟)',
+                onClicked: (_) => _runTemplateAction('break_25'),
+              ),
+              MenuItemLabel(
+                label: '📌 会议 (15分钟)',
+                onClicked: (_) => _runTemplateAction('meeting_15'),
+              ),
+              MenuItemLabel(
+                label: '💊 吃药 (4小时)',
+                onClicked: (_) => _runTemplateAction('medicine_4h'),
+              ),
+              MenuItemLabel(
+                label: '🍅 番茄钟 (25分钟)',
+                onClicked: (_) => _runTemplateAction('pomodoro'),
+              ),
+              MenuItemLabel(
+                label: '💧 喝水 (30分钟)',
+                onClicked: (_) => _runTemplateAction('water'),
+              ),
+              MenuItemLabel(
+                label: '🧘 伸展 (45分钟)',
+                onClicked: (_) => _runTemplateAction('stretch'),
+              ),
+            ],
+          ),
+        );
+
+        menuItems.add(MenuSeparator());
+      }
+
+      // 服务控制
+      if (onStartStop != null) {
+        menuItems.add(
           MenuItemLabel(
             label: actionLabel,
             onClicked: (_) => _runAction(onStartStop),
           ),
-        MenuSeparator(),
-        MenuItemLabel(label: '退出', onClicked: (_) => _runAction(onExit)),
-      ]);
+        );
+      }
 
+      // 设置
+      if (onOpenSettings != null) {
+        menuItems.add(
+          MenuItemLabel(
+            label: '设置',
+            onClicked: (_) => _runAction(onOpenSettings),
+          ),
+        );
+      }
+
+      menuItems.add(MenuSeparator());
+
+      // 退出
+      menuItems.add(
+        MenuItemLabel(label: '退出', onClicked: (_) => _runAction(onExit)),
+      );
+
+      await menu.buildFrom(menuItems);
       await _systemTray.setContextMenu(menu);
       await _systemTray.setToolTip(
         _isServerRunning
@@ -109,6 +181,18 @@ class TrayService {
       await action();
     } catch (e) {
       stderr.writeln('Tray action failed: $e');
+    }
+  }
+
+  Future<void> _runTemplateAction(String templateId) async {
+    if (onCreateFromTemplate == null) {
+      return;
+    }
+
+    try {
+      await onCreateFromTemplate!(templateId);
+    } catch (e) {
+      stderr.writeln('Template action failed: $e');
     }
   }
 
