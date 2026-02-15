@@ -103,7 +103,6 @@ Future<void> _startMainApp() async {
     flashOverlayService,
   );
   await notificationService.initialize();
-  await notificationService.requestPermissions();
 
   final httpServerService = HttpServerService(
     notificationService: notificationService,
