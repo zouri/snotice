@@ -24,6 +24,8 @@ import 'services/stats_service.dart';
 import 'services/template_service.dart';
 import 'services/tray_service.dart';
 import 'services/upcoming_window_service.dart';
+import 'providers/theme_provider.dart';
+import 'theme/theme.dart';
 import 'ui/screens/home_screen.dart';
 import 'ui/settings_screen.dart';
 
@@ -125,6 +127,7 @@ Future<void> _startMainApp() async {
   );
   final templateProvider = TemplateProvider(templateService, loggerService);
   final upcomingWindowService = UpcomingWindowService(loggerService);
+  final themeProvider = ThemeProvider();
 
   late final TrayService trayService;
   trayService = TrayService(
@@ -168,6 +171,7 @@ Future<void> _startMainApp() async {
         ChangeNotifierProvider.value(value: serverProvider),
         ChangeNotifierProvider.value(value: reminderProvider),
         ChangeNotifierProvider.value(value: templateProvider),
+        ChangeNotifierProvider.value(value: themeProvider),
         Provider.value(value: loggerService),
         Provider.value(value: notificationService),
         Provider.value(value: configService),
@@ -239,14 +243,17 @@ class SNoticeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: AppConstants.appName,
-      navigatorKey: navigatorKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      home: const HomeScreen(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: AppConstants.appName,
+          navigatorKey: navigatorKey,
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: themeProvider.mode,
+          home: const HomeScreen(),
+        );
+      },
     );
   }
 }
