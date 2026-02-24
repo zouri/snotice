@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/reminder.dart';
 import '../../../providers/reminder_provider.dart';
 import '../../../services/stats_service.dart';
 
-/// 右栏：历史与统计面板
+/// Right column: History and stats panel
 class HistoryStatsPanel extends StatelessWidget {
   final Reminder? selectedReminder;
 
@@ -17,13 +18,13 @@ class HistoryStatsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // 统计概览
+        // Stats summary
         _buildStatsSummary(context),
         const Divider(height: 1),
-        // 趋势图表
+        // Trends chart
         _buildTrendsChart(context),
         const Divider(height: 1),
-        // 历史记录或详情
+        // History or detail
         Expanded(
           child: selectedReminder != null
               ? _buildReminderDetail(context, selectedReminder!)
@@ -34,6 +35,8 @@ class HistoryStatsPanel extends StatelessWidget {
   }
 
   Widget _buildStatsSummary(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return FutureBuilder<ReminderStats>(
       future: context.read<StatsService>().calculate(),
       builder: (context, snapshot) {
@@ -49,7 +52,7 @@ class HistoryStatsPanel extends StatelessWidget {
                   const Icon(Icons.bar_chart, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    '今日统计',
+                    l10n.todayStats,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
@@ -62,17 +65,17 @@ class HistoryStatsPanel extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _StatCard(
-                      label: '创建',
+                      label: l10n.createdStat,
                       value: stats.totalCreated.toString(),
                       color: Colors.blue,
                     ),
                     _StatCard(
-                      label: '完成',
+                      label: l10n.completedStat,
                       value: stats.totalTriggered.toString(),
                       color: Colors.green,
                     ),
                     _StatCard(
-                      label: '完成率',
+                      label: l10n.completionRate,
                       value: '${(stats.completionRate * 100).toInt()}%',
                       color: Colors.purple,
                     ),
@@ -86,6 +89,8 @@ class HistoryStatsPanel extends StatelessWidget {
   }
 
   Widget _buildTrendsChart(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       height: 150,
       padding: const EdgeInsets.all(8),
@@ -93,7 +98,7 @@ class HistoryStatsPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '最近7天趋势',
+            l10n.last7DaysTrend,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 8),
@@ -102,8 +107,8 @@ class HistoryStatsPanel extends StatelessWidget {
               future: context.read<StatsService>().getTrends(7),
               builder: (context, snapshot) {
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text('暂无数据'),
+                  return Center(
+                    child: Text(l10n.noData),
                   );
                 }
 
@@ -138,7 +143,7 @@ class HistoryStatsPanel extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              _formatWeekday(trend.date.weekday),
+                              _formatWeekday(l10n, trend.date.weekday),
                               style: const TextStyle(fontSize: 10),
                             ),
                           ],
@@ -156,13 +161,15 @@ class HistoryStatsPanel extends StatelessWidget {
   }
 
   Widget _buildHistoryList(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<ReminderProvider>(
       builder: (context, provider, _) {
         final history = provider.expiredReminders.reversed.take(20).toList();
 
         return Column(
           children: [
-            // 标题
+            // Header
             Container(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -170,28 +177,28 @@ class HistoryStatsPanel extends StatelessWidget {
                   const Icon(Icons.history, size: 18),
                   const SizedBox(width: 8),
                   Text(
-                    '历史记录',
+                    l10n.history,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const Spacer(),
                   if (history.isNotEmpty)
                     TextButton(
                       onPressed: () => provider.clearExpired(),
-                      child: const Text('清除'),
+                      child: Text(l10n.clearAll),
                     ),
                 ],
               ),
             ),
             const Divider(height: 1),
-            // 列表
+            // List
             Expanded(
               child: history.isEmpty
-                  ? _buildEmptyHistory(context)
+                  ? _buildEmptyHistory(context, l10n)
                   : ListView.builder(
                       itemCount: history.length,
                       itemBuilder: (context, index) {
                         final reminder = history[index];
-                        return _HistoryItem(reminder: reminder);
+                        return _HistoryItem(reminder: reminder, l10n: l10n);
                       },
                     ),
             ),
@@ -201,7 +208,7 @@ class HistoryStatsPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyHistory(BuildContext context) {
+  Widget _buildEmptyHistory(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -209,7 +216,7 @@ class HistoryStatsPanel extends StatelessWidget {
           Icon(Icons.history, size: 48, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            '暂无历史记录',
+            l10n.noHistory,
             style: TextStyle(color: Colors.grey[600]),
           ),
         ],
@@ -218,6 +225,8 @@ class HistoryStatsPanel extends StatelessWidget {
   }
 
   Widget _buildReminderDetail(BuildContext context, Reminder reminder) {
+    final l10n = AppLocalizations.of(context)!;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -228,41 +237,57 @@ class HistoryStatsPanel extends StatelessWidget {
               const Icon(Icons.info_outline, size: 18),
               const SizedBox(width: 8),
               Text(
-                '提醒详情',
+                l10n.reminderDetail,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ],
           ),
           const SizedBox(height: 16),
-          _DetailRow(label: '标题', value: reminder.title),
-          _DetailRow(label: '内容', value: reminder.body),
+          _DetailRow(label: l10n.labelTitle, value: reminder.title),
+          _DetailRow(label: l10n.labelContent, value: reminder.body),
           _DetailRow(
-            label: '类型',
-            value: reminder.type == 'flash' ? '闪屏' : '通知',
+            label: l10n.labelType,
+            value: reminder.type == 'flash' ? l10n.typeFlash : l10n.typeNotification,
           ),
           _DetailRow(
-            label: '状态',
-            value: reminder.isExpired ? '已过期' : '进行中',
+            label: l10n.labelStatus,
+            value: reminder.isExpired ? l10n.statusExpired : l10n.statusInProgress,
           ),
           _DetailRow(
-            label: '计划时间',
+            label: l10n.labelScheduledTime,
             value: _formatDateTime(reminder.scheduledTime),
           ),
           if (reminder.repeatRule != null)
             _DetailRow(
-              label: '重复',
+              label: l10n.labelRepeat,
               value: reminder.repeatRule.toString(),
             ),
           if (reminder.templateId != null)
-            _DetailRow(label: '来源模板', value: reminder.templateId!),
+            _DetailRow(label: l10n.labelTemplate, value: reminder.templateId!),
         ],
       ),
     );
   }
 
-  String _formatWeekday(int weekday) {
-    const names = ['一', '二', '三', '四', '五', '六', '日'];
-    return '周${names[weekday - 1]}';
+  String _formatWeekday(AppLocalizations l10n, int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return l10n.weekdayMon;
+      case DateTime.tuesday:
+        return l10n.weekdayTue;
+      case DateTime.wednesday:
+        return l10n.weekdayWed;
+      case DateTime.thursday:
+        return l10n.weekdayThu;
+      case DateTime.friday:
+        return l10n.weekdayFri;
+      case DateTime.saturday:
+        return l10n.weekdaySat;
+      case DateTime.sunday:
+        return l10n.weekdaySun;
+      default:
+        return '';
+    }
   }
 
   String _formatDateTime(DateTime dt) {
@@ -270,7 +295,7 @@ class HistoryStatsPanel extends StatelessWidget {
   }
 }
 
-/// 统计卡片
+/// Stats card
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
@@ -307,11 +332,12 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-/// 历史记录项
+/// History item
 class _HistoryItem extends StatelessWidget {
   final Reminder reminder;
+  final AppLocalizations l10n;
 
-  const _HistoryItem({required this.reminder});
+  const _HistoryItem({required this.reminder, required this.l10n});
 
   @override
   Widget build(BuildContext context) {
@@ -342,16 +368,16 @@ class _HistoryItem extends StatelessWidget {
   String _formatRelativeTime(DateTime dt) {
     final diff = DateTime.now().difference(dt);
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes} 分钟前';
+      return l10n.xMinutesAgo(diff.inMinutes);
     } else if (diff.inHours < 24) {
-      return '${diff.inHours} 小时前';
+      return l10n.xHoursAgo(diff.inHours);
     } else {
-      return '${diff.inDays} 天前';
+      return l10n.xDaysAgo(diff.inDays);
     }
   }
 }
 
-/// 详情行
+/// Detail row
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;

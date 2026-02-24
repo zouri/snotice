@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/reminder.dart';
 import '../../../providers/reminder_provider.dart';
 
@@ -8,6 +9,8 @@ class RemindersTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<ReminderProvider>(
       builder: (context, reminderProvider, child) {
         final activeReminders = reminderProvider.activeReminders;
@@ -20,7 +23,7 @@ class RemindersTab extends StatelessWidget {
                 Icon(Icons.alarm_off, size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
                 Text(
-                  'No active reminders',
+                  l10n.noActiveReminders,
                   style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                 ),
               ],

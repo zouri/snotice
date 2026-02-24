@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 
 class NotificationSettingsCard extends StatelessWidget {
   const NotificationSettingsCard({
@@ -12,20 +13,22 @@ class NotificationSettingsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Notification Settings',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              l10n.notificationSettings,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             SwitchListTile(
-              title: const Text('Show Notifications'),
-              subtitle: const Text('Display system notifications'),
+              title: Text(l10n.showNotifications),
+              subtitle: Text(l10n.showNotificationsDesc),
               value: showNotifications,
               onChanged: onShowNotificationsChanged,
             ),

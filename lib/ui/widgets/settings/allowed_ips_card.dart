@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 
 class AllowedIpsCard extends StatelessWidget {
   const AllowedIpsCard({
@@ -18,6 +19,8 @@ class AllowedIpsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -27,9 +30,9 @@ class AllowedIpsCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Allowed IPs',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.allowedIPs,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.info_outline),
@@ -43,10 +46,10 @@ class AllowedIpsCard extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: ipController,
-                    decoration: const InputDecoration(
-                      labelText: 'Add IP Address',
-                      border: OutlineInputBorder(),
-                      hintText: 'e.g., 127.0.0.1 or 192.168.1.0/24',
+                    decoration: InputDecoration(
+                      labelText: l10n.addIPAddress,
+                      border: const OutlineInputBorder(),
+                      hintText: l10n.ipHint,
                     ),
                   ),
                 ),
@@ -54,15 +57,15 @@ class AllowedIpsCard extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: onAddIp,
                   icon: const Icon(Icons.add),
-                  label: const Text('Add'),
+                  label: Text(l10n.add),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             if (allowedIps.isEmpty)
-              const Text(
-                'No IPs added. All IPs will be allowed.',
-                style: TextStyle(color: Colors.grey),
+              Text(
+                l10n.noIPsAdded,
+                style: const TextStyle(color: Colors.grey),
               )
             else
               Wrap(

@@ -4,13 +4,16 @@ import 'dart:io';
 
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'config/constants.dart';
+import 'l10n/app_localizations.dart';
 import 'overlay_main.dart' as overlay;
 import 'upcoming_window_main.dart' as upcoming;
 import 'providers/config_provider.dart';
+import 'providers/locale_provider.dart';
 import 'providers/reminder_provider.dart';
 import 'providers/server_provider.dart';
 import 'providers/template_provider.dart';
@@ -128,6 +131,8 @@ Future<void> _startMainApp() async {
   final templateProvider = TemplateProvider(templateService, loggerService);
   final upcomingWindowService = UpcomingWindowService(loggerService);
   final themeProvider = ThemeProvider();
+  final localeProvider = LocaleProvider();
+  await localeProvider.load();
 
   late final TrayService trayService;
   trayService = TrayService(
@@ -162,6 +167,9 @@ Future<void> _startMainApp() async {
     unawaited(trayService.updateMenu(serverProvider.isRunning));
   });
 
+  // Connect locale provider to tray service for localized menu
+  trayService.setLocaleProvider(localeProvider);
+
   await trayService.initialize(isServerRunning: serverProvider.isRunning);
 
   runApp(
@@ -172,6 +180,7 @@ Future<void> _startMainApp() async {
         ChangeNotifierProvider.value(value: reminderProvider),
         ChangeNotifierProvider.value(value: templateProvider),
         ChangeNotifierProvider.value(value: themeProvider),
+        ChangeNotifierProvider.value(value: localeProvider),
         Provider.value(value: loggerService),
         Provider.value(value: notificationService),
         Provider.value(value: configService),
@@ -243,14 +252,25 @@ class SNoticeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return Consumer2<ThemeProvider, LocaleProvider>(
+      builder: (context, themeProvider, localeProvider, child) {
         return MaterialApp(
           title: AppConstants.appName,
           navigatorKey: navigatorKey,
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
           themeMode: themeProvider.mode,
+          locale: localeProvider.locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', 'US'),
+            Locale('zh', 'CN'),
+          ],
           home: const HomeScreen(),
         );
       },

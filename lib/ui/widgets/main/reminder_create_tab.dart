@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
 
 class ReminderCreateTab extends StatelessWidget {
   const ReminderCreateTab({
@@ -43,12 +44,12 @@ class ReminderCreateTab extends StatelessWidget {
             const SizedBox(height: 20),
             _buildTimeSlider(context),
             const SizedBox(height: 20),
-            _buildReminderTypeSelector(),
+            _buildReminderTypeSelector(context),
             const SizedBox(height: 20),
-            _buildReminderForm(),
+            _buildReminderForm(context),
             if (reminderType == 'flash') ...[
               const SizedBox(height: 20),
-              _buildFlashSettings(),
+              _buildFlashSettings(context),
             ],
             const SizedBox(height: 100),
           ],
@@ -58,15 +59,17 @@ class ReminderCreateTab extends StatelessWidget {
   }
 
   Widget _buildQuickTimeButtons(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Quick Time',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              l10n.quickTime,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -90,8 +93,8 @@ class ReminderCreateTab extends StatelessWidget {
                     ),
                     child: Text(
                       minutes >= 60
-                          ? '${(minutes / 60).toInt()}h'
-                          : '${minutes}m',
+                          ? l10n.hours(minutes ~/ 60)
+                          : l10n.minutes(minutes),
                       style: TextStyle(
                         color: isSelected ? Colors.white : Colors.black87,
                         fontWeight: isSelected
@@ -110,6 +113,8 @@ class ReminderCreateTab extends StatelessWidget {
   }
 
   Widget _buildTimeSlider(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -119,12 +124,12 @@ class ReminderCreateTab extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Custom Time',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  l10n.customTime,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '$selectedMinutes min',
+                  l10n.minutes(selectedMinutes),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -139,7 +144,7 @@ class ReminderCreateTab extends StatelessWidget {
               min: 1,
               max: 120,
               divisions: 119,
-              label: '$selectedMinutes min',
+              label: l10n.minutes(selectedMinutes),
               onChanged: (value) => onMinutesChanged(value.toInt()),
             ),
           ],
@@ -148,16 +153,18 @@ class ReminderCreateTab extends StatelessWidget {
     );
   }
 
-  Widget _buildReminderTypeSelector() {
+  Widget _buildReminderTypeSelector(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Reminder Type',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              l10n.reminderType,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             RadioGroup<String>(
@@ -172,16 +179,16 @@ class ReminderCreateTab extends StatelessWidget {
                 children: [
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('Notification'),
-                      subtitle: const Text('System notification'),
+                      title: Text(l10n.notification),
+                      subtitle: Text(l10n.notificationDesc),
                       value: 'notification',
                       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                     ),
                   ),
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('Flash Screen'),
-                      subtitle: const Text('Full screen overlay'),
+                      title: Text(l10n.flashScreen),
+                      subtitle: Text(l10n.flashScreenDesc),
                       value: 'flash',
                       contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                     ),
@@ -195,7 +202,9 @@ class ReminderCreateTab extends StatelessWidget {
     );
   }
 
-  Widget _buildReminderForm() {
+  Widget _buildReminderForm(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -204,14 +213,14 @@ class ReminderCreateTab extends StatelessWidget {
           children: [
             TextFormField(
               controller: titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.title),
+              decoration: InputDecoration(
+                labelText: l10n.labelTitle,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.title),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a title';
+                  return l10n.titleRequired;
                 }
                 return null;
               },
@@ -220,14 +229,14 @@ class ReminderCreateTab extends StatelessWidget {
             TextFormField(
               controller: bodyController,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Message',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.description),
+              decoration: InputDecoration(
+                labelText: l10n.message,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.description),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter a message';
+                  return l10n.messageRequired;
                 }
                 return null;
               },
@@ -238,19 +247,21 @@ class ReminderCreateTab extends StatelessWidget {
     );
   }
 
-  Widget _buildFlashSettings() {
+  Widget _buildFlashSettings(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Flash Settings',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Text(
+              l10n.flashSettings,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            const Text('Color'),
+            Text(l10n.color),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -265,13 +276,13 @@ class ReminderCreateTab extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Text('Duration: ${flashDuration}ms'),
+            Text(l10n.duration(flashDuration)),
             Slider(
               value: flashDuration.toDouble(),
               min: 100,
               max: 2000,
               divisions: 19,
-              label: '${flashDuration}ms',
+              label: l10n.duration(flashDuration),
               onChanged: (value) => onFlashDurationChanged(value.toInt()),
             ),
           ],

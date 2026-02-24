@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/reminder.dart';
 import '../../../providers/reminder_provider.dart';
 import '../../../providers/template_provider.dart';
 import '../../../models/repeat_rule.dart';
 
-/// 中栏：活动提醒面板
+/// Middle column: Active reminders panel
 class ActiveRemindersPanel extends StatelessWidget {
   final bool showQuickTemplates;
   final void Function(Reminder)? onReminderSelected;
@@ -22,15 +23,15 @@ class ActiveRemindersPanel extends StatelessWidget {
       builder: (context, provider, _) {
         return Column(
           children: [
-            // 标题栏
+            // Header
             _buildHeader(context, provider),
             const Divider(height: 1),
-            // 快速模板（仅窄屏幕显示）
+            // Quick templates (only on narrow screens)
             if (showQuickTemplates) _buildQuickTemplates(context),
-            // 快速创建入口
+            // Quick create entry
             _buildQuickCreate(context, provider),
             const Divider(height: 1),
-            // 提醒列表
+            // Reminder list
             Expanded(
               child: provider.activeReminders.isEmpty
                   ? _buildEmptyState(context)
@@ -43,14 +44,16 @@ class ActiveRemindersPanel extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, ReminderProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final activeCount = provider.activeReminders.length;
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           const Icon(Icons.pending_actions, size: 20),
           const SizedBox(width: 8),
-          Text('活动提醒', style: Theme.of(context).textTheme.titleMedium),
+          Text(l10n.activeReminders, style: Theme.of(context).textTheme.titleMedium),
           const Spacer(),
           if (activeCount > 0)
             Chip(
@@ -67,6 +70,7 @@ class ActiveRemindersPanel extends StatelessWidget {
       builder: (context, reminderProvider, _) {
         return Consumer<TemplateProvider>(
           builder: (context, templateProvider, _) {
+            final l10n = AppLocalizations.of(context)!;
             final favorites = templateProvider.favoriteTemplates;
             if (favorites.isEmpty) return const SizedBox.shrink();
 
@@ -86,7 +90,7 @@ class ActiveRemindersPanel extends StatelessWidget {
                           reminderProvider.createFromTemplate(template);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('已创建: ${template.name}'),
+                              content: Text(l10n.created(template.name)),
                               duration: const Duration(seconds: 1),
                             ),
                           );
@@ -123,6 +127,8 @@ class ActiveRemindersPanel extends StatelessWidget {
   }
 
   Widget _buildQuickCreate(BuildContext context, ReminderProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
+
     return InkWell(
       onTap: () => _showQuickCreateDialog(context, provider),
       child: Container(
@@ -145,7 +151,7 @@ class ActiveRemindersPanel extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              '快速创建提醒',
+              l10n.quickCreateReminder,
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w500,
@@ -160,6 +166,8 @@ class ActiveRemindersPanel extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -167,11 +175,11 @@ class ActiveRemindersPanel extends StatelessWidget {
           Icon(Icons.alarm_off, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            '暂无活动提醒',
+            l10n.noActiveReminders,
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
-          Text('点击上方快速创建或使用左侧模板', style: TextStyle(color: Colors.grey[500])),
+          Text(l10n.noActiveRemindersDesc, style: TextStyle(color: Colors.grey[500])),
         ],
       ),
     );
@@ -182,7 +190,7 @@ class ActiveRemindersPanel extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       itemCount: provider.activeReminders.length,
       itemBuilder: (context, index) {
-        // 按剩余时间排序
+        // Sort by remaining time
         final sortedReminders = provider.activeReminders.toList()
           ..sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
         final sortedReminder = sortedReminders[index];
@@ -198,6 +206,7 @@ class ActiveRemindersPanel extends StatelessWidget {
   }
 
   void _showQuickCreateDialog(BuildContext context, ReminderProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.maybeOf(context);
     showDialog(
       context: context,
@@ -208,9 +217,9 @@ class ActiveRemindersPanel extends StatelessWidget {
           messenger
             ..clearSnackBars()
             ..showSnackBar(
-              const SnackBar(
-                content: Text('提醒已创建'),
-                duration: Duration(seconds: 2),
+              SnackBar(
+                content: Text(l10n.reminderCreated),
+                duration: const Duration(seconds: 2),
               ),
             );
         },
@@ -219,7 +228,7 @@ class ActiveRemindersPanel extends StatelessWidget {
   }
 }
 
-/// 提醒卡片
+/// Reminder card
 class ReminderCard extends StatefulWidget {
   final Reminder reminder;
   final VoidCallback onCancel;
@@ -241,6 +250,7 @@ class ReminderCard extends StatefulWidget {
 class _ReminderCardState extends State<ReminderCard> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isUrgent = widget.reminder.timeUntilReminder.inMinutes < 5;
     final isRepeating = widget.reminder.isRepeating;
 
@@ -256,7 +266,7 @@ class _ReminderCardState extends State<ReminderCard> {
             children: [
               Row(
                 children: [
-                  // 图标
+                  // Icon
                   Container(
                     width: 40,
                     height: 40,
@@ -276,7 +286,7 @@ class _ReminderCardState extends State<ReminderCard> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // 信息
+                  // Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,7 +322,7 @@ class _ReminderCardState extends State<ReminderCard> {
                 ],
               ),
               const SizedBox(height: 8),
-              // 倒计时
+              // Countdown
               Row(
                 children: [
                   Icon(
@@ -331,10 +341,10 @@ class _ReminderCardState extends State<ReminderCard> {
                     ),
                   ),
                   const Spacer(),
-                  // 操作按钮
+                  // Action buttons
                   TextButton.icon(
                     icon: const Icon(Icons.snooze, size: 16),
-                    label: const Text('贪睡'),
+                    label: Text(l10n.snooze),
                     style: TextButton.styleFrom(
                       visualDensity: VisualDensity.compact,
                     ),
@@ -342,7 +352,7 @@ class _ReminderCardState extends State<ReminderCard> {
                   ),
                   TextButton.icon(
                     icon: const Icon(Icons.cancel, size: 16),
-                    label: const Text('取消'),
+                    label: Text(l10n.cancel),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.red,
                       visualDensity: VisualDensity.compact,
@@ -359,7 +369,7 @@ class _ReminderCardState extends State<ReminderCard> {
   }
 }
 
-/// 快速创建对话框
+/// Quick create dialog
 class _QuickCreateDialog extends StatefulWidget {
   final ReminderProvider provider;
   final VoidCallback onCreated;
@@ -377,15 +387,6 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
     DateTime.wednesday,
     DateTime.thursday,
     DateTime.friday,
-  };
-  static const Map<int, String> _weekdayLabels = <int, String>{
-    DateTime.monday: '一',
-    DateTime.tuesday: '二',
-    DateTime.wednesday: '三',
-    DateTime.thursday: '四',
-    DateTime.friday: '五',
-    DateTime.saturday: '六',
-    DateTime.sunday: '日',
   };
 
   final _titleController = TextEditingController();
@@ -414,8 +415,10 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AlertDialog(
-      title: const Text('快速创建提醒'),
+      title: Text(l10n.quickCreateReminder),
       content: SizedBox(
         width: 400,
         child: SingleChildScrollView(
@@ -423,34 +426,34 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildScheduleModeSelector(),
+              _buildScheduleModeSelector(l10n),
               const SizedBox(height: 16),
-              if (_scheduleMode == 'delay') _buildDelaySelector(),
-              if (_scheduleMode == 'time') _buildTimeSelector(context),
+              if (_scheduleMode == 'delay') _buildDelaySelector(l10n),
+              if (_scheduleMode == 'time') _buildTimeSelector(context, l10n),
               const SizedBox(height: 16),
-              // 标题
+              // Title
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: '标题',
-                  hintText: '提醒标题',
+                decoration: InputDecoration(
+                  labelText: l10n.reminderTitle,
+                  hintText: l10n.reminderTitle,
                 ),
               ),
               const SizedBox(height: 16),
-              // 内容
+              // Content
               TextField(
                 controller: _bodyController,
-                decoration: const InputDecoration(
-                  labelText: '内容',
-                  hintText: '提醒内容（可选）',
+                decoration: InputDecoration(
+                  labelText: l10n.reminderContent,
+                  hintText: l10n.reminderContentOptional,
                 ),
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
-              // 类型
+              // Type
               Row(
                 children: [
-                  const Text('类型: '),
+                  Text(l10n.typeLabel),
                   Radio<String>(
                     value: 'notification',
                     groupValue: _type,
@@ -458,7 +461,7 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
                       setState(() => _type = value!);
                     },
                   ),
-                  const Text('通知'),
+                  Text(l10n.typeNotification),
                   Radio<String>(
                     value: 'flash',
                     groupValue: _type,
@@ -466,20 +469,20 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
                       setState(() => _type = value!);
                     },
                   ),
-                  const Text('闪屏'),
+                  Text(l10n.typeFlash),
                 ],
               ),
               if (_scheduleMode == 'delay') ...[
                 const SizedBox(height: 16),
-                // 重复选项（计时模式）
+                // Repeat option (delay mode)
                 DropdownButtonFormField<String>(
                   initialValue: _repeatRule?.frequency ?? 'none',
-                  decoration: const InputDecoration(labelText: '重复'),
-                  items: const [
-                    DropdownMenuItem(value: 'none', child: Text('不重复')),
-                    DropdownMenuItem(value: 'daily', child: Text('每天')),
-                    DropdownMenuItem(value: 'weekly', child: Text('每周')),
-                    DropdownMenuItem(value: 'monthly', child: Text('每月')),
+                  decoration: InputDecoration(labelText: l10n.repeatLabel),
+                  items: [
+                    DropdownMenuItem(value: 'none', child: Text(l10n.noRepeat)),
+                    DropdownMenuItem(value: 'daily', child: Text(l10n.daily)),
+                    DropdownMenuItem(value: 'weekly', child: Text(l10n.weekly)),
+                    DropdownMenuItem(value: 'monthly', child: Text(l10n.monthly)),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -499,30 +502,30 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(l10n.cancel),
         ),
-        ElevatedButton(onPressed: _createReminder, child: const Text('创建')),
+        ElevatedButton(onPressed: _createReminder, child: Text(l10n.create)),
       ],
     );
   }
 
-  Widget _buildScheduleModeSelector() {
+  Widget _buildScheduleModeSelector(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('提醒方式'),
+        Text(l10n.reminderMode),
         const SizedBox(height: 8),
         SegmentedButton<String>(
-          segments: const [
+          segments: [
             ButtonSegment<String>(
               value: 'delay',
-              icon: Icon(Icons.timer_outlined),
-              label: Text('计时提醒'),
+              icon: const Icon(Icons.timer_outlined),
+              label: Text(l10n.countdownReminder),
             ),
             ButtonSegment<String>(
               value: 'time',
-              icon: Icon(Icons.schedule),
-              label: Text('时间提醒'),
+              icon: const Icon(Icons.schedule),
+              label: Text(l10n.timeReminder),
             ),
           ],
           selected: <String>{_scheduleMode},
@@ -536,18 +539,18 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
     );
   }
 
-  Widget _buildDelaySelector() {
+  Widget _buildDelaySelector(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('快速选择时间'),
+        Text(l10n.quickSelectTime),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: _quickDelays.map((minutes) {
             return ChoiceChip(
-              label: Text(_formatDelay(minutes)),
+              label: Text(_formatDelay(l10n, minutes)),
               selected: _delayMinutes == minutes,
               onSelected: (selected) {
                 if (selected) {
@@ -561,11 +564,11 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
     );
   }
 
-  Widget _buildTimeSelector(BuildContext context) {
+  Widget _buildTimeSelector(BuildContext context, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('提醒时间'),
+        Text(l10n.reminderTime),
         const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: () => _pickTime(context),
@@ -573,7 +576,7 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
           label: Text(_formatTimeOfDay(_selectedTime)),
         ),
         const SizedBox(height: 12),
-        const Text('重复星期（留空表示仅一次）'),
+        Text(l10n.repeatWeekdays),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -582,7 +585,7 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
             final weekday = index + 1;
             final selected = _selectedWeekdays.contains(weekday);
             return FilterChip(
-              label: Text('周${_weekdayLabels[weekday]!}'),
+              label: Text(_getWeekdayLabel(l10n, weekday)),
               selected: selected,
               onSelected: (value) {
                 setState(() {
@@ -608,7 +611,7 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
                     ..addAll(_workdays);
                 });
               },
-              child: const Text('工作日'),
+              child: Text(l10n.workdays),
             ),
             TextButton(
               onPressed: () {
@@ -618,13 +621,13 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
                     ..addAll(List<int>.generate(7, (index) => index + 1));
                 });
               },
-              child: const Text('每天'),
+              child: Text(l10n.everyday),
             ),
             TextButton(
               onPressed: () {
                 setState(_selectedWeekdays.clear);
               },
-              child: const Text('清空'),
+              child: Text(l10n.clear),
             ),
           ],
         ),
@@ -632,14 +635,35 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
     );
   }
 
-  String _formatDelay(int minutes) {
-    if (minutes < 60) return '$minutes 分钟';
+  String _getWeekdayLabel(AppLocalizations l10n, int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return l10n.weekdayMon;
+      case DateTime.tuesday:
+        return l10n.weekdayTue;
+      case DateTime.wednesday:
+        return l10n.weekdayWed;
+      case DateTime.thursday:
+        return l10n.weekdayThu;
+      case DateTime.friday:
+        return l10n.weekdayFri;
+      case DateTime.saturday:
+        return l10n.weekdaySat;
+      case DateTime.sunday:
+        return l10n.weekdaySun;
+      default:
+        return '';
+    }
+  }
+
+  String _formatDelay(AppLocalizations l10n, int minutes) {
+    if (minutes < 60) return l10n.minutesFormat(minutes);
     if (minutes < 1440) {
       final hours = minutes ~/ 60;
-      return '$hours 小时';
+      return l10n.hoursFormat(hours);
     }
     final days = minutes ~/ 1440;
-    return '$days 天';
+    return l10n.daysFormat(days);
   }
 
   String _formatTimeOfDay(TimeOfDay time) {
@@ -714,9 +738,10 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
   }
 
   void _createReminder() {
+    final l10n = AppLocalizations.of(context)!;
     final title = _titleController.text.isNotEmpty
         ? _titleController.text
-        : '提醒';
+        : l10n.reminder;
 
     if (_scheduleMode == 'time') {
       widget.provider.addReminderAt(

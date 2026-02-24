@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../../providers/server_provider.dart';
 import '../../providers/reminder_provider.dart';
 import '../../services/upcoming_window_service.dart';
@@ -9,7 +10,7 @@ import '../widgets/home/active_reminders_panel.dart';
 import '../widgets/home/history_stats_panel.dart';
 import '../settings_screen.dart';
 
-/// 新的三栏布局主屏幕
+/// Main screen with three-column layout
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -58,28 +59,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AppBar(
       title: Row(
         children: [
           const Icon(Icons.notifications_active),
           const SizedBox(width: 8),
-          const Text('SNotice'),
+          Text(l10n.appTitle),
         ],
       ),
       actions: [
         IconButton(
           icon: const Icon(Icons.picture_in_picture_alt),
-          tooltip: '切换独立悬浮窗',
+          tooltip: l10n.toggleFloatingWindow,
           onPressed: () async {
             final success = await context
                 .read<UpcomingWindowService>()
                 .toggleWindow();
             if (!success && context.mounted) {
-              _showSnackBar('悬浮窗操作失败，请重试或重启应用');
+              _showSnackBar(l10n.floatingWindowFailed);
             }
           },
         ),
-        // 服务器状态指示器
+        // Server status indicator
         Consumer<ServerProvider>(
           builder: (context, serverProvider, _) {
             return _ServerStatusIndicator(
@@ -88,14 +91,14 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-        // 右侧面板切换按钮（中等屏幕时显示）
+        // Right panel toggle button (shown on medium screens)
         if (MediaQuery.of(context).size.width > 800 &&
             MediaQuery.of(context).size.width <= 1200)
           IconButton(
             icon: Icon(
               _showRightPanel ? Icons.visibility_off : Icons.visibility,
             ),
-            tooltip: _showRightPanel ? '隐藏详情面板' : '显示详情面板',
+            tooltip: _showRightPanel ? l10n.hideDetailPanel : l10n.showDetailPanel,
             onPressed: () {
               setState(() {
                 _showRightPanel = !_showRightPanel;
@@ -109,25 +112,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBody(bool isWideScreen, bool isMediumScreen) {
     if (isWideScreen) {
-      // 宽屏幕：三栏布局
+      // Wide screen: three-column layout
       return _buildThreeColumnLayout();
     } else if (isMediumScreen) {
-      // 中等屏幕：两栏布局（左栏+中栏，右栏可切换）
+      // Medium screen: two-column layout
       return _buildTwoColumnLayout();
     } else {
-      // 窄屏幕：单栏布局
+      // Narrow screen: single-column layout
       return _buildSingleColumnLayout();
     }
   }
 
-  /// 三栏布局
+  /// Three-column layout
   Widget _buildThreeColumnLayout() {
     return Row(
       children: [
-        // 左栏：快捷模板
+        // Left column: quick templates
         const SizedBox(width: 250, child: TemplatePanel()),
         const VerticalDivider(width: 1),
-        // 中栏：活动提醒
+        // Middle column: active reminders
         Expanded(
           child: ActiveRemindersPanel(
             onReminderSelected: (reminder) {
@@ -138,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const VerticalDivider(width: 1),
-        // 右栏：历史与统计
+        // Right column: history and stats
         SizedBox(
           width: 300,
           child: HistoryStatsPanel(selectedReminder: _selectedReminder),
@@ -147,21 +150,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 两栏布局
+  /// Two-column layout
   Widget _buildTwoColumnLayout() {
     return Row(
       children: [
-        // 左栏：快捷模板
+        // Left column: quick templates
         const SizedBox(width: 220, child: TemplatePanel()),
         const VerticalDivider(width: 1),
-        // 中栏：活动提醒
+        // Middle column: active reminders
         Expanded(
           child: ActiveRemindersPanel(
             onReminderSelected: (reminder) {
               setState(() {
                 _selectedReminder = reminder;
               });
-              // 中等屏幕时，显示底部详情面板
+              // On medium screens, show bottom detail sheet
               _showReminderDetailSheet(reminder);
             },
           ),
@@ -170,10 +173,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 单栏布局
+  /// Single-column layout
   Widget _buildSingleColumnLayout() {
     return ActiveRemindersPanel(
-      showQuickTemplates: true, // 在顶部显示快速模板
+      showQuickTemplates: true, // Show quick templates at top
       onReminderSelected: (reminder) {
         _showReminderDetailSheet(reminder);
       },
@@ -187,6 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showReminderDetailSheet(Reminder reminder) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -220,8 +224,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: scrollController,
                     child: _ReminderDetailContent(
                       reminder: reminder,
-                      onSnoozed: () => _showSnackBar('已延后 5 分钟'),
-                      onCancelled: () => _showSnackBar('已取消提醒'),
+                      onSnoozed: () => _showSnackBar(l10n.snoozed5Minutes),
+                      onCancelled: () => _showSnackBar(l10n.reminderCancelled),
                     ),
                   ),
                 ),
@@ -234,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// 服务器状态指示器
+/// Server status indicator
 class _ServerStatusIndicator extends StatelessWidget {
   final bool isRunning;
   final VoidCallback onTap;
@@ -243,6 +247,8 @@ class _ServerStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -270,7 +276,7 @@ class _ServerStatusIndicator extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              isRunning ? '运行中' : '已停止',
+              isRunning ? l10n.statusRunning : l10n.statusStopped,
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -289,6 +295,8 @@ class _ServerErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+
     return MaterialBanner(
       leading: Icon(Icons.error_outline, color: colorScheme.onErrorContainer),
       backgroundColor: colorScheme.errorContainer,
@@ -300,7 +308,7 @@ class _ServerErrorBanner extends StatelessWidget {
         TextButton(
           onPressed: onClose,
           child: Text(
-            '关闭',
+            l10n.close,
             style: TextStyle(color: colorScheme.onErrorContainer),
           ),
         ),
@@ -309,7 +317,7 @@ class _ServerErrorBanner extends StatelessWidget {
   }
 }
 
-/// 提醒详情内容
+/// Reminder detail content
 class _ReminderDetailContent extends StatelessWidget {
   final Reminder reminder;
   final VoidCallback onSnoozed;
@@ -323,18 +331,20 @@ class _ReminderDetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildInfoRow(context, '标题', reminder.title),
-        _buildInfoRow(context, '内容', reminder.body),
-        _buildInfoRow(context, '类型', reminder.type == 'flash' ? '闪屏' : '通知'),
-        _buildInfoRow(context, '计划时间', _formatDateTime(reminder.scheduledTime)),
-        _buildInfoRow(context, '创建时间', _formatDateTime(reminder.createdAt)),
+        _buildInfoRow(context, l10n.labelTitle, reminder.title),
+        _buildInfoRow(context, l10n.labelContent, reminder.body),
+        _buildInfoRow(context, l10n.labelType, reminder.type == 'flash' ? l10n.typeFlash : l10n.typeNotification),
+        _buildInfoRow(context, l10n.labelScheduledTime, _formatDateTime(reminder.scheduledTime)),
+        _buildInfoRow(context, l10n.labelCreatedAt, _formatDateTime(reminder.createdAt)),
         if (reminder.repeatRule != null)
-          _buildInfoRow(context, '重复', reminder.repeatRule.toString()),
+          _buildInfoRow(context, l10n.labelRepeat, reminder.repeatRule.toString()),
         if (reminder.templateId != null)
-          _buildInfoRow(context, '来源模板', reminder.templateId!),
+          _buildInfoRow(context, l10n.labelTemplate, reminder.templateId!),
         const SizedBox(height: 16),
         Consumer<ReminderProvider>(
           builder: (context, provider, _) {
@@ -343,7 +353,7 @@ class _ReminderDetailContent extends StatelessWidget {
               children: [
                 ElevatedButton.icon(
                   icon: const Icon(Icons.snooze),
-                  label: const Text('贪睡 5 分钟'),
+                  label: Text(l10n.snooze5Minutes),
                   onPressed: () {
                     provider.snooze(reminder.id, const Duration(minutes: 5));
                     Navigator.pop(context);
@@ -352,7 +362,7 @@ class _ReminderDetailContent extends StatelessWidget {
                 ),
                 ElevatedButton.icon(
                   icon: const Icon(Icons.cancel),
-                  label: const Text('取消提醒'),
+                  label: Text(l10n.cancelReminder),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,

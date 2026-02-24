@@ -1,0 +1,307 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "SNotice",
+  "@appTitle": {
+    "description": "Application name"
+  },
+
+  "navCreate": "Create",
+  "navReminders": "Reminders",
+  "navHistory": "History",
+  "navSettings": "Settings",
+
+  "reminderSetFor": "Reminder set for {minutes} minutes",
+  "@reminderSetFor": {
+    "description": "Confirmation message when reminder is set",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+
+  "settingsTitle": "Settings",
+  "settingsSave": "Save Settings",
+  "settingsSaved": "Settings saved",
+  "settingsSaveFailed": "Failed to save settings",
+
+  "serverSettings": "Server Settings",
+  "serverPort": "Port",
+  "serverPortRequired": "Please enter a port",
+  "serverPortInvalid": "Please enter a valid port (1-65535)",
+  "serverAutoStart": "Auto Start",
+  "serverAutoStartDesc": "Start server automatically on app launch",
+
+  "allowedIPs": "Allowed IPs",
+  "addIPAddress": "Add IP Address",
+  "ipHint": "e.g., 127.0.0.1 or 192.168.1.0/24",
+  "add": "Add",
+  "noIPsAdded": "No IPs added. All IPs will be allowed.",
+  "ipWhitelistTitle": "IP Whitelist",
+  "ipWhitelistInfo": "Only IPs in this list can send notifications. Leave empty to allow all IPs.\n\nYou can use:\n- Exact IP: 127.0.0.1\n- CIDR range: 192.168.1.0/24\n\nCIDR notation allows entire network ranges to be allowed.",
+  "ok": "OK",
+
+  "notificationSettings": "Notification Settings",
+  "showNotifications": "Show Notifications",
+  "showNotificationsDesc": "Display system notifications",
+
+  "statusRunning": "Running",
+  "statusStopped": "Stopped",
+  "close": "Close",
+
+  "toggleFloatingWindow": "Toggle Floating Window",
+  "floatingWindowFailed": "Floating window operation failed, please retry or restart the app",
+  "hideDetailPanel": "Hide Detail Panel",
+  "showDetailPanel": "Show Detail Panel",
+
+  "labelTitle": "Title",
+  "labelContent": "Content",
+  "labelType": "Type",
+  "labelScheduledTime": "Scheduled Time",
+  "labelCreatedAt": "Created At",
+  "labelRepeat": "Repeat",
+  "labelTemplate": "Template",
+  "labelStatus": "Status",
+
+  "typeFlash": "Flash",
+  "typeNotification": "Notification",
+
+  "statusExpired": "Expired",
+  "statusInProgress": "In Progress",
+
+  "snooze5Minutes": "Snooze 5 min",
+  "cancelReminder": "Cancel Reminder",
+  "snoozed5Minutes": "Snoozed 5 minutes",
+  "reminderCancelled": "Reminder cancelled",
+
+  "trayStartService": "Start Service",
+  "trayStopService": "Stop Service",
+  "trayOpenMain": "Open Main Window",
+  "trayQuickReminders": "Quick Reminders",
+  "trayBreak25": "Break (25 min)",
+  "trayMeeting15": "Meeting (15 min)",
+  "trayMedicine4h": "Medicine (4h)",
+  "trayPomodoro": "Pomodoro (25 min)",
+  "trayWater": "Water (30 min)",
+  "trayStretch": "Stretch (45 min)",
+  "trayExit": "Exit",
+  "trayServiceRunning": "Service Running",
+  "trayServiceNotRunning": "Service Not Running",
+
+  "quickTime": "Quick Time",
+  "customTime": "Custom Time",
+  "minutes": "{minutes} min",
+  "@minutes": {
+    "description": "Minutes display",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hours": "{hours}h",
+  "@hours": {
+    "description": "Hours display",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+
+  "reminderType": "Reminder Type",
+  "notification": "Notification",
+  "notificationDesc": "System notification",
+  "flashScreen": "Flash Screen",
+  "flashScreenDesc": "Full screen overlay",
+  "titleRequired": "Please enter a title",
+  "message": "Message",
+  "messageRequired": "Please enter a message",
+  "flashSettings": "Flash Settings",
+  "color": "Color",
+  "duration": "Duration: {duration}ms",
+  "@duration": {
+    "description": "Flash duration display",
+    "placeholders": {
+      "duration": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noReminderHistory": "No reminder history",
+  "clearHistory": "Clear History",
+  "minutesAgo": "{minutes}m ago",
+  "@minutesAgo": {
+    "description": "Minutes ago display",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{hours}h ago",
+  "@hoursAgo": {
+    "description": "Hours ago display",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "daysAgo": "{days}d ago",
+  "@daysAgo": {
+    "description": "Days ago display",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+
+  "noActiveReminders": "No active reminders",
+
+  "activeReminders": "Active Reminders",
+  "created": "Created: {name}",
+  "@created": {
+    "description": "Created message",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "quickCreateReminder": "Quick Create Reminder",
+  "noActiveRemindersDesc": "Click quick create above or use templates on the left",
+  "snooze": "Snooze",
+  "cancel": "Cancel",
+
+  "reminderMode": "Reminder Mode",
+  "countdownReminder": "Countdown",
+  "timeReminder": "Scheduled Time",
+  "quickSelectTime": "Quick Select Time",
+  "reminderTitle": "Reminder Title",
+  "reminderContent": "Reminder Content",
+  "reminderContentOptional": "Reminder content (optional)",
+  "typeLabel": "Type:",
+  "repeatLabel": "Repeat",
+  "noRepeat": "No repeat",
+  "daily": "Daily",
+  "weekly": "Weekly",
+  "monthly": "Monthly",
+  "create": "Create",
+  "reminderTime": "Reminder Time",
+  "repeatWeekdays": "Repeat on weekdays (leave empty for one-time)",
+  "weekdayMon": "Mon",
+  "weekdayTue": "Tue",
+  "weekdayWed": "Wed",
+  "weekdayThu": "Thu",
+  "weekdayFri": "Fri",
+  "weekdaySat": "Sat",
+  "weekdaySun": "Sun",
+  "workdays": "Workdays",
+  "everyday": "Everyday",
+  "clear": "Clear",
+  "minutesFormat": "{minutes} minutes",
+  "@minutesFormat": {
+    "description": "Minutes format",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursFormat": "{hours} hours",
+  "@hoursFormat": {
+    "description": "Hours format",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursMinutesFormat": "{hours} hours {minutes} minutes",
+  "@hoursMinutesFormat": {
+    "description": "Hours and minutes format",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "daysFormat": "{days} days",
+  "@daysFormat": {
+    "description": "Days format",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "reminder": "Reminder",
+  "reminderCreated": "Reminder created",
+
+  "todayStats": "Today's Stats",
+  "createdStat": "Created",
+  "completedStat": "Completed",
+  "completionRate": "Completion Rate",
+  "last7DaysTrend": "Last 7 Days Trend",
+  "noData": "No data",
+  "history": "History",
+  "clearAll": "Clear All",
+  "noHistory": "No history",
+  "reminderDetail": "Reminder Detail",
+  "xMinutesAgo": "{minutes} minutes ago",
+  "@xMinutesAgo": {
+    "description": "X minutes ago",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "xHoursAgo": "{hours} hours ago",
+  "@xHoursAgo": {
+    "description": "X hours ago",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "xDaysAgo": "{days} days ago",
+  "@xDaysAgo": {
+    "description": "X days ago",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+
+  "quickTemplates": "Quick Templates",
+  "noTemplates": "No templates",
+  "customTemplate": "Custom Template",
+  "undo": "Undo",
+  "templateCreated": "Template created",
+  "unfavorite": "Unfavorite",
+  "favorite": "Favorite",
+  "createCustomTemplate": "Create Custom Template",
+  "icon": "Icon",
+  "templateName": "Template Name",
+  "templateNameHint": "e.g., Water Reminder",
+  "templateNameRequired": "Please enter a name",
+  "delayTime": "Delay Time:",
+  "reminderTitleHint": "Title shown when reminder triggers",
+  "reminderContentHint": "Content shown when reminder triggers",
+  "save": "Save",
+
+  "language": "Language",
+  "languageSystem": "System",
+  "languageEnglish": "English",
+  "languageChinese": "中文"
+}

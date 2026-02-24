@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/config_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/server_provider.dart';
@@ -54,9 +55,10 @@ class _MainScreenState extends State<MainScreen> {
     _bodyController.clear();
 
     if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Reminder set for $_selectedMinutes minutes'),
+          content: Text(l10n.reminderSetFor(_selectedMinutes)),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -82,10 +84,11 @@ class _MainScreenState extends State<MainScreen> {
     final port = context.select<ConfigProvider, int>(
       (provider) => provider.config.port,
     );
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SNotice'),
+        title: Text(l10n.appTitle),
         centerTitle: true,
         actions: [
           ServerStatusIndicator(
@@ -138,20 +141,20 @@ class _MainScreenState extends State<MainScreen> {
             _selectedTab = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.add_alarm), label: 'Create'),
+        items: [
+          BottomNavigationBarItem(icon: const Icon(Icons.add_alarm), label: l10n.navCreate),
           BottomNavigationBarItem(
-            icon: Icon(Icons.pending_actions),
-            label: 'Reminders',
+            icon: const Icon(Icons.pending_actions),
+            label: l10n.navReminders,
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
+          BottomNavigationBarItem(icon: const Icon(Icons.history), label: l10n.navHistory),
         ],
       ),
       floatingActionButton: _selectedTab == 0
           ? FloatingActionButton.extended(
               onPressed: _createReminder,
               icon: const Icon(Icons.alarm_add),
-              label: const Text('Set Reminder'),
+              label: Text(l10n.quickCreateReminder),
             )
           : null,
     );

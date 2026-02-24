@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../l10n/app_localizations.dart';
 import '../models/app_config.dart';
 import '../providers/config_provider.dart';
+import '../providers/locale_provider.dart';
 import '../providers/server_provider.dart';
 import '../services/config_service.dart';
 import 'widgets/settings/allowed_ips_card.dart';
@@ -55,6 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final configProvider = context.read<ConfigProvider>();
     final serverProvider = context.read<ServerProvider>();
     final configService = context.read<ConfigService>();
+    final l10n = AppLocalizations.of(context)!;
 
     final newConfig = _initialConfig.copyWith(
       port: port,
@@ -71,7 +74,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Failed to save settings')));
+      ).showSnackBar(SnackBar(content: Text(l10n.settingsSaveFailed)));
       return;
     }
 
@@ -84,7 +87,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Settings saved')));
+    ).showSnackBar(SnackBar(content: Text(l10n.settingsSaved)));
     Navigator.pop(context);
   }
 
@@ -107,17 +110,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showIpWhitelistInfo() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('IP Whitelist'),
-        content: const Text(
-          'Only IPs in this list can send notifications. Leave empty to allow all IPs.\n\nYou can use:\n- Exact IP: 127.0.0.1\n- CIDR range: 192.168.1.0/24\n\nCIDR notation allows entire network ranges to be allowed.',
-        ),
+        title: Text(l10n.ipWhitelistTitle),
+        content: Text(l10n.ipWhitelistInfo),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(l10n.ok),
           ),
         ],
       ),
@@ -126,8 +128,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -159,6 +163,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 });
               },
             ),
+            const SizedBox(height: 16),
+            _buildLanguageCard(context, l10n),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -169,11 +175,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text(
-                  'Save Settings',
-                  style: TextStyle(fontSize: 16),
+                child: Text(
+                  l10n.settingsSave,
+                  style: const TextStyle(fontSize: 16),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageCard(BuildContext context, AppLocalizations l10n) {
+    final localeProvider = context.watch<LocaleProvider>();
+    final currentLocale = localeProvider.locale;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.language,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<Locale?>(
+              initialValue: currentLocale,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+              ),
+              items: LocaleProvider.localeOptions.map((option) {
+                return DropdownMenuItem<Locale?>(
+                  value: option.locale,
+                  child: Text(option.getLabel(currentLocale)),
+                );
+              }).toList(),
+              onChanged: (locale) {
+                localeProvider.setLocale(locale);
+              },
             ),
           ],
         ),

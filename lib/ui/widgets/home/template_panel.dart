@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/reminder_template.dart';
 import '../../../providers/template_provider.dart';
 import '../../../providers/reminder_provider.dart';
 
-/// 左栏：快捷模板面板
+/// Left column: Quick templates panel
 class TemplatePanel extends StatelessWidget {
   const TemplatePanel({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<TemplateProvider>(
       builder: (context, templateProvider, _) {
         if (templateProvider.isLoading) {
@@ -18,22 +21,22 @@ class TemplatePanel extends StatelessWidget {
 
         return Column(
           children: [
-            // 标题
+            // Header
             Container(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   const Icon(Icons.apps, size: 20),
                   const SizedBox(width: 8),
-                  Text('快捷模板', style: Theme.of(context).textTheme.titleMedium),
+                  Text(l10n.quickTemplates, style: Theme.of(context).textTheme.titleMedium),
                 ],
               ),
             ),
             const Divider(height: 1),
-            // 模板列表
+            // Template list
             Expanded(
               child: templateProvider.templates.isEmpty
-                  ? _buildEmptyState(context)
+                  ? _buildEmptyState(context, l10n)
                   : ListView.builder(
                       padding: const EdgeInsets.all(8),
                       itemCount: templateProvider.templates.length,
@@ -49,39 +52,40 @@ class TemplatePanel extends StatelessWidget {
                     ),
             ),
             const Divider(height: 1),
-            // 添加自定义按钮
-            _buildAddCustomButton(context),
+            // Add custom button
+            _buildAddCustomButton(context, l10n),
           ],
         );
       },
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
           const SizedBox(height: 16),
-          Text('暂无模板', style: TextStyle(color: Colors.grey[600])),
+          Text(l10n.noTemplates, style: TextStyle(color: Colors.grey[600])),
         ],
       ),
     );
   }
 
-  Widget _buildAddCustomButton(BuildContext context) {
+  Widget _buildAddCustomButton(BuildContext context, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: OutlinedButton.icon(
         icon: const Icon(Icons.add),
-        label: const Text('自定义模板'),
+        label: Text(l10n.customTemplate),
         onPressed: () => _showCreateTemplateDialog(context),
       ),
     );
   }
 
   void _createFromTemplate(BuildContext context, ReminderTemplate template) {
+    final l10n = AppLocalizations.of(context)!;
     final reminderProvider = context.read<ReminderProvider>();
     final messenger = ScaffoldMessenger.maybeOf(context);
     final reminder = reminderProvider.createFromTemplate(template);
@@ -96,7 +100,7 @@ class TemplatePanel extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '已创建: ${template.name}',
+                  l10n.created(template.name),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -106,7 +110,7 @@ class TemplatePanel extends StatelessWidget {
                   reminderProvider.removeReminder(reminder.id);
                   messenger.hideCurrentSnackBar();
                 },
-                child: const Text('撤销'),
+                child: Text(l10n.undo),
               ),
             ],
           ),
@@ -121,6 +125,7 @@ class TemplatePanel extends StatelessWidget {
   }
 
   void _showCreateTemplateDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.maybeOf(context);
     showDialog(
       context: context,
@@ -130,9 +135,9 @@ class TemplatePanel extends StatelessWidget {
           messenger
             ..clearSnackBars()
             ..showSnackBar(
-              const SnackBar(
-                content: Text('模板已创建'),
-                duration: Duration(seconds: 2),
+              SnackBar(
+                content: Text(l10n.templateCreated),
+                duration: const Duration(seconds: 2),
               ),
             );
         },
@@ -141,7 +146,7 @@ class TemplatePanel extends StatelessWidget {
   }
 }
 
-/// 模板卡片
+/// Template card
 class TemplateCard extends StatelessWidget {
   final ReminderTemplate template;
   final VoidCallback onTap;
@@ -156,6 +161,8 @@ class TemplateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: InkWell(
@@ -165,7 +172,7 @@ class TemplateCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // 图标
+              // Icon
               Container(
                 width: 40,
                 height: 40,
@@ -181,7 +188,7 @@ class TemplateCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              // 信息
+              // Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +209,7 @@ class TemplateCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // 收藏按钮
+              // Favorite button
               IconButton(
                 icon: Icon(
                   template.isFavorite ? Icons.star : Icons.star_border,
@@ -210,7 +217,7 @@ class TemplateCard extends StatelessWidget {
                   color: template.isFavorite ? Colors.amber : null,
                 ),
                 onPressed: onFavoriteToggle,
-                tooltip: template.isFavorite ? '取消收藏' : '收藏',
+                tooltip: template.isFavorite ? l10n.unfavorite : l10n.favorite,
               ),
             ],
           ),
@@ -220,7 +227,7 @@ class TemplateCard extends StatelessWidget {
   }
 }
 
-/// 创建自定义模板对话框
+/// Create custom template dialog
 class _CreateTemplateDialog extends StatefulWidget {
   final VoidCallback onSaved;
 
@@ -264,8 +271,10 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AlertDialog(
-      title: const Text('创建自定义模板'),
+      title: Text(l10n.createCustomTemplate),
       content: SizedBox(
         width: 400,
         child: Form(
@@ -275,8 +284,8 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 图标选择
-                const Text('图标'),
+                // Icon selection
+                Text(l10n.icon),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -293,64 +302,64 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-                // 名称
+                // Name
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: '模板名称',
-                    hintText: '如：喝水提醒',
+                  decoration: InputDecoration(
+                    labelText: l10n.templateName,
+                    hintText: l10n.templateNameHint,
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return '请输入名称';
+                      return l10n.templateNameRequired;
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                // 延迟时间
+                // Delay time
                 Row(
                   children: [
-                    const Text('延迟时间: '),
+                    Text(l10n.delayTime),
                     Expanded(
                       child: Slider(
                         value: _delayMinutes.toDouble(),
                         min: 1,
                         max: 480,
                         divisions: 479,
-                        label: _formatDelay(_delayMinutes),
+                        label: _formatDelay(l10n, _delayMinutes),
                         onChanged: (value) {
                           setState(() => _delayMinutes = value.round());
                         },
                       ),
                     ),
-                    Text(_formatDelay(_delayMinutes)),
+                    Text(_formatDelay(l10n, _delayMinutes)),
                   ],
                 ),
                 const SizedBox(height: 16),
-                // 标题
+                // Title
                 TextFormField(
                   controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: '提醒标题',
-                    hintText: '提醒时显示的标题',
+                  decoration: InputDecoration(
+                    labelText: l10n.reminderTitle,
+                    hintText: l10n.reminderTitleHint,
                   ),
                 ),
                 const SizedBox(height: 16),
-                // 内容
+                // Content
                 TextFormField(
                   controller: _bodyController,
-                  decoration: const InputDecoration(
-                    labelText: '提醒内容',
-                    hintText: '提醒时显示的内容',
+                  decoration: InputDecoration(
+                    labelText: l10n.reminderContent,
+                    hintText: l10n.reminderContentHint,
                   ),
                   maxLines: 2,
                 ),
                 const SizedBox(height: 16),
-                // 类型
+                // Type
                 Row(
                   children: [
-                    const Text('类型: '),
+                    Text(l10n.typeLabel),
                     Radio<String>(
                       value: 'notification',
                       groupValue: _type,
@@ -358,7 +367,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                         setState(() => _type = value!);
                       },
                     ),
-                    const Text('通知'),
+                    Text(l10n.typeNotification),
                     Radio<String>(
                       value: 'flash',
                       groupValue: _type,
@@ -366,7 +375,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                         setState(() => _type = value!);
                       },
                     ),
-                    const Text('闪屏'),
+                    Text(l10n.typeFlash),
                   ],
                 ),
               ],
@@ -377,22 +386,22 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('取消'),
+          child: Text(l10n.cancel),
         ),
-        ElevatedButton(onPressed: _saveTemplate, child: const Text('保存')),
+        ElevatedButton(onPressed: _saveTemplate, child: Text(l10n.save)),
       ],
     );
   }
 
-  String _formatDelay(int minutes) {
-    if (minutes < 60) return '$minutes 分钟';
+  String _formatDelay(AppLocalizations l10n, int minutes) {
+    if (minutes < 60) return l10n.minutesFormat(minutes);
     if (minutes < 1440) {
       final hours = minutes ~/ 60;
       final mins = minutes % 60;
-      return mins > 0 ? '$hours 小时 $mins 分钟' : '$hours 小时';
+      return mins > 0 ? l10n.hoursMinutesFormat(hours, mins) : l10n.hoursFormat(hours);
     }
     final days = minutes ~/ 1440;
-    return '$days 天';
+    return l10n.daysFormat(days);
   }
 
   void _saveTemplate() {
@@ -407,7 +416,7 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
       defaultBody: _bodyController.text,
       type: _type,
       isBuiltIn: false,
-      sortOrder: 1000, // 自定义模板排在后面
+      sortOrder: 1000, // Custom templates go last
     );
 
     context.read<TemplateProvider>().addCustom(template);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/reminder.dart';
 import '../../../providers/reminder_provider.dart';
 
@@ -8,6 +9,8 @@ class ReminderHistoryTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Consumer<ReminderProvider>(
       builder: (context, reminderProvider, child) {
         final expiredReminders = reminderProvider.expiredReminders;
@@ -20,7 +23,7 @@ class ReminderHistoryTab extends StatelessWidget {
                 Icon(Icons.history, size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
                 Text(
-                  'No reminder history',
+                  l10n.noReminderHistory,
                   style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                 ),
               ],
@@ -35,7 +38,7 @@ class ReminderHistoryTab extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: reminderProvider.clearExpired,
                 icon: const Icon(Icons.delete_sweep),
-                label: const Text('Clear History'),
+                label: Text(l10n.clearHistory),
               ),
             ),
             Expanded(
@@ -78,24 +81,25 @@ class _HistoryCard extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         trailing: Text(
-          _formatHistoryTime(reminder.createdAt),
+          _formatHistoryTime(context, reminder.createdAt),
           style: TextStyle(color: Colors.grey[600], fontSize: 12),
         ),
       ),
     );
   }
 
-  String _formatHistoryTime(DateTime time) {
+  String _formatHistoryTime(BuildContext context, DateTime time) {
+    final l10n = AppLocalizations.of(context)!;
     final difference = DateTime.now().difference(time);
 
     if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
+      return l10n.minutesAgo(difference.inMinutes);
     }
     if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
+      return l10n.hoursAgo(difference.inHours);
     }
     if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return l10n.daysAgo(difference.inDays);
     }
     return '${time.day}/${time.month}/${time.year}';
   }
