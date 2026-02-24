@@ -11,7 +11,6 @@ import 'package:window_manager/window_manager.dart';
 import 'config/constants.dart';
 import 'l10n/app_localizations.dart';
 import 'overlay_main.dart' as overlay;
-import 'upcoming_window_main.dart' as upcoming;
 import 'providers/config_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/reminder_provider.dart';
@@ -26,7 +25,6 @@ import 'services/sound_service.dart';
 import 'services/stats_service.dart';
 import 'services/template_service.dart';
 import 'services/tray_service.dart';
-import 'services/upcoming_window_service.dart';
 import 'providers/theme_provider.dart';
 import 'theme/theme.dart';
 import 'ui/screens/home_screen.dart';
@@ -38,17 +36,11 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+  if (Platform.isLinux || Platform.isWindows) {
     try {
       final controller = await WindowController.fromCurrentEngine();
       final arguments = _parseWindowArguments(controller.arguments);
       final windowType = arguments['windowType'] as String?;
-
-      // 即将到期提醒悬浮窗入口（独立窗口）
-      if (windowType == 'upcoming') {
-        upcoming.upcomingWindowMain(args);
-        return;
-      }
 
       // 非 macOS 使用 Flutter 覆盖窗口实现闪屏
       if (!Platform.isMacOS &&
@@ -129,7 +121,6 @@ Future<void> _startMainApp() async {
     statsService,
   );
   final templateProvider = TemplateProvider(templateService, loggerService);
-  final upcomingWindowService = UpcomingWindowService(loggerService);
   final themeProvider = ThemeProvider();
   final localeProvider = LocaleProvider();
   await localeProvider.load();
@@ -151,9 +142,6 @@ Future<void> _startMainApp() async {
         reminderProvider.createFromTemplate(template);
         loggerService.info('Created reminder from tray: ${template.name}');
       }
-    },
-    onToggleUpcomingWindow: () async {
-      await upcomingWindowService.toggleWindow();
     },
     onExit: () => _exitApplication(
       loggerService: loggerService,
@@ -186,7 +174,6 @@ Future<void> _startMainApp() async {
         Provider.value(value: configService),
         Provider.value(value: statsService),
         Provider.value(value: soundService),
-        Provider.value(value: upcomingWindowService),
       ],
       child: const SNoticeApp(),
     ),
@@ -267,10 +254,7 @@ class SNoticeApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en', 'US'),
-            Locale('zh', 'CN'),
-          ],
+          supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
           home: const HomeScreen(),
         );
       },

@@ -2,7 +2,6 @@ import Cocoa
 import CoreGraphics
 import FlutterMacOS
 import audioplayers_darwin
-import desktop_multi_window
 import flutter_local_notifications
 import screen_retriever_macos
 import shared_preferences_foundation
@@ -21,9 +20,6 @@ class MainFlutterWindow: NSWindow {
 
     registerMacOSPlugins(registry: flutterViewController)
     registerFlashChannel(controller: flutterViewController)
-    FlutterMultiWindowPlugin.setOnWindowCreatedCallback { controller in
-      self.registerMacOSPlugins(registry: controller)
-    }
 
     super.awakeFromNib()
   }
@@ -31,8 +27,6 @@ class MainFlutterWindow: NSWindow {
   private func registerMacOSPlugins(registry: FlutterPluginRegistry) {
     AudioplayersDarwinPlugin.register(
       with: registry.registrar(forPlugin: "AudioplayersDarwinPlugin"))
-    FlutterMultiWindowPlugin.register(
-      with: registry.registrar(forPlugin: "FlutterMultiWindowPlugin"))
     FlutterLocalNotificationsPlugin.register(
       with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
     ScreenRetrieverMacosPlugin.register(

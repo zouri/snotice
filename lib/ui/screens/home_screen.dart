@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/server_provider.dart';
 import '../../providers/reminder_provider.dart';
-import '../../services/upcoming_window_service.dart';
 import '../../models/reminder.dart';
 import '../widgets/home/template_panel.dart';
 import '../widgets/home/active_reminders_panel.dart';
@@ -70,18 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.picture_in_picture_alt),
-          tooltip: l10n.toggleFloatingWindow,
-          onPressed: () async {
-            final success = await context
-                .read<UpcomingWindowService>()
-                .toggleWindow();
-            if (!success && context.mounted) {
-              _showSnackBar(l10n.floatingWindowFailed);
-            }
-          },
-        ),
         // Server status indicator
         Consumer<ServerProvider>(
           builder: (context, serverProvider, _) {
@@ -98,7 +85,9 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(
               _showRightPanel ? Icons.visibility_off : Icons.visibility,
             ),
-            tooltip: _showRightPanel ? l10n.hideDetailPanel : l10n.showDetailPanel,
+            tooltip: _showRightPanel
+                ? l10n.hideDetailPanel
+                : l10n.showDetailPanel,
             onPressed: () {
               setState(() {
                 _showRightPanel = !_showRightPanel;
@@ -338,11 +327,27 @@ class _ReminderDetailContent extends StatelessWidget {
       children: [
         _buildInfoRow(context, l10n.labelTitle, reminder.title),
         _buildInfoRow(context, l10n.labelContent, reminder.body),
-        _buildInfoRow(context, l10n.labelType, reminder.type == 'flash' ? l10n.typeFlash : l10n.typeNotification),
-        _buildInfoRow(context, l10n.labelScheduledTime, _formatDateTime(reminder.scheduledTime)),
-        _buildInfoRow(context, l10n.labelCreatedAt, _formatDateTime(reminder.createdAt)),
+        _buildInfoRow(
+          context,
+          l10n.labelType,
+          reminder.type == 'flash' ? l10n.typeFlash : l10n.typeNotification,
+        ),
+        _buildInfoRow(
+          context,
+          l10n.labelScheduledTime,
+          _formatDateTime(reminder.scheduledTime),
+        ),
+        _buildInfoRow(
+          context,
+          l10n.labelCreatedAt,
+          _formatDateTime(reminder.createdAt),
+        ),
         if (reminder.repeatRule != null)
-          _buildInfoRow(context, l10n.labelRepeat, reminder.repeatRule.toString()),
+          _buildInfoRow(
+            context,
+            l10n.labelRepeat,
+            reminder.repeatRule.toString(),
+          ),
         if (reminder.templateId != null)
           _buildInfoRow(context, l10n.labelTemplate, reminder.templateId!),
         const SizedBox(height: 16),

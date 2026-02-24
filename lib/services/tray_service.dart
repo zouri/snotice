@@ -13,7 +13,6 @@ class TrayService {
   final TrayActionCallback? onStartStop;
   final TrayActionCallback? onShowWindow;
   final TrayActionCallback? onOpenSettings;
-  final TrayActionCallback? onToggleUpcomingWindow;
   final TrayActionCallback? onExit;
   final TemplateActionCallback? onCreateFromTemplate;
 
@@ -26,7 +25,6 @@ class TrayService {
     this.onStartStop,
     this.onShowWindow,
     this.onOpenSettings,
-    this.onToggleUpcomingWindow,
     this.onExit,
     this.onCreateFromTemplate,
   });
@@ -155,16 +153,6 @@ class TrayService {
         menuItems.add(MenuSeparator());
       }
 
-      if (onToggleUpcomingWindow != null) {
-        menuItems.add(
-          MenuItemLabel(
-            label: _l10n('Toggle Floating Window', '切换悬浮窗'),
-            onClicked: (_) => _runAction(onToggleUpcomingWindow),
-          ),
-        );
-        menuItems.add(MenuSeparator());
-      }
-
       // Service control
       if (onStartStop != null) {
         menuItems.add(
@@ -199,8 +187,14 @@ class TrayService {
       await _systemTray.setContextMenu(menu);
       await _systemTray.setToolTip(
         _isServerRunning
-            ? _l10n('${AppConstants.appName} (Service Running)', '${AppConstants.appName}（服务运行中）')
-            : _l10n('${AppConstants.appName} (Service Not Running)', '${AppConstants.appName}（服务未运行）'),
+            ? _l10n(
+                '${AppConstants.appName} (Service Running)',
+                '${AppConstants.appName}（服务运行中）',
+              )
+            : _l10n(
+                '${AppConstants.appName} (Service Not Running)',
+                '${AppConstants.appName}（服务未运行）',
+              ),
       );
     } catch (e) {
       stderr.writeln('Failed to build tray menu: $e');

@@ -34,14 +34,14 @@ class NotificationService {
   }
 
   Future<void> showNotification(NotificationRequest request) async {
-    if (!request.isValid) {
-      _logger.error('Invalid notification request: title or body is empty');
+    // Flash 提醒允许 body 为空，优先处理 flash 分支
+    if (request.category?.toLowerCase() == 'flash') {
+      await _handleFlashNotification(request);
       return;
     }
 
-    // 检测是否为 flash 类型
-    if (request.category?.toLowerCase() == 'flash') {
-      await _handleFlashNotification(request);
+    if (!request.isValid) {
+      _logger.error('Invalid notification request: title or body is empty');
       return;
     }
 
