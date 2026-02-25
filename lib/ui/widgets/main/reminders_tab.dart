@@ -10,6 +10,7 @@ class RemindersTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Consumer<ReminderProvider>(
       builder: (context, reminderProvider, child) {
@@ -20,11 +21,17 @@ class RemindersTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.alarm_off, size: 64, color: Colors.grey[400]),
+                Icon(
+                  Icons.alarm_off,
+                  size: 64,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   l10n.noActiveReminders,
-                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -55,23 +62,27 @@ class _ReminderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: reminder.type == 'flash'
-              ? Colors.orange.withValues(alpha: 0.1)
-              : Theme.of(context).primaryColor.withValues(alpha: 0.1),
+              ? colorScheme.tertiaryContainer
+              : colorScheme.primaryContainer,
           child: Icon(
             reminder.type == 'flash' ? Icons.fullscreen : Icons.notifications,
             color: reminder.type == 'flash'
-                ? Colors.orange
-                : Theme.of(context).primaryColor,
+                ? colorScheme.tertiary
+                : colorScheme.primary,
           ),
         ),
         title: Text(
           reminder.title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,14 +92,14 @@ class _ReminderCard extends StatelessWidget {
             Text(
               reminder.timeRemaining,
               style: TextStyle(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
         ),
         trailing: IconButton(
-          icon: const Icon(Icons.cancel),
+          icon: Icon(Icons.cancel, color: colorScheme.error),
           onPressed: onRemove,
         ),
       ),

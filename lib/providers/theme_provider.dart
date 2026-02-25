@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 主题 Provider
 ///
 /// 管理应用的主题模式（跟随系统、浅色、深色）
 class ThemeProvider with ChangeNotifier {
+  static const String _themeModeKey = 'theme_mode';
+
   ThemeMode _mode = ThemeMode.system;
 
   ThemeMode get mode => _mode;
@@ -15,6 +20,7 @@ class ThemeProvider with ChangeNotifier {
   void setMode(ThemeMode mode) {
     if (_mode != mode) {
       _mode = mode;
+      unawaited(_persistMode());
       notifyListeners();
     }
   }
@@ -77,5 +83,22 @@ class ThemeProvider with ChangeNotifier {
       case ThemeMode.dark:
         return 2;
     }
+  }
+
+  Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final index = prefs.getInt(_themeModeKey);
+    if (index == null) {
+      return;
+    }
+    if (index < 0 || index >= ThemeMode.values.length) {
+      return;
+    }
+    _mode = ThemeMode.values[index];
+  }
+
+  Future<void> _persistMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_themeModeKey, _mode.index);
   }
 }

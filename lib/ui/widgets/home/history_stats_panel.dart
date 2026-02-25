@@ -9,10 +9,7 @@ import '../../../services/stats_service.dart';
 class HistoryStatsPanel extends StatelessWidget {
   final Reminder? selectedReminder;
 
-  const HistoryStatsPanel({
-    super.key,
-    this.selectedReminder,
-  });
+  const HistoryStatsPanel({super.key, this.selectedReminder});
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +33,7 @@ class HistoryStatsPanel extends StatelessWidget {
 
   Widget _buildStatsSummary(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return FutureBuilder<ReminderStats>(
       future: context.read<StatsService>().calculate(),
@@ -67,17 +65,17 @@ class HistoryStatsPanel extends StatelessWidget {
                     _StatCard(
                       label: l10n.createdStat,
                       value: stats.totalCreated.toString(),
-                      color: Colors.blue,
+                      color: colorScheme.primary,
                     ),
                     _StatCard(
                       label: l10n.completedStat,
                       value: stats.totalTriggered.toString(),
-                      color: Colors.green,
+                      color: colorScheme.tertiary,
                     ),
                     _StatCard(
                       label: l10n.completionRate,
                       value: '${(stats.completionRate * 100).toInt()}%',
-                      color: Colors.purple,
+                      color: colorScheme.secondary,
                     ),
                   ],
                 ),
@@ -107,9 +105,7 @@ class HistoryStatsPanel extends StatelessWidget {
               future: context.read<StatsService>().getTrends(7),
               builder: (context, snapshot) {
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Text(l10n.noData),
-                  );
+                  return Center(child: Text(l10n.noData));
                 }
 
                 final trends = snapshot.data!;
@@ -209,15 +205,19 @@ class HistoryStatsPanel extends StatelessWidget {
   }
 
   Widget _buildEmptyHistory(BuildContext context, AppLocalizations l10n) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history, size: 48, color: Colors.grey[400]),
+          Icon(Icons.history, size: 48, color: colorScheme.onSurfaceVariant),
           const SizedBox(height: 16),
           Text(
             l10n.noHistory,
-            style: TextStyle(color: Colors.grey[600]),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -247,11 +247,15 @@ class HistoryStatsPanel extends StatelessWidget {
           _DetailRow(label: l10n.labelContent, value: reminder.body),
           _DetailRow(
             label: l10n.labelType,
-            value: reminder.type == 'flash' ? l10n.typeFlash : l10n.typeNotification,
+            value: reminder.type == 'flash'
+                ? l10n.typeFlash
+                : l10n.typeNotification,
           ),
           _DetailRow(
             label: l10n.labelStatus,
-            value: reminder.isExpired ? l10n.statusExpired : l10n.statusInProgress,
+            value: reminder.isExpired
+                ? l10n.statusExpired
+                : l10n.statusInProgress,
           ),
           _DetailRow(
             label: l10n.labelScheduledTime,
@@ -309,6 +313,8 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Text(
@@ -322,10 +328,9 @@ class _StatCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
       ],
     );
@@ -341,12 +346,14 @@ class _HistoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ListTile(
       dense: true,
       leading: Icon(
         reminder.type == 'flash' ? Icons.flash_on : Icons.notifications,
         size: 20,
-        color: Colors.grey[500],
+        color: colorScheme.onSurfaceVariant,
       ),
       title: Text(
         reminder.title,
@@ -360,7 +367,7 @@ class _HistoryItem extends StatelessWidget {
       trailing: const Icon(
         Icons.check_circle,
         size: 16,
-        color: Colors.green,
+        color: Color(0xFF16A34A),
       ),
     );
   }
@@ -382,34 +389,29 @@ class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _DetailRow({
-    required this.label,
-    required this.value,
-  });
+  const _DetailRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 70,
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 66, maxWidth: 112),
             child: Text(
               label,
               style: TextStyle(
-                color: Colors.grey[600],
+                color: colorScheme.onSurfaceVariant,
                 fontSize: 13,
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 13),
-            ),
-          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
         ],
       ),
     );

@@ -61,13 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return AppBar(
-      title: Row(
-        children: [
-          const Icon(Icons.notifications_active),
-          const SizedBox(width: 8),
-          Text(l10n.appTitle),
-        ],
-      ),
+      leading: const Icon(Icons.notifications_active),
+      title: Text(l10n.appTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
       actions: [
         // Server status indicator
         Consumer<ServerProvider>(
@@ -236,6 +231,8 @@ class _ServerStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final statusColor = isRunning ? colorScheme.tertiary : colorScheme.error;
     final l10n = AppLocalizations.of(context)!;
 
     return InkWell(
@@ -251,12 +248,10 @@ class _ServerStatusIndicator extends StatelessWidget {
               height: 10,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isRunning ? Colors.green : Colors.red,
+                color: statusColor,
                 boxShadow: [
                   BoxShadow(
-                    color: (isRunning ? Colors.green : Colors.red).withValues(
-                      alpha: 0.5,
-                    ),
+                    color: statusColor.withValues(alpha: 0.35),
                     blurRadius: 4,
                     spreadRadius: 1,
                   ),
@@ -264,9 +259,14 @@ class _ServerStatusIndicator extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              isRunning ? l10n.statusRunning : l10n.statusStopped,
-              style: Theme.of(context).textTheme.bodySmall,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 92),
+              child: Text(
+                isRunning ? l10n.statusRunning : l10n.statusStopped,
+                style: Theme.of(context).textTheme.bodySmall,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -353,8 +353,10 @@ class _ReminderDetailContent extends StatelessWidget {
         const SizedBox(height: 16),
         Consumer<ReminderProvider>(
           builder: (context, provider, _) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            return Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
               children: [
                 ElevatedButton.icon(
                   icon: const Icon(Icons.snooze),
@@ -369,8 +371,8 @@ class _ReminderDetailContent extends StatelessWidget {
                   icon: const Icon(Icons.cancel),
                   label: Text(l10n.cancelReminder),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                    foregroundColor: Theme.of(context).colorScheme.onError,
                   ),
                   onPressed: () {
                     provider.removeReminder(reminder.id);
@@ -387,20 +389,23 @@ class _ReminderDetailContent extends StatelessWidget {
   }
 
   Widget _buildInfoRow(BuildContext context, String label, String value) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 80,
+          ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 72, maxWidth: 112),
             child: Text(
               label,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
           ),

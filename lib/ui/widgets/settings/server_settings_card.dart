@@ -25,7 +25,9 @@ class ServerSettingsCard extends StatelessWidget {
           children: [
             Text(
               l10n.serverSettings,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 16),
             TextFormField(

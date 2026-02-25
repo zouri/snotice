@@ -53,7 +53,10 @@ class ActiveRemindersPanel extends StatelessWidget {
         children: [
           const Icon(Icons.pending_actions, size: 20),
           const SizedBox(width: 8),
-          Text(l10n.activeReminders, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.activeReminders,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const Spacer(),
           if (activeCount > 0)
             Chip(
@@ -128,6 +131,7 @@ class ActiveRemindersPanel extends StatelessWidget {
 
   Widget _buildQuickCreate(BuildContext context, ReminderProvider provider) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: () => _showQuickCreateDialog(context, provider),
@@ -153,12 +157,12 @@ class ActiveRemindersPanel extends StatelessWidget {
             Text(
               l10n.quickCreateReminder,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.primary,
+                color: colorScheme.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const Spacer(),
-            Icon(Icons.chevron_right, color: Colors.grey[400]),
+            Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -167,19 +171,27 @@ class ActiveRemindersPanel extends StatelessWidget {
 
   Widget _buildEmptyState(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.alarm_off, size: 64, color: Colors.grey[400]),
+          Icon(Icons.alarm_off, size: 64, color: colorScheme.onSurfaceVariant),
           const SizedBox(height: 16),
           Text(
             l10n.noActiveReminders,
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 8),
-          Text(l10n.noActiveRemindersDesc, style: TextStyle(color: Colors.grey[500])),
+          Text(
+            l10n.noActiveRemindersDesc,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -250,9 +262,13 @@ class ReminderCard extends StatefulWidget {
 class _ReminderCardState extends State<ReminderCard> {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     final isUrgent = widget.reminder.timeUntilReminder.inMinutes < 5;
     final isRepeating = widget.reminder.isRepeating;
+    final timeColor = isUrgent
+        ? colorScheme.error
+        : colorScheme.onSurfaceVariant;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -272,8 +288,8 @@ class _ReminderCardState extends State<ReminderCard> {
                     height: 40,
                     decoration: BoxDecoration(
                       color: widget.reminder.type == 'flash'
-                          ? Colors.orange.withValues(alpha: 0.2)
-                          : Theme.of(context).colorScheme.primaryContainer,
+                          ? colorScheme.tertiaryContainer
+                          : colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -281,8 +297,8 @@ class _ReminderCardState extends State<ReminderCard> {
                           ? Icons.flash_on
                           : Icons.notifications,
                       color: widget.reminder.type == 'flash'
-                          ? Colors.orange
-                          : Theme.of(context).colorScheme.primary,
+                          ? colorScheme.tertiary
+                          : colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -305,7 +321,7 @@ class _ReminderCardState extends State<ReminderCard> {
                               Icon(
                                 Icons.repeat,
                                 size: 16,
-                                color: Colors.grey[500],
+                                color: colorScheme.onSurfaceVariant,
                               ),
                           ],
                         ),
@@ -313,7 +329,7 @@ class _ReminderCardState extends State<ReminderCard> {
                         Text(
                           widget.reminder.body,
                           style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: Colors.grey[600]),
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -322,44 +338,64 @@ class _ReminderCardState extends State<ReminderCard> {
                 ],
               ),
               const SizedBox(height: 8),
-              // Countdown
-              Row(
-                children: [
-                  Icon(
-                    Icons.schedule,
-                    size: 16,
-                    color: isUrgent ? Colors.red : Colors.grey[500],
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    widget.reminder.timeRemaining,
-                    style: TextStyle(
-                      color: isUrgent ? Colors.red : Colors.grey[600],
-                      fontWeight: isUrgent
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                  const Spacer(),
-                  // Action buttons
-                  TextButton.icon(
-                    icon: const Icon(Icons.snooze, size: 16),
-                    label: Text(l10n.snooze),
-                    style: TextButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    onPressed: widget.onSnooze,
-                  ),
-                  TextButton.icon(
-                    icon: const Icon(Icons.cancel, size: 16),
-                    label: Text(l10n.cancel),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    onPressed: widget.onCancel,
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isCompact = constraints.maxWidth < 460;
+                  final timeInfo = Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.schedule, size: 16, color: timeColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.reminder.timeRemaining,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: timeColor,
+                          fontWeight: isUrgent
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  );
+
+                  final actions = Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      TextButton.icon(
+                        icon: const Icon(Icons.snooze, size: 16),
+                        label: Text(l10n.snooze),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        onPressed: widget.onSnooze,
+                      ),
+                      TextButton.icon(
+                        icon: const Icon(Icons.cancel, size: 16),
+                        label: Text(l10n.cancel),
+                        style: TextButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        onPressed: widget.onCancel,
+                      ),
+                    ],
+                  );
+
+                  if (isCompact) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [timeInfo, const SizedBox(height: 8), actions],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: timeInfo),
+                      actions,
+                    ],
+                  );
+                },
               ),
             ],
           ),
@@ -418,9 +454,10 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
     final l10n = AppLocalizations.of(context)!;
 
     return AlertDialog(
+      constraints: const BoxConstraints(maxWidth: 520),
       title: Text(l10n.quickCreateReminder),
       content: SizedBox(
-        width: 400,
+        width: 480,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -451,25 +488,30 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
               ),
               const SizedBox(height: 16),
               // Type
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(l10n.typeLabel),
-                  Radio<String>(
-                    value: 'notification',
-                    groupValue: _type,
-                    onChanged: (value) {
-                      setState(() => _type = value!);
+                  ChoiceChip(
+                    label: Text(l10n.typeNotification),
+                    selected: _type == 'notification',
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() => _type = 'notification');
+                      }
                     },
                   ),
-                  Text(l10n.typeNotification),
-                  Radio<String>(
-                    value: 'flash',
-                    groupValue: _type,
-                    onChanged: (value) {
-                      setState(() => _type = value!);
+                  ChoiceChip(
+                    label: Text(l10n.typeFlash),
+                    selected: _type == 'flash',
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() => _type = 'flash');
+                      }
                     },
                   ),
-                  Text(l10n.typeFlash),
                 ],
               ),
               if (_scheduleMode == 'delay') ...[
@@ -482,7 +524,10 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
                     DropdownMenuItem(value: 'none', child: Text(l10n.noRepeat)),
                     DropdownMenuItem(value: 'daily', child: Text(l10n.daily)),
                     DropdownMenuItem(value: 'weekly', child: Text(l10n.weekly)),
-                    DropdownMenuItem(value: 'monthly', child: Text(l10n.monthly)),
+                    DropdownMenuItem(
+                      value: 'monthly',
+                      child: Text(l10n.monthly),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -515,25 +560,31 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
       children: [
         Text(l10n.reminderMode),
         const SizedBox(height: 8),
-        SegmentedButton<String>(
-          segments: [
-            ButtonSegment<String>(
-              value: 'delay',
-              icon: const Icon(Icons.timer_outlined),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ChoiceChip(
+              avatar: const Icon(Icons.timer_outlined, size: 16),
               label: Text(l10n.countdownReminder),
+              selected: _scheduleMode == 'delay',
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() => _scheduleMode = 'delay');
+                }
+              },
             ),
-            ButtonSegment<String>(
-              value: 'time',
-              icon: const Icon(Icons.schedule),
+            ChoiceChip(
+              avatar: const Icon(Icons.schedule, size: 16),
               label: Text(l10n.timeReminder),
+              selected: _scheduleMode == 'time',
+              onSelected: (selected) {
+                if (selected) {
+                  setState(() => _scheduleMode = 'time');
+                }
+              },
             ),
           ],
-          selected: <String>{_scheduleMode},
-          onSelectionChanged: (selection) {
-            setState(() {
-              _scheduleMode = selection.first;
-            });
-          },
         ),
       ],
     );

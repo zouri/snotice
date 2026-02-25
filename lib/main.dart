@@ -122,6 +122,7 @@ Future<void> _startMainApp() async {
   );
   final templateProvider = TemplateProvider(templateService, loggerService);
   final themeProvider = ThemeProvider();
+  await themeProvider.load();
   final localeProvider = LocaleProvider();
   await localeProvider.load();
 

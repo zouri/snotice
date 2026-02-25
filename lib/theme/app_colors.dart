@@ -8,17 +8,17 @@ class AppColors {
 
   // ========== 品牌主色 ==========
 
-  /// 主色调 - Indigo，科技感且温暖
-  static const Color primary = Color(0xFF6366F1);
+  /// 主色调 - 深海蓝，强调可读性与稳定感
+  static const Color primary = Color(0xFF0369A1);
 
   /// 主色浅色变体
-  static const Color primaryLight = Color(0xFFA5B4FC);
+  static const Color primaryLight = Color(0xFF38BDF8);
 
   /// 主色深色变体
-  static const Color primaryDark = Color(0xFF4338CA);
+  static const Color primaryDark = Color(0xFF0C4A6E);
 
   /// 主色容器（用于卡片背景等）
-  static const Color primaryContainer = Color(0xFFE0E7FF);
+  static const Color primaryContainer = Color(0xFFE0F2FE);
 
   // ========== 信号色系统 ==========
 
@@ -63,62 +63,62 @@ class AppColors {
   // ========== 中性色（浅色主题）==========
 
   /// 背景白色
-  static const Color surface = Color(0xFFFAFAFA);
+  static const Color surface = Color(0xFFF8FAFC);
 
   /// 表面色（卡片等）
-  static const Color surfaceContainer = Color(0xFFF4F4F5);
+  static const Color surfaceContainer = Color(0xFFFFFFFF);
 
   /// 表面色高亮
-  static const Color surfaceContainerHigh = Color(0xFFE4E4E7);
+  static const Color surfaceContainerHigh = Color(0xFFE2E8F0);
 
   /// 边框色
-  static const Color border = Color(0xFFE4E4E7);
+  static const Color border = Color(0xFFCBD5E1);
 
   /// 边框色（深）
-  static const Color borderDark = Color(0xFFD4D4D8);
+  static const Color borderDark = Color(0xFF94A3B8);
 
   /// 主文字色
-  static const Color textPrimary = Color(0xFF18181B);
+  static const Color textPrimary = Color(0xFF0F172A);
 
   /// 次要文字色
-  static const Color textSecondary = Color(0xFF52525B);
+  static const Color textSecondary = Color(0xFF334155);
 
   /// 禁用/辅助文字色
-  static const Color textTertiary = Color(0xFFA1A1AA);
+  static const Color textTertiary = Color(0xFF475569);
 
   /// 占位符文字色
-  static const Color textHint = Color(0xFFD4D4D8);
+  static const Color textHint = Color(0xFF64748B);
 
   // ========== 中性色（深色主题）==========
 
   /// 深色背景
-  static const Color surfaceDark = Color(0xFF0A0A0C);
+  static const Color surfaceDark = Color(0xFF020617);
 
   /// 深色表面色
-  static const Color surfaceContainerDark = Color(0xFF18181B);
+  static const Color surfaceContainerDark = Color(0xFF0F172A);
 
   /// 深色表面色高亮
-  static const Color surfaceContainerHighDark = Color(0xFF27272A);
+  static const Color surfaceContainerHighDark = Color(0xFF1E293B);
 
   /// 深色主题边框色
-  static const Color borderDarkTheme = Color(0xFF27272A);
+  static const Color borderDarkTheme = Color(0xFF334155);
 
   /// 深色主文字色
-  static const Color textPrimaryDark = Color(0xFFFAFAFA);
+  static const Color textPrimaryDark = Color(0xFFF8FAFC);
 
   /// 深色次要文字色
-  static const Color textSecondaryDark = Color(0xFFA1A1AA);
+  static const Color textSecondaryDark = Color(0xFFCBD5E1);
 
   /// 深色禁用/辅助文字色
-  static const Color textTertiaryDark = Color(0xFF71717A);
+  static const Color textTertiaryDark = Color(0xFF94A3B8);
 
   // ========== 功能色 ==========
 
   /// 分割线色
-  static const Color divider = Color(0xFFE4E4E7);
+  static const Color divider = Color(0xFFE2E8F0);
 
   /// 分割线色（深色主题）
-  static const Color dividerDark = Color(0xFF27272A);
+  static const Color dividerDark = Color(0xFF334155);
 
   /// 遮罩色
   static const Color scrim = Color(0xFF000000);

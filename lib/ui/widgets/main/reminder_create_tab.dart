@@ -60,6 +60,7 @@ class ReminderCreateTab extends StatelessWidget {
 
   Widget _buildQuickTimeButtons(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
@@ -69,7 +70,9 @@ class ReminderCreateTab extends StatelessWidget {
           children: [
             Text(
               l10n.quickTime,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -87,16 +90,23 @@ class ReminderCreateTab extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? Theme.of(context).primaryColor
-                          : Colors.grey[200],
+                          ? colorScheme.primary
+                          : colorScheme.secondaryContainer,
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.outline,
+                      ),
                     ),
                     child: Text(
                       minutes >= 60
                           ? l10n.hours(minutes ~/ 60)
                           : l10n.minutes(minutes),
                       style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
+                        color: isSelected
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurface,
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,
@@ -114,6 +124,7 @@ class ReminderCreateTab extends StatelessWidget {
 
   Widget _buildTimeSlider(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
@@ -126,14 +137,16 @@ class ReminderCreateTab extends StatelessWidget {
               children: [
                 Text(
                   l10n.customTime,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 Text(
                   l10n.minutes(selectedMinutes),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
+                    color: colorScheme.primary,
                   ),
                 ),
               ],
@@ -164,7 +177,9 @@ class ReminderCreateTab extends StatelessWidget {
           children: [
             Text(
               l10n.reminderType,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
             RadioGroup<String>(
@@ -175,25 +190,34 @@ class ReminderCreateTab extends StatelessWidget {
                 }
                 onReminderTypeChanged(value);
               },
-              child: Row(
-                children: [
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: Text(l10n.notification),
-                      subtitle: Text(l10n.notificationDesc),
-                      value: 'notification',
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                  ),
-                  Expanded(
-                    child: RadioListTile<String>(
-                      title: Text(l10n.flashScreen),
-                      subtitle: Text(l10n.flashScreenDesc),
-                      value: 'flash',
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                    ),
-                  ),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 560;
+
+                  final notificationTile = RadioListTile<String>(
+                    title: Text(l10n.notification),
+                    subtitle: Text(l10n.notificationDesc),
+                    value: 'notification',
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  );
+                  final flashTile = RadioListTile<String>(
+                    title: Text(l10n.flashScreen),
+                    subtitle: Text(l10n.flashScreenDesc),
+                    value: 'flash',
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  );
+
+                  if (compact) {
+                    return Column(children: [notificationTile, flashTile]);
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: notificationTile),
+                      Expanded(child: flashTile),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -249,6 +273,7 @@ class ReminderCreateTab extends StatelessWidget {
 
   Widget _buildFlashSettings(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
@@ -258,21 +283,28 @@ class ReminderCreateTab extends StatelessWidget {
           children: [
             Text(
               l10n.flashSettings,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
-            Text(l10n.color),
+            Text(
+              l10n.color,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildColorButton(Colors.red, '#FF0000'),
-                _buildColorButton(Colors.yellow, '#FFFF00'),
-                _buildColorButton(Colors.blue, '#0000FF'),
-                _buildColorButton(Colors.white, '#FFFFFF'),
-                _buildColorButton(Colors.grey, '#808080'),
-                _buildColorButton(Colors.orange, '#FFA500'),
+                _buildColorButton(context, Colors.red, '#FF0000'),
+                _buildColorButton(context, Colors.yellow, '#FFFF00'),
+                _buildColorButton(context, Colors.blue, '#0000FF'),
+                _buildColorButton(context, Colors.white, '#FFFFFF'),
+                _buildColorButton(context, Colors.grey, '#808080'),
+                _buildColorButton(context, Colors.orange, '#FFA500'),
               ],
             ),
             const SizedBox(height: 16),
@@ -291,7 +323,11 @@ class ReminderCreateTab extends StatelessWidget {
     );
   }
 
-  Widget _buildColorButton(Color color, String hex) {
+  Widget _buildColorButton(BuildContext context, Color color, String hex) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isSelected = flashColor == hex;
+    final isLightColor = color.computeLuminance() > 0.6;
+
     return InkWell(
       onTap: () => onFlashColorChanged(hex),
       borderRadius: BorderRadius.circular(8),
@@ -302,12 +338,16 @@ class ReminderCreateTab extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: flashColor == hex ? Colors.black : Colors.grey,
-            width: flashColor == hex ? 3 : 1,
+            color: isSelected ? colorScheme.primary : colorScheme.outline,
+            width: isSelected ? 3 : 1,
           ),
         ),
-        child: flashColor == hex
-            ? const Icon(Icons.check, color: Colors.black, size: 20)
+        child: isSelected
+            ? Icon(
+                Icons.check,
+                color: isLightColor ? Colors.black : Colors.white,
+                size: 20,
+              )
             : null,
       ),
     );

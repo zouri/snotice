@@ -14,6 +14,11 @@ class ServerStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final statusColor = isServerRunning
+        ? colorScheme.tertiary
+        : colorScheme.error;
+
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -23,11 +28,11 @@ class ServerStatusIndicator extends StatelessWidget {
           children: [
             Icon(
               isServerRunning ? Icons.cloud_done : Icons.cloud_off,
-              color: isServerRunning ? Colors.green : Colors.grey,
+              color: statusColor,
               size: 20,
             ),
             const SizedBox(width: 4),
-            Text(':$port', style: const TextStyle(fontSize: 14)),
+            Text(':$port', style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
       ),

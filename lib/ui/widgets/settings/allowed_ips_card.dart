@@ -20,6 +20,7 @@ class AllowedIpsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
@@ -32,7 +33,9 @@ class AllowedIpsCard extends StatelessWidget {
               children: [
                 Text(
                   l10n.allowedIPs,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 IconButton(
                   icon: const Icon(Icons.info_outline),
@@ -41,31 +44,61 @@ class AllowedIpsCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: ipController,
-                    decoration: InputDecoration(
-                      labelText: l10n.addIPAddress,
-                      border: const OutlineInputBorder(),
-                      hintText: l10n.ipHint,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < 520;
+
+                if (compact) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextField(
+                        controller: ipController,
+                        decoration: InputDecoration(
+                          labelText: l10n.addIPAddress,
+                          border: const OutlineInputBorder(),
+                          hintText: l10n.ipHint,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: onAddIp,
+                        icon: const Icon(Icons.add),
+                        label: Text(l10n.add),
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: ipController,
+                        decoration: InputDecoration(
+                          labelText: l10n.addIPAddress,
+                          border: const OutlineInputBorder(),
+                          hintText: l10n.ipHint,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: onAddIp,
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.add),
-                ),
-              ],
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: onAddIp,
+                      icon: const Icon(Icons.add),
+                      label: Text(l10n.add),
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 16),
             if (allowedIps.isEmpty)
               Text(
                 l10n.noIPsAdded,
-                style: const TextStyle(color: Colors.grey),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
               )
             else
               Wrap(

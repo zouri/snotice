@@ -28,7 +28,10 @@ class TemplatePanel extends StatelessWidget {
                 children: [
                   const Icon(Icons.apps, size: 20),
                   const SizedBox(width: 8),
-                  Text(l10n.quickTemplates, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    l10n.quickTemplates,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ],
               ),
             ),
@@ -61,13 +64,24 @@ class TemplatePanel extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, AppLocalizations l10n) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+          Icon(
+            Icons.inbox_outlined,
+            size: 48,
+            color: colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(height: 16),
-          Text(l10n.noTemplates, style: TextStyle(color: Colors.grey[600])),
+          Text(
+            l10n.noTemplates,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -162,6 +176,7 @@ class TemplateCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -202,9 +217,9 @@ class TemplateCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       template.delayDisplay,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -274,9 +289,10 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
     final l10n = AppLocalizations.of(context)!;
 
     return AlertDialog(
+      constraints: const BoxConstraints(maxWidth: 520),
       title: Text(l10n.createCustomTemplate),
       content: SizedBox(
-        width: 400,
+        width: 480,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -357,25 +373,30 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                 ),
                 const SizedBox(height: 16),
                 // Type
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(l10n.typeLabel),
-                    Radio<String>(
-                      value: 'notification',
-                      groupValue: _type,
-                      onChanged: (value) {
-                        setState(() => _type = value!);
+                    ChoiceChip(
+                      label: Text(l10n.typeNotification),
+                      selected: _type == 'notification',
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() => _type = 'notification');
+                        }
                       },
                     ),
-                    Text(l10n.typeNotification),
-                    Radio<String>(
-                      value: 'flash',
-                      groupValue: _type,
-                      onChanged: (value) {
-                        setState(() => _type = value!);
+                    ChoiceChip(
+                      label: Text(l10n.typeFlash),
+                      selected: _type == 'flash',
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() => _type = 'flash');
+                        }
                       },
                     ),
-                    Text(l10n.typeFlash),
                   ],
                 ),
               ],
@@ -398,7 +419,9 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
     if (minutes < 1440) {
       final hours = minutes ~/ 60;
       final mins = minutes % 60;
-      return mins > 0 ? l10n.hoursMinutesFormat(hours, mins) : l10n.hoursFormat(hours);
+      return mins > 0
+          ? l10n.hoursMinutesFormat(hours, mins)
+          : l10n.hoursFormat(hours);
     }
     final days = minutes ~/ 1440;
     return l10n.daysFormat(days);

@@ -10,6 +10,7 @@ class ReminderHistoryTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Consumer<ReminderProvider>(
       builder: (context, reminderProvider, child) {
@@ -20,11 +21,17 @@ class ReminderHistoryTab extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.history, size: 64, color: Colors.grey[400]),
+                Icon(
+                  Icons.history,
+                  size: 64,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   l10n.noReminderHistory,
-                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -64,16 +71,20 @@ class _HistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: Colors.grey[200],
-          child: Icon(Icons.check_circle, color: Colors.grey[600]),
+          backgroundColor: colorScheme.secondaryContainer,
+          child: Icon(Icons.check_circle, color: colorScheme.secondary),
         ),
         title: Text(
           reminder.title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         subtitle: Text(
           reminder.body,
@@ -82,7 +93,9 @@ class _HistoryCard extends StatelessWidget {
         ),
         trailing: Text(
           _formatHistoryTime(context, reminder.createdAt),
-          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
       ),
     );
