@@ -6,6 +6,7 @@ class Reminder {
   final String body;
   final DateTime scheduledTime;
   final DateTime createdAt;
+  final DateTime? archivedAt;
   final String type; // 'notification' or 'flash'
   final String? flashColor;
   final int? flashDuration;
@@ -35,6 +36,7 @@ class Reminder {
     required this.body,
     required this.scheduledTime,
     required this.createdAt,
+    this.archivedAt,
     required this.type,
     this.flashColor,
     this.flashDuration,
@@ -53,6 +55,9 @@ class Reminder {
       body: json['body'] as String,
       scheduledTime: DateTime.parse(json['scheduledTime'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
+      archivedAt: json['archivedAt'] != null
+          ? DateTime.parse(json['archivedAt'] as String)
+          : null,
       type: json['type'] as String? ?? 'notification',
       flashColor: json['flashColor'] as String?,
       flashDuration: json['flashDuration'] as int?,
@@ -61,7 +66,8 @@ class Reminder {
           : null,
       templateId: json['templateId'] as String?,
       parentReminderId: json['parentReminderId'] as String?,
-      relatedIds: (json['relatedIds'] as List<dynamic>?)
+      relatedIds:
+          (json['relatedIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],
@@ -77,6 +83,7 @@ class Reminder {
       'body': body,
       'scheduledTime': scheduledTime.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
+      if (archivedAt != null) 'archivedAt': archivedAt!.toIso8601String(),
       'type': type,
       if (flashColor != null) 'flashColor': flashColor,
       if (flashDuration != null) 'flashDuration': flashDuration,
@@ -90,9 +97,9 @@ class Reminder {
   }
 
   bool get isExpired => DateTime.now().isAfter(scheduledTime);
+  bool get isArchived => archivedAt != null;
 
-  bool get isRepeating =>
-      repeatRule != null && repeatRule!.frequency != 'none';
+  bool get isRepeating => repeatRule != null && repeatRule!.frequency != 'none';
 
   Duration get timeUntilReminder {
     final now = DateTime.now();
@@ -121,6 +128,7 @@ class Reminder {
     String? body,
     DateTime? scheduledTime,
     DateTime? createdAt,
+    DateTime? archivedAt,
     String? type,
     String? flashColor,
     int? flashDuration,
@@ -136,6 +144,7 @@ class Reminder {
     bool clearTemplateId = false,
     bool clearParentReminderId = false,
     bool clearSoundKey = false,
+    bool clearArchivedAt = false,
   }) {
     return Reminder(
       id: id ?? this.id,
@@ -143,14 +152,17 @@ class Reminder {
       body: body ?? this.body,
       scheduledTime: scheduledTime ?? this.scheduledTime,
       createdAt: createdAt ?? this.createdAt,
+      archivedAt: clearArchivedAt ? null : (archivedAt ?? this.archivedAt),
       type: type ?? this.type,
       flashColor: clearFlashColor ? null : (flashColor ?? this.flashColor),
-      flashDuration:
-          clearFlashDuration ? null : (flashDuration ?? this.flashDuration),
+      flashDuration: clearFlashDuration
+          ? null
+          : (flashDuration ?? this.flashDuration),
       repeatRule: clearRepeatRule ? null : (repeatRule ?? this.repeatRule),
       templateId: clearTemplateId ? null : (templateId ?? this.templateId),
-      parentReminderId:
-          clearParentReminderId ? null : (parentReminderId ?? this.parentReminderId),
+      parentReminderId: clearParentReminderId
+          ? null
+          : (parentReminderId ?? this.parentReminderId),
       relatedIds: relatedIds ?? this.relatedIds,
       occurrenceIndex: occurrenceIndex ?? this.occurrenceIndex,
       soundKey: clearSoundKey ? null : (soundKey ?? this.soundKey),

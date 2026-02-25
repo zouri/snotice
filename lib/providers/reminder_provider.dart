@@ -27,10 +27,10 @@ class ReminderProvider extends ChangeNotifier {
   }
 
   List<Reminder> get activeReminders =>
-      _reminders.where((r) => !r.isExpired).toList();
+      _reminders.where((r) => !r.isExpired && !r.isArchived).toList();
 
   List<Reminder> get expiredReminders =>
-      _reminders.where((r) => r.isExpired).toList();
+      _reminders.where((r) => r.isExpired || r.isArchived).toList();
 
   /// 获取所有提醒（包括历史）
   List<Reminder> get allReminders => List.unmodifiable(_reminders);
@@ -49,7 +49,12 @@ class ReminderProvider extends ChangeNotifier {
 
   void _checkExpiredReminders() {
     final expiredReminders = _reminders
-        .where((r) => r.isExpired && !_triggeredReminders.contains(r.id))
+        .where(
+          (r) =>
+              r.isExpired &&
+              !r.isArchived &&
+              !_triggeredReminders.contains(r.id),
+        )
         .toList();
 
     for (final reminder in expiredReminders) {
@@ -188,7 +193,8 @@ class ReminderProvider extends ChangeNotifier {
   }
 
   Future<void> _triggerReminder(Reminder reminder) async {
-    if (!_reminders.any((r) => r.id == reminder.id)) {
+    final index = _reminders.indexWhere((r) => r.id == reminder.id);
+    if (index == -1) {
       return;
     }
 
@@ -205,6 +211,8 @@ class ReminderProvider extends ChangeNotifier {
     );
 
     await _notificationService.showNotification(request);
+    _reminders[index] = _reminders[index].copyWith(archivedAt: DateTime.now());
+    await _saveReminders();
 
     // 记录统计事件
     unawaited(_statsService.recordEvent(reminder, 'triggered'));
