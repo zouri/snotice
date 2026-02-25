@@ -37,24 +37,39 @@ void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Platform.isLinux || Platform.isWindows) {
-    try {
-      final controller = await WindowController.fromCurrentEngine();
-      final arguments = _parseWindowArguments(controller.arguments);
-      final windowType = arguments['windowType'] as String?;
+    final windowArguments = await _resolveCurrentWindowArguments(args);
+    final windowType = windowArguments['windowType'] as String?;
 
-      // 非 macOS 使用 Flutter 覆盖窗口实现闪屏
-      if (!Platform.isMacOS &&
-          (windowType == 'flash' || arguments.containsKey('color'))) {
-        overlay.overlayMain(args);
-        return;
-      }
-    } catch (_) {
-      // Fallback to main app when multi-window context is unavailable.
+    // 仅在 multi_window 子窗口且明确标记为 flash 时进入闪屏入口
+    if (windowType == 'flash') {
+      overlay.overlayMain(args);
+      return;
     }
   }
 
   // 正常启动主应用
   await _startMainApp();
+}
+
+Future<Map<String, dynamic>> _resolveCurrentWindowArguments(
+  List<String> args,
+) async {
+  if (args.length < 3 || args.first != 'multi_window') {
+    return {};
+  }
+
+  final parsedFromEntrypoint = _parseWindowArguments(args[2]);
+  if (parsedFromEntrypoint.isNotEmpty) {
+    return parsedFromEntrypoint;
+  }
+
+  try {
+    final controller = await WindowController.fromCurrentEngine();
+    return _parseWindowArguments(controller.arguments);
+  } catch (_) {
+    // Fallback to empty arguments when current engine context is unavailable.
+    return {};
+  }
 }
 
 Map<String, dynamic> _parseWindowArguments(String rawArguments) {
