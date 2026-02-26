@@ -452,13 +452,24 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return AlertDialog(
       constraints: const BoxConstraints(maxWidth: 520),
-      title: Text(l10n.quickCreateReminder),
+      titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+      contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      title: Text(
+        l10n.quickCreateReminder,
+        style: Theme.of(
+          context,
+        ).textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+      ),
       content: SizedBox(
         width: 480,
         child: SingleChildScrollView(
+          // Reserve space for desktop overlay scrollbar to avoid covering fields.
+          padding: const EdgeInsets.only(right: 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,29 +499,36 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
               ),
               const SizedBox(height: 16),
               // Type
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.center,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(l10n.typeLabel),
-                  ChoiceChip(
-                    label: Text(l10n.typeNotification),
-                    selected: _type == 'notification',
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() => _type = 'notification');
-                      }
-                    },
-                  ),
-                  ChoiceChip(
-                    label: Text(l10n.typeFlash),
-                    selected: _type == 'flash',
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() => _type = 'flash');
-                      }
-                    },
+                  _buildSectionLabel(context, l10n.typeLabel),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildChoiceChip(
+                        context: context,
+                        label: l10n.typeNotification,
+                        selected: _type == 'notification',
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _type = 'notification');
+                          }
+                        },
+                      ),
+                      _buildChoiceChip(
+                        context: context,
+                        label: l10n.typeFlash,
+                        selected: _type == 'flash',
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() => _type = 'flash');
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -554,19 +572,94 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
     );
   }
 
+  Widget _buildSectionLabel(BuildContext context, String text) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: colorScheme.onSurfaceVariant,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  TextStyle _chipTextStyle(BuildContext context, bool selected) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final baseStyle = Theme.of(context).textTheme.labelLarge;
+    return (baseStyle ?? const TextStyle(fontSize: 14)).copyWith(
+      color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+      fontWeight: FontWeight.w600,
+    );
+  }
+
+  ChoiceChip _buildChoiceChip({
+    required BuildContext context,
+    required String label,
+    required bool selected,
+    required ValueChanged<bool> onSelected,
+    IconData? icon,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ChoiceChip(
+      avatar: icon == null
+          ? null
+          : Icon(
+              icon,
+              size: 16,
+              color: selected ? colorScheme.onPrimary : colorScheme.primary,
+            ),
+      label: Text(label, style: _chipTextStyle(context, selected)),
+      selected: selected,
+      showCheckmark: false,
+      selectedColor: colorScheme.primary,
+      backgroundColor: colorScheme.surface,
+      checkmarkColor: selected
+          ? colorScheme.onPrimary
+          : colorScheme.onSurfaceVariant,
+      side: BorderSide(
+        color: selected ? colorScheme.primary : colorScheme.outlineVariant,
+      ),
+      onSelected: onSelected,
+    );
+  }
+
+  FilterChip _buildFilterChip({
+    required BuildContext context,
+    required String label,
+    required bool selected,
+    required ValueChanged<bool> onSelected,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return FilterChip(
+      label: Text(label, style: _chipTextStyle(context, selected)),
+      selected: selected,
+      showCheckmark: false,
+      selectedColor: colorScheme.primary,
+      backgroundColor: colorScheme.surface,
+      checkmarkColor: selected
+          ? colorScheme.onPrimary
+          : colorScheme.onSurfaceVariant,
+      side: BorderSide(
+        color: selected ? colorScheme.primary : colorScheme.outlineVariant,
+      ),
+      onSelected: onSelected,
+    );
+  }
+
   Widget _buildScheduleModeSelector(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.reminderMode),
+        _buildSectionLabel(context, l10n.reminderMode),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
-            ChoiceChip(
-              avatar: const Icon(Icons.timer_outlined, size: 16),
-              label: Text(l10n.countdownReminder),
+            _buildChoiceChip(
+              context: context,
+              icon: Icons.timer_outlined,
+              label: l10n.countdownReminder,
               selected: _scheduleMode == 'delay',
               onSelected: (selected) {
                 if (selected) {
@@ -574,9 +667,10 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
                 }
               },
             ),
-            ChoiceChip(
-              avatar: const Icon(Icons.schedule, size: 16),
-              label: Text(l10n.timeReminder),
+            _buildChoiceChip(
+              context: context,
+              icon: Icons.schedule,
+              label: l10n.timeReminder,
               selected: _scheduleMode == 'time',
               onSelected: (selected) {
                 if (selected) {
@@ -594,14 +688,15 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.quickSelectTime),
+        _buildSectionLabel(context, l10n.quickSelectTime),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: _quickDelays.map((minutes) {
-            return ChoiceChip(
-              label: Text(_formatDelay(l10n, minutes)),
+            return _buildChoiceChip(
+              context: context,
+              label: _formatDelay(l10n, minutes),
               selected: _delayMinutes == minutes,
               onSelected: (selected) {
                 if (selected) {
@@ -635,8 +730,9 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
           children: List<Widget>.generate(7, (index) {
             final weekday = index + 1;
             final selected = _selectedWeekdays.contains(weekday);
-            return FilterChip(
-              label: Text(_getWeekdayLabel(l10n, weekday)),
+            return _buildFilterChip(
+              context: context,
+              label: _getWeekdayLabel(l10n, weekday),
               selected: selected,
               onSelected: (value) {
                 setState(() {
