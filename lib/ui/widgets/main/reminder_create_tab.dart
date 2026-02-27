@@ -10,14 +10,32 @@ class ReminderCreateTab extends StatelessWidget {
     required this.reminderType,
     required this.flashColor,
     required this.flashDuration,
+    required this.flashEffect,
     required this.onMinutesChanged,
     required this.onReminderTypeChanged,
     required this.onFlashColorChanged,
     required this.onFlashDurationChanged,
+    required this.onFlashEffectChanged,
     super.key,
   });
 
   static const List<int> _quickTimes = [1, 5, 10, 30, 60];
+  static const List<String> _flashEffects = [
+    'edge',
+    'edge_pulse',
+    'edge_dual',
+    'edge_dash',
+    'edge_corner',
+    'edge_rainbow',
+  ];
+  static const Map<String, String> _flashEffectLabels = {
+    'edge': 'Edge Sweep',
+    'edge_pulse': 'Edge Pulse',
+    'edge_dual': 'Edge Dual',
+    'edge_dash': 'Edge Dash',
+    'edge_corner': 'Edge Corner',
+    'edge_rainbow': 'Edge Rainbow',
+  };
 
   final GlobalKey<FormState> formKey;
   final TextEditingController titleController;
@@ -26,10 +44,12 @@ class ReminderCreateTab extends StatelessWidget {
   final String reminderType;
   final String flashColor;
   final int flashDuration;
+  final String flashEffect;
   final ValueChanged<int> onMinutesChanged;
   final ValueChanged<String> onReminderTypeChanged;
   final ValueChanged<String> onFlashColorChanged;
   final ValueChanged<int> onFlashDurationChanged;
+  final ValueChanged<String> onFlashEffectChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -306,6 +326,29 @@ class ReminderCreateTab extends StatelessWidget {
                 _buildColorButton(context, Colors.grey, '#808080'),
                 _buildColorButton(context, Colors.orange, '#FFA500'),
               ],
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              initialValue: _flashEffects.contains(flashEffect)
+                  ? flashEffect
+                  : _flashEffects.first,
+              decoration: const InputDecoration(
+                labelText: 'Animation',
+                border: OutlineInputBorder(),
+              ),
+              items: _flashEffects
+                  .map(
+                    (effect) => DropdownMenuItem(
+                      value: effect,
+                      child: Text(_flashEffectLabels[effect] ?? effect),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  onFlashEffectChanged(value);
+                }
+              },
             ),
             const SizedBox(height: 16),
             Text(l10n.duration(flashDuration)),

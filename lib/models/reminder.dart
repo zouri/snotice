@@ -10,6 +10,7 @@ class Reminder {
   final String type; // 'notification' or 'flash'
   final String? flashColor;
   final int? flashDuration;
+  final String? flashEffect;
 
   // === 新增字段 ===
   /// 重复规则
@@ -40,6 +41,7 @@ class Reminder {
     required this.type,
     this.flashColor,
     this.flashDuration,
+    this.flashEffect,
     this.repeatRule,
     this.templateId,
     this.parentReminderId,
@@ -61,6 +63,7 @@ class Reminder {
       type: json['type'] as String? ?? 'notification',
       flashColor: json['flashColor'] as String?,
       flashDuration: json['flashDuration'] as int?,
+      flashEffect: json['flashEffect'] as String?,
       repeatRule: json['repeatRule'] != null
           ? RepeatRule.fromJson(json['repeatRule'] as Map<String, dynamic>)
           : null,
@@ -87,6 +90,7 @@ class Reminder {
       'type': type,
       if (flashColor != null) 'flashColor': flashColor,
       if (flashDuration != null) 'flashDuration': flashDuration,
+      if (flashEffect != null) 'flashEffect': flashEffect,
       if (repeatRule != null) 'repeatRule': repeatRule!.toJson(),
       if (templateId != null) 'templateId': templateId,
       if (parentReminderId != null) 'parentReminderId': parentReminderId,
@@ -132,6 +136,7 @@ class Reminder {
     String? type,
     String? flashColor,
     int? flashDuration,
+    String? flashEffect,
     RepeatRule? repeatRule,
     String? templateId,
     String? parentReminderId,
@@ -140,6 +145,7 @@ class Reminder {
     String? soundKey,
     bool clearFlashColor = false,
     bool clearFlashDuration = false,
+    bool clearFlashEffect = false,
     bool clearRepeatRule = false,
     bool clearTemplateId = false,
     bool clearParentReminderId = false,
@@ -158,6 +164,7 @@ class Reminder {
       flashDuration: clearFlashDuration
           ? null
           : (flashDuration ?? this.flashDuration),
+      flashEffect: clearFlashEffect ? null : (flashEffect ?? this.flashEffect),
       repeatRule: clearRepeatRule ? null : (repeatRule ?? this.repeatRule),
       templateId: clearTemplateId ? null : (templateId ?? this.templateId),
       parentReminderId: clearParentReminderId

@@ -61,6 +61,41 @@ curl -X POST http://localhost:8642/api/notify \
   }'
 ```
 
+### Test API with Python Script
+
+You can use `scripts/test_http_api.py` to quickly test all HTTP endpoints.
+
+```bash
+# Show usage
+python3 scripts/test_http_api.py --help
+
+# Check server status
+python3 scripts/test_http_api.py status
+
+# Get current config
+python3 scripts/test_http_api.py config-get
+
+# Send a normal notification
+python3 scripts/test_http_api.py notify --mode normal
+
+# Send an edge-lighting notification (macOS)
+python3 scripts/test_http_api.py notify --mode edge_rainbow --flash-color "#00D1FF"
+
+# Run smoke test (status + normal notify + edge notify)
+python3 scripts/test_http_api.py smoke --include-edge --edge-effect edge_dual
+```
+
+Supported `notify --mode` values:
+
+- `normal`
+- `flash`
+- `edge`
+- `edge_pulse`
+- `edge_dual`
+- `edge_dash`
+- `edge_corner`
+- `edge_rainbow`
+
 ## Documentation
 
 For detailed documentation, see the [docs](./docs) directory:

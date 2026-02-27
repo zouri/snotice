@@ -116,6 +116,7 @@ class ReminderProvider extends ChangeNotifier {
     String type = 'notification',
     String? flashColor,
     int? flashDuration,
+    String? flashEffect,
     RepeatRule? repeatRule,
     String? templateId,
     String? soundKey,
@@ -127,6 +128,7 @@ class ReminderProvider extends ChangeNotifier {
       type: type,
       flashColor: flashColor,
       flashDuration: flashDuration,
+      flashEffect: flashEffect,
       repeatRule: repeatRule,
       templateId: templateId,
       soundKey: soundKey,
@@ -141,6 +143,7 @@ class ReminderProvider extends ChangeNotifier {
     String type = 'notification',
     String? flashColor,
     int? flashDuration,
+    String? flashEffect,
     RepeatRule? repeatRule,
     String? templateId,
     String? soundKey,
@@ -154,6 +157,7 @@ class ReminderProvider extends ChangeNotifier {
       type: type,
       flashColor: flashColor,
       flashDuration: flashDuration,
+      flashEffect: flashEffect,
       repeatRule: repeatRule,
       templateId: templateId,
       soundKey: soundKey,
@@ -187,6 +191,7 @@ class ReminderProvider extends ChangeNotifier {
       type: template.type,
       flashColor: template.flashColor,
       flashDuration: template.flashDuration,
+      flashEffect: template.flashEffect,
       templateId: template.id,
       soundKey: template.soundKey,
     );
@@ -208,6 +213,7 @@ class ReminderProvider extends ChangeNotifier {
       category: reminder.type == 'flash' ? 'flash' : 'info',
       flashColor: reminder.flashColor,
       flashDuration: reminder.flashDuration,
+      flashEffect: reminder.flashEffect,
     );
 
     await _notificationService.showNotification(request);
@@ -348,6 +354,7 @@ class ReminderProvider extends ChangeNotifier {
       type: reminder.type,
       flashColor: reminder.flashColor,
       flashDuration: reminder.flashDuration,
+      flashEffect: reminder.flashEffect,
       repeatRule: reminder.repeatRule,
       templateId: reminder.templateId,
       soundKey: reminder.soundKey,

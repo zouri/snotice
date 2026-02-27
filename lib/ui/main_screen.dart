@@ -25,6 +25,7 @@ class _MainScreenState extends State<MainScreen> {
   String _reminderType = 'notification';
   String _flashColor = '#FFFFFF';
   int _flashDuration = 500;
+  String _flashEffect = 'edge';
   int _selectedTab = 0;
 
   @override
@@ -49,6 +50,7 @@ class _MainScreenState extends State<MainScreen> {
       type: _reminderType,
       flashColor: _reminderType == 'flash' ? _flashColor : null,
       flashDuration: _reminderType == 'flash' ? _flashDuration : null,
+      flashEffect: _reminderType == 'flash' ? _flashEffect : null,
     );
 
     _titleController.clear();
@@ -109,6 +111,7 @@ class _MainScreenState extends State<MainScreen> {
             reminderType: _reminderType,
             flashColor: _flashColor,
             flashDuration: _flashDuration,
+            flashEffect: _flashEffect,
             onMinutesChanged: (minutes) {
               setState(() {
                 _selectedMinutes = minutes;
@@ -129,6 +132,11 @@ class _MainScreenState extends State<MainScreen> {
                 _flashDuration = duration;
               });
             },
+            onFlashEffectChanged: (effect) {
+              setState(() {
+                _flashEffect = effect;
+              });
+            },
           ),
           const RemindersTab(),
           const ReminderHistoryTab(),
@@ -142,12 +150,18 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         items: [
-          BottomNavigationBarItem(icon: const Icon(Icons.add_alarm), label: l10n.navCreate),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.add_alarm),
+            label: l10n.navCreate,
+          ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.pending_actions),
             label: l10n.navReminders,
           ),
-          BottomNavigationBarItem(icon: const Icon(Icons.history), label: l10n.navHistory),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.history),
+            label: l10n.navHistory,
+          ),
         ],
       ),
       floatingActionButton: _selectedTab == 0

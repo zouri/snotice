@@ -430,11 +430,30 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
   int _delayMinutes = 5;
   String _scheduleMode = 'delay';
   String _type = 'notification';
+  String _flashColor = '#00D1FF';
+  int _flashDuration = 700;
+  String _flashEffect = 'edge';
   RepeatRule? _repeatRule;
   late TimeOfDay _selectedTime;
   final Set<int> _selectedWeekdays = Set<int>.from(_workdays);
 
   final List<int> _quickDelays = [1, 5, 10, 15, 30, 60, 120, 240];
+  static const List<String> _flashEffects = [
+    'edge',
+    'edge_pulse',
+    'edge_dual',
+    'edge_dash',
+    'edge_corner',
+    'edge_rainbow',
+  ];
+  static const Map<String, String> _flashEffectLabels = {
+    'edge': 'Edge Sweep',
+    'edge_pulse': 'Edge Pulse',
+    'edge_dual': 'Edge Dual',
+    'edge_dash': 'Edge Dash',
+    'edge_corner': 'Edge Corner',
+    'edge_rainbow': 'Edge Rainbow',
+  };
 
   @override
   void initState() {
@@ -532,6 +551,10 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
                   ),
                 ],
               ),
+              if (_type == 'flash') ...[
+                const SizedBox(height: 16),
+                _buildFlashSettings(context),
+              ],
               if (_scheduleMode == 'delay') ...[
                 const SizedBox(height: 16),
                 // Repeat option (delay mode)
@@ -782,6 +805,111 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
     );
   }
 
+  Widget _buildFlashSettings(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionLabel(context, l10n.flashSettings),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildFlashColorButton(context, Colors.red, '#FF0000'),
+            _buildFlashColorButton(context, Colors.yellow, '#FFFF00'),
+            _buildFlashColorButton(context, Colors.blue, '#0000FF'),
+            _buildFlashColorButton(context, Colors.white, '#FFFFFF'),
+            _buildFlashColorButton(context, Colors.grey, '#808080'),
+            _buildFlashColorButton(context, Colors.orange, '#FFA500'),
+            _buildFlashColorButton(context, const Color(0xFF00D1FF), '#00D1FF'),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: _flashEffects.contains(_flashEffect)
+              ? _flashEffect
+              : _flashEffects.first,
+          decoration: const InputDecoration(
+            labelText: 'Animation',
+            border: OutlineInputBorder(),
+          ),
+          items: _flashEffects
+              .map(
+                (effect) => DropdownMenuItem(
+                  value: effect,
+                  child: Text(_flashEffectLabels[effect] ?? effect),
+                ),
+              )
+              .toList(),
+          onChanged: (value) {
+            if (value == null) {
+              return;
+            }
+            setState(() {
+              _flashEffect = value;
+            });
+          },
+        ),
+        const SizedBox(height: 12),
+        Text(
+          l10n.duration(_flashDuration),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+        ),
+        Slider(
+          value: _flashDuration.toDouble(),
+          min: 100,
+          max: 2500,
+          divisions: 24,
+          label: l10n.duration(_flashDuration),
+          onChanged: (value) {
+            setState(() {
+              _flashDuration = value.toInt();
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFlashColorButton(BuildContext context, Color color, String hex) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isSelected = _flashColor == hex;
+    final isLightColor = color.computeLuminance() > 0.6;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _flashColor = hex;
+        });
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 42,
+        height: 42,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? colorScheme.primary : colorScheme.outline,
+            width: isSelected ? 3 : 1,
+          ),
+        ),
+        child: isSelected
+            ? Icon(
+                Icons.check,
+                size: 18,
+                color: isLightColor ? Colors.black : Colors.white,
+              )
+            : null,
+      ),
+    );
+  }
+
   String _getWeekdayLabel(AppLocalizations l10n, int weekday) {
     switch (weekday) {
       case DateTime.monday:
@@ -896,6 +1024,9 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
         body: _bodyController.text,
         scheduledTime: _nextTimeReminderAt(),
         type: _type,
+        flashColor: _type == 'flash' ? _flashColor : null,
+        flashDuration: _type == 'flash' ? _flashDuration : null,
+        flashEffect: _type == 'flash' ? _flashEffect : null,
         repeatRule: _buildTimeRepeatRule(),
       );
     } else {
@@ -904,6 +1035,9 @@ class _QuickCreateDialogState extends State<_QuickCreateDialog> {
         body: _bodyController.text,
         delay: Duration(minutes: _delayMinutes),
         type: _type,
+        flashColor: _type == 'flash' ? _flashColor : null,
+        flashDuration: _type == 'flash' ? _flashDuration : null,
+        flashEffect: _type == 'flash' ? _flashEffect : null,
         repeatRule: _repeatRule,
       );
     }

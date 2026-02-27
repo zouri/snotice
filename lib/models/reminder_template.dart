@@ -27,6 +27,9 @@ class ReminderTemplate {
   /// 闪屏持续时间（毫秒）
   final int? flashDuration;
 
+  /// 闪屏效果（仅 type='flash' 时有效）
+  final String? flashEffect;
+
   /// 声音标识
   final String? soundKey;
 
@@ -49,6 +52,7 @@ class ReminderTemplate {
     required this.type,
     this.flashColor,
     this.flashDuration,
+    this.flashEffect,
     this.soundKey,
     this.isBuiltIn = false,
     this.isFavorite = false,
@@ -66,6 +70,7 @@ class ReminderTemplate {
       type: json['type'] as String? ?? 'notification',
       flashColor: json['flashColor'] as String?,
       flashDuration: json['flashDuration'] as int?,
+      flashEffect: json['flashEffect'] as String?,
       soundKey: json['soundKey'] as String?,
       isBuiltIn: json['isBuiltIn'] as bool? ?? false,
       isFavorite: json['isFavorite'] as bool? ?? false,
@@ -84,6 +89,7 @@ class ReminderTemplate {
       'type': type,
       if (flashColor != null) 'flashColor': flashColor,
       if (flashDuration != null) 'flashDuration': flashDuration,
+      if (flashEffect != null) 'flashEffect': flashEffect,
       if (soundKey != null) 'soundKey': soundKey,
       'isBuiltIn': isBuiltIn,
       'isFavorite': isFavorite,
@@ -101,12 +107,14 @@ class ReminderTemplate {
     String? type,
     String? flashColor,
     int? flashDuration,
+    String? flashEffect,
     String? soundKey,
     bool? isBuiltIn,
     bool? isFavorite,
     int? sortOrder,
     bool clearFlashColor = false,
     bool clearFlashDuration = false,
+    bool clearFlashEffect = false,
     bool clearSoundKey = false,
   }) {
     return ReminderTemplate(
@@ -118,8 +126,10 @@ class ReminderTemplate {
       defaultBody: defaultBody ?? this.defaultBody,
       type: type ?? this.type,
       flashColor: clearFlashColor ? null : (flashColor ?? this.flashColor),
-      flashDuration:
-          clearFlashDuration ? null : (flashDuration ?? this.flashDuration),
+      flashDuration: clearFlashDuration
+          ? null
+          : (flashDuration ?? this.flashDuration),
+      flashEffect: clearFlashEffect ? null : (flashEffect ?? this.flashEffect),
       soundKey: clearSoundKey ? null : (soundKey ?? this.soundKey),
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
       isFavorite: isFavorite ?? this.isFavorite,

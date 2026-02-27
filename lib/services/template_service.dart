@@ -31,6 +31,7 @@ class TemplateService {
       type: 'flash',
       flashColor: '#FFFF00',
       flashDuration: 500,
+      flashEffect: 'edge',
       isBuiltIn: true,
       sortOrder: 2,
     ),
@@ -156,7 +157,9 @@ class TemplateService {
       }
 
       // 检查是否已存在（更新）
-      final existingIndex = customTemplates.indexWhere((t) => t.id == template.id);
+      final existingIndex = customTemplates.indexWhere(
+        (t) => t.id == template.id,
+      );
       if (existingIndex != -1) {
         customTemplates[existingIndex] = template;
       } else {
@@ -185,7 +188,9 @@ class TemplateService {
       final List<ReminderTemplate> customTemplates = [];
       final List<dynamic> jsonList = jsonDecode(customJson);
       for (final json in jsonList) {
-        final template = ReminderTemplate.fromJson(json as Map<String, dynamic>);
+        final template = ReminderTemplate.fromJson(
+          json as Map<String, dynamic>,
+        );
         if (template.id != id) {
           customTemplates.add(template);
         }

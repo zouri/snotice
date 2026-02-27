@@ -12,6 +12,42 @@ class MainFlutterWindow: NSWindow {
   private var flashToken: Int = 0
   private var flashOverlayWindows: [NSPanel] = []
 
+  private enum EdgeLightingStyle {
+    case sweep
+    case pulse
+    case dual
+    case dash
+    case corner
+    case rainbow
+
+    static func from(effect: String) -> EdgeLightingStyle? {
+      switch effect {
+      case "edge", "edge_sweep", "sweep":
+        return .sweep
+      case "edge_pulse", "pulse":
+        return .pulse
+      case "edge_dual", "dual":
+        return .dual
+      case "edge_dash", "dash":
+        return .dash
+      case "edge_corner", "corner":
+        return .corner
+      case "edge_rainbow", "rainbow":
+        return .rainbow
+      default:
+        return nil
+      }
+    }
+  }
+
+  private struct EdgeGeometry {
+    let frame: CGRect
+    let path: CGPath
+    let roundedRect: CGRect
+    let cornerRadius: CGFloat
+    let lineWidth: CGFloat
+  }
+
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
@@ -62,11 +98,12 @@ class MainFlutterWindow: NSWindow {
         let duration = self.parseInt(args["duration"], fallback: 500)
         let effect = (args["effect"] as? String ?? "full").lowercased()
 
-        if effect == "edge" {
+        if let style = EdgeLightingStyle.from(effect: effect) {
           let width = self.parseDouble(args["width"], fallback: 14.0)
           let opacity = self.parseDouble(args["opacity"], fallback: 0.92)
           let repeatCount = max(1, self.parseInt(args["repeat"], fallback: 2))
           self.triggerEdgeLighting(
+            style: style,
             colorString: colorString,
             durationMs: duration,
             lineWidth: width,
@@ -220,6 +257,7 @@ class MainFlutterWindow: NSWindow {
   }
 
   private func triggerEdgeLighting(
+    style: EdgeLightingStyle,
     colorString: String,
     durationMs: Int,
     lineWidth: Double,
@@ -229,6 +267,7 @@ class MainFlutterWindow: NSWindow {
     if !Thread.isMainThread {
       DispatchQueue.main.async { [weak self] in
         self?.triggerEdgeLighting(
+          style: style,
           colorString: colorString,
           durationMs: durationMs,
           lineWidth: lineWidth,
@@ -252,7 +291,16 @@ class MainFlutterWindow: NSWindow {
     let clampedOpacity = max(0.1, min(1.0, opacity))
     let clampedLineWidth = max(2.0, min(48.0, lineWidth))
     let safeRepeat = max(1, repeatCount)
-    let cycleSeconds = max(0.5, Double(durationMs) / 1000.0)
+    let baseCycleSeconds = max(0.5, Double(durationMs) / 1000.0)
+    let cycleSeconds: CFTimeInterval
+    switch style {
+    case .corner:
+      cycleSeconds = max(0.4, baseCycleSeconds * 0.8)
+    case .rainbow:
+      cycleSeconds = max(0.65, baseCycleSeconds)
+    default:
+      cycleSeconds = baseCycleSeconds
+    }
     let totalSeconds = cycleSeconds * Double(safeRepeat)
     let overlayLevel = NSWindow.Level.screenSaver
 
@@ -284,15 +332,19 @@ class MainFlutterWindow: NSWindow {
       container.layer?.backgroundColor = NSColor.clear.cgColor
 
       if let rootLayer = container.layer {
-        let edgeLayer = buildEdgeLayer(
+        let geometry = buildEdgeGeometry(
           frame: container.bounds,
+          lineWidth: CGFloat(clampedLineWidth)
+        )
+        applyEdgeStyle(
+          style: style,
+          rootLayer: rootLayer,
+          geometry: geometry,
           color: edgeColor,
-          lineWidth: CGFloat(clampedLineWidth),
           opacity: CGFloat(clampedOpacity),
           cycleSeconds: cycleSeconds,
           repeatCount: safeRepeat
         )
-        rootLayer.addSublayer(edgeLayer)
       }
 
       window.contentView = container
@@ -331,14 +383,10 @@ class MainFlutterWindow: NSWindow {
     }
   }
 
-  private func buildEdgeLayer(
+  private func buildEdgeGeometry(
     frame: CGRect,
-    color: NSColor,
-    lineWidth: CGFloat,
-    opacity: CGFloat,
-    cycleSeconds: CFTimeInterval,
-    repeatCount: Int
-  ) -> CAShapeLayer {
+    lineWidth: CGFloat
+  ) -> EdgeGeometry {
     let inset = max(4.0, lineWidth / 2.0 + 2.0)
     let roundedRect = frame.insetBy(dx: inset, dy: inset)
     let cornerRadius = max(16.0, lineWidth * 2.4)
@@ -348,29 +396,138 @@ class MainFlutterWindow: NSWindow {
       cornerHeight: cornerRadius,
       transform: nil
     )
+    return EdgeGeometry(
+      frame: frame,
+      path: path,
+      roundedRect: roundedRect,
+      cornerRadius: cornerRadius,
+      lineWidth: lineWidth
+    )
+  }
 
-    let edgeLayer = CAShapeLayer()
-    edgeLayer.frame = frame
-    edgeLayer.path = path
-    edgeLayer.fillColor = NSColor.clear.cgColor
-    edgeLayer.strokeColor = color.withAlphaComponent(opacity).cgColor
-    edgeLayer.lineWidth = lineWidth
-    edgeLayer.lineCap = .round
-    edgeLayer.shadowColor = color.cgColor
-    edgeLayer.shadowOffset = .zero
-    edgeLayer.shadowRadius = max(6.0, lineWidth * 1.8)
-    edgeLayer.shadowOpacity = Float(min(1.0, opacity + 0.15))
-    edgeLayer.opacity = Float(opacity)
-    edgeLayer.strokeStart = 0
-    edgeLayer.strokeEnd = 0.16
+  private func applyEdgeStyle(
+    style: EdgeLightingStyle,
+    rootLayer: CALayer,
+    geometry: EdgeGeometry,
+    color: NSColor,
+    opacity: CGFloat,
+    cycleSeconds: CFTimeInterval,
+    repeatCount: Int
+  ) {
+    switch style {
+    case .sweep:
+      rootLayer.addSublayer(
+        buildSweepLayer(
+          geometry: geometry,
+          color: color,
+          opacity: opacity,
+          cycleSeconds: cycleSeconds,
+          repeatCount: repeatCount,
+          reverse: false
+        )
+      )
+    case .pulse:
+      rootLayer.addSublayer(
+        buildPulseLayer(
+          geometry: geometry,
+          color: color,
+          opacity: opacity,
+          cycleSeconds: cycleSeconds,
+          repeatCount: repeatCount
+        )
+      )
+    case .dual:
+      let primary = buildSweepLayer(
+        geometry: geometry,
+        color: color,
+        opacity: opacity,
+        cycleSeconds: cycleSeconds,
+        repeatCount: repeatCount,
+        reverse: false
+      )
+      let secondaryColor = color.blended(withFraction: 0.35, of: .white) ?? color
+      let secondary = buildSweepLayer(
+        geometry: geometry,
+        color: secondaryColor,
+        opacity: max(0.2, opacity * 0.86),
+        cycleSeconds: cycleSeconds,
+        repeatCount: repeatCount,
+        reverse: true
+      )
+      secondary.strokeStart = 0.5
+      secondary.strokeEnd = 0.68
+      rootLayer.addSublayer(primary)
+      rootLayer.addSublayer(secondary)
+    case .dash:
+      rootLayer.addSublayer(
+        buildDashLayer(
+          geometry: geometry,
+          color: color,
+          opacity: opacity,
+          cycleSeconds: cycleSeconds,
+          repeatCount: repeatCount
+        )
+      )
+    case .corner:
+      rootLayer.addSublayer(
+        buildCornerLayer(
+          geometry: geometry,
+          color: color,
+          opacity: opacity,
+          cycleSeconds: cycleSeconds,
+          repeatCount: repeatCount
+        )
+      )
+    case .rainbow:
+      rootLayer.addSublayer(
+        buildRainbowLayerGroup(
+          geometry: geometry,
+          baseColor: color,
+          opacity: opacity,
+          cycleSeconds: cycleSeconds,
+          repeatCount: repeatCount
+        )
+      )
+    }
+  }
+
+  private func buildSweepLayer(
+    geometry: EdgeGeometry,
+    color: NSColor,
+    opacity: CGFloat,
+    cycleSeconds: CFTimeInterval,
+    repeatCount: Int,
+    reverse: Bool
+  ) -> CAShapeLayer {
+    let layer = CAShapeLayer()
+    layer.frame = geometry.frame
+    layer.path = geometry.path
+    layer.fillColor = NSColor.clear.cgColor
+    layer.strokeColor = color.withAlphaComponent(opacity).cgColor
+    layer.lineWidth = geometry.lineWidth
+    layer.lineCap = .round
+    layer.shadowColor = color.cgColor
+    layer.shadowOffset = .zero
+    layer.shadowRadius = max(6.0, geometry.lineWidth * 1.7)
+    layer.shadowOpacity = Float(min(1.0, opacity + 0.12))
+    layer.opacity = Float(opacity)
+    layer.strokeStart = reverse ? 0.5 : 0.0
+    layer.strokeEnd = reverse ? 0.68 : 0.18
 
     let strokeStart = CABasicAnimation(keyPath: "strokeStart")
-    strokeStart.fromValue = -0.2
-    strokeStart.toValue = 1.0
-
     let strokeEnd = CABasicAnimation(keyPath: "strokeEnd")
-    strokeEnd.fromValue = 0.0
-    strokeEnd.toValue = 1.2
+
+    if reverse {
+      strokeStart.fromValue = 1.2
+      strokeStart.toValue = 0.0
+      strokeEnd.fromValue = 1.4
+      strokeEnd.toValue = 0.2
+    } else {
+      strokeStart.fromValue = -0.2
+      strokeStart.toValue = 1.0
+      strokeEnd.fromValue = 0.0
+      strokeEnd.toValue = 1.2
+    }
 
     let sweep = CAAnimationGroup()
     sweep.animations = [strokeStart, strokeEnd]
@@ -379,19 +536,325 @@ class MainFlutterWindow: NSWindow {
     sweep.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
     sweep.fillMode = .forwards
     sweep.isRemovedOnCompletion = false
-    edgeLayer.add(sweep, forKey: "edgeSweep")
+    layer.add(sweep, forKey: "edgeSweep")
 
+    addOpacityPulseAnimation(
+      to: layer,
+      minOpacity: max(0.26, opacity * 0.48),
+      maxOpacity: min(1.0, opacity),
+      duration: max(0.2, cycleSeconds / 2.0),
+      repeatCount: max(1, repeatCount) * 2
+    )
+
+    return layer
+  }
+
+  private func buildPulseLayer(
+    geometry: EdgeGeometry,
+    color: NSColor,
+    opacity: CGFloat,
+    cycleSeconds: CFTimeInterval,
+    repeatCount: Int
+  ) -> CAShapeLayer {
+    let layer = CAShapeLayer()
+    layer.frame = geometry.frame
+    layer.path = geometry.path
+    layer.fillColor = NSColor.clear.cgColor
+    layer.strokeColor = color.withAlphaComponent(opacity).cgColor
+    layer.lineWidth = geometry.lineWidth
+    layer.lineCap = .round
+    layer.shadowColor = color.cgColor
+    layer.shadowOffset = .zero
+    layer.shadowRadius = max(7.0, geometry.lineWidth * 1.9)
+    layer.shadowOpacity = Float(min(1.0, opacity + 0.18))
+    layer.opacity = Float(opacity)
+    layer.strokeStart = 0
+    layer.strokeEnd = 1
+
+    addOpacityPulseAnimation(
+      to: layer,
+      minOpacity: max(0.22, opacity * 0.28),
+      maxOpacity: min(1.0, opacity),
+      duration: max(0.2, cycleSeconds / 2.0),
+      repeatCount: max(1, repeatCount) * 2
+    )
+
+    let widthPulse = CABasicAnimation(keyPath: "lineWidth")
+    widthPulse.fromValue = max(1.0, geometry.lineWidth * 0.75)
+    widthPulse.toValue = geometry.lineWidth * 1.2
+    widthPulse.autoreverses = true
+    widthPulse.duration = max(0.2, cycleSeconds / 2.0)
+    widthPulse.repeatCount = Float(max(1, repeatCount) * 2)
+    widthPulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    widthPulse.fillMode = .forwards
+    widthPulse.isRemovedOnCompletion = false
+    layer.add(widthPulse, forKey: "pulseLineWidth")
+
+    return layer
+  }
+
+  private func buildDashLayer(
+    geometry: EdgeGeometry,
+    color: NSColor,
+    opacity: CGFloat,
+    cycleSeconds: CFTimeInterval,
+    repeatCount: Int
+  ) -> CAShapeLayer {
+    let layer = CAShapeLayer()
+    layer.frame = geometry.frame
+    layer.path = geometry.path
+    layer.fillColor = NSColor.clear.cgColor
+    layer.strokeColor = color.withAlphaComponent(opacity).cgColor
+    layer.lineWidth = geometry.lineWidth
+    layer.lineCap = .round
+    layer.lineDashPattern = [
+      NSNumber(value: max(4.0, Double(geometry.lineWidth * 1.2))),
+      NSNumber(value: max(6.0, Double(geometry.lineWidth * 2.1))),
+    ]
+    layer.shadowColor = color.cgColor
+    layer.shadowOffset = .zero
+    layer.shadowRadius = max(6.0, geometry.lineWidth * 1.6)
+    layer.shadowOpacity = Float(min(1.0, opacity + 0.1))
+    layer.opacity = Float(opacity)
+    layer.strokeStart = 0
+    layer.strokeEnd = 1
+
+    let dashCycle = max(50.0, Double(geometry.lineWidth * 14.0))
+    let dashPhase = CABasicAnimation(keyPath: "lineDashPhase")
+    dashPhase.fromValue = 0.0
+    dashPhase.toValue = -dashCycle
+    dashPhase.duration = cycleSeconds
+    dashPhase.repeatCount = Float(max(1, repeatCount))
+    dashPhase.timingFunction = CAMediaTimingFunction(name: .linear)
+    dashPhase.fillMode = .forwards
+    dashPhase.isRemovedOnCompletion = false
+    layer.add(dashPhase, forKey: "dashFlow")
+
+    addOpacityPulseAnimation(
+      to: layer,
+      minOpacity: max(0.25, opacity * 0.55),
+      maxOpacity: min(1.0, opacity),
+      duration: max(0.2, cycleSeconds / 2.0),
+      repeatCount: max(1, repeatCount) * 2
+    )
+
+    return layer
+  }
+
+  private func buildCornerLayer(
+    geometry: EdgeGeometry,
+    color: NSColor,
+    opacity: CGFloat,
+    cycleSeconds: CFTimeInterval,
+    repeatCount: Int
+  ) -> CAShapeLayer {
+    let segment = max(22.0, geometry.lineWidth * 3.2)
+    let cornerPath = makeCornerPath(
+      rect: geometry.roundedRect,
+      cornerRadius: geometry.cornerRadius,
+      segment: segment
+    )
+
+    let layer = CAShapeLayer()
+    layer.frame = geometry.frame
+    layer.path = cornerPath
+    layer.fillColor = NSColor.clear.cgColor
+    layer.strokeColor = color.withAlphaComponent(opacity).cgColor
+    layer.lineWidth = max(1.0, geometry.lineWidth * 0.95)
+    layer.lineCap = .round
+    layer.shadowColor = color.cgColor
+    layer.shadowOffset = .zero
+    layer.shadowRadius = max(7.0, geometry.lineWidth * 2.0)
+    layer.shadowOpacity = Float(min(1.0, opacity + 0.2))
+    layer.opacity = Float(opacity)
+    layer.strokeStart = 0
+    layer.strokeEnd = 1
+
+    let reveal = CABasicAnimation(keyPath: "strokeEnd")
+    reveal.fromValue = 0.25
+    reveal.toValue = 1.0
+    reveal.autoreverses = true
+    reveal.duration = max(0.2, cycleSeconds / 2.0)
+    reveal.repeatCount = Float(max(1, repeatCount) * 2)
+    reveal.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    reveal.fillMode = .forwards
+    reveal.isRemovedOnCompletion = false
+    layer.add(reveal, forKey: "cornerReveal")
+
+    addOpacityPulseAnimation(
+      to: layer,
+      minOpacity: max(0.2, opacity * 0.45),
+      maxOpacity: min(1.0, opacity),
+      duration: max(0.2, cycleSeconds / 2.0),
+      repeatCount: max(1, repeatCount) * 2
+    )
+
+    return layer
+  }
+
+  private func buildRainbowLayerGroup(
+    geometry: EdgeGeometry,
+    baseColor: NSColor,
+    opacity: CGFloat,
+    cycleSeconds: CFTimeInterval,
+    repeatCount: Int
+  ) -> CALayer {
+    let container = CALayer()
+    container.frame = geometry.frame
+
+    let glowLayer = CAShapeLayer()
+    glowLayer.frame = geometry.frame
+    glowLayer.path = geometry.path
+    glowLayer.fillColor = NSColor.clear.cgColor
+    glowLayer.strokeColor = baseColor.withAlphaComponent(max(0.18, opacity * 0.26)).cgColor
+    glowLayer.lineWidth = geometry.lineWidth * 1.35
+    glowLayer.lineCap = .round
+    glowLayer.shadowColor = baseColor.cgColor
+    glowLayer.shadowOffset = .zero
+    glowLayer.shadowRadius = max(9.0, geometry.lineWidth * 2.2)
+    glowLayer.shadowOpacity = Float(min(1.0, opacity + 0.22))
+    glowLayer.opacity = Float(max(0.2, opacity * 0.58))
+    container.addSublayer(glowLayer)
+
+    let gradient = CAGradientLayer()
+    gradient.frame = geometry.frame
+    gradient.colors = [
+      NSColor.systemRed.withAlphaComponent(opacity).cgColor,
+      NSColor.systemOrange.withAlphaComponent(opacity).cgColor,
+      NSColor.systemYellow.withAlphaComponent(opacity).cgColor,
+      NSColor.systemGreen.withAlphaComponent(opacity).cgColor,
+      NSColor.cyan.withAlphaComponent(opacity).cgColor,
+      NSColor.systemBlue.withAlphaComponent(opacity).cgColor,
+      NSColor.systemPurple.withAlphaComponent(opacity).cgColor,
+      NSColor.systemPink.withAlphaComponent(opacity).cgColor,
+      NSColor.systemRed.withAlphaComponent(opacity).cgColor,
+    ]
+    gradient.locations = [
+      NSNumber(value: 0.0),
+      NSNumber(value: 0.14),
+      NSNumber(value: 0.28),
+      NSNumber(value: 0.42),
+      NSNumber(value: 0.56),
+      NSNumber(value: 0.7),
+      NSNumber(value: 0.84),
+      NSNumber(value: 0.92),
+      NSNumber(value: 1.0),
+    ]
+    gradient.startPoint = CGPoint(x: 0.0, y: 0.0)
+    gradient.endPoint = CGPoint(x: 1.0, y: 1.0)
+
+    let maskLayer = CAShapeLayer()
+    maskLayer.frame = geometry.frame
+    maskLayer.path = geometry.path
+    maskLayer.fillColor = NSColor.clear.cgColor
+    maskLayer.strokeColor = NSColor.white.cgColor
+    maskLayer.lineWidth = geometry.lineWidth
+    maskLayer.lineCap = .round
+    maskLayer.strokeStart = 0
+    maskLayer.strokeEnd = 1
+    gradient.mask = maskLayer
+    container.addSublayer(gradient)
+
+    let rotate = CABasicAnimation(keyPath: "transform.rotation.z")
+    rotate.fromValue = 0.0
+    rotate.toValue = Double.pi * 2.0
+    rotate.duration = cycleSeconds
+    rotate.repeatCount = Float(max(1, repeatCount))
+    rotate.timingFunction = CAMediaTimingFunction(name: .linear)
+    rotate.fillMode = .forwards
+    rotate.isRemovedOnCompletion = false
+    gradient.add(rotate, forKey: "rainbowRotate")
+
+    let shift = CABasicAnimation(keyPath: "locations")
+    shift.fromValue = [
+      NSNumber(value: 0.0), NSNumber(value: 0.14), NSNumber(value: 0.28),
+      NSNumber(value: 0.42), NSNumber(value: 0.56), NSNumber(value: 0.7),
+      NSNumber(value: 0.84), NSNumber(value: 0.92), NSNumber(value: 1.0),
+    ]
+    shift.toValue = [
+      NSNumber(value: 1.0), NSNumber(value: 1.14), NSNumber(value: 1.28),
+      NSNumber(value: 1.42), NSNumber(value: 1.56), NSNumber(value: 1.7),
+      NSNumber(value: 1.84), NSNumber(value: 1.92), NSNumber(value: 2.0),
+    ]
+    shift.duration = cycleSeconds
+    shift.repeatCount = Float(max(1, repeatCount))
+    shift.timingFunction = CAMediaTimingFunction(name: .linear)
+    shift.fillMode = .forwards
+    shift.isRemovedOnCompletion = false
+    gradient.add(shift, forKey: "rainbowShift")
+
+    addOpacityPulseAnimation(
+      to: container,
+      minOpacity: max(0.4, opacity * 0.64),
+      maxOpacity: 1.0,
+      duration: max(0.25, cycleSeconds / 2.0),
+      repeatCount: max(1, repeatCount) * 2
+    )
+
+    return container
+  }
+
+  private func addOpacityPulseAnimation(
+    to layer: CALayer,
+    minOpacity: CGFloat,
+    maxOpacity: CGFloat,
+    duration: CFTimeInterval,
+    repeatCount: Int
+  ) {
     let pulse = CABasicAnimation(keyPath: "opacity")
-    pulse.fromValue = max(0.35, opacity * 0.5)
-    pulse.toValue = min(1.0, opacity)
+    pulse.fromValue = minOpacity
+    pulse.toValue = maxOpacity
     pulse.autoreverses = true
-    pulse.duration = max(0.2, cycleSeconds / 2.0)
-    pulse.repeatCount = Float(max(1, repeatCount) * 2)
+    pulse.duration = duration
+    pulse.repeatCount = Float(max(1, repeatCount))
+    pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
     pulse.fillMode = .forwards
     pulse.isRemovedOnCompletion = false
-    edgeLayer.add(pulse, forKey: "edgePulse")
+    layer.add(pulse, forKey: "opacityPulse")
+  }
 
-    return edgeLayer
+  private func makeCornerPath(
+    rect: CGRect,
+    cornerRadius: CGFloat,
+    segment: CGFloat
+  ) -> CGPath {
+    let path = CGMutablePath()
+    let seg = min(segment, min(rect.width, rect.height) * 0.28)
+    let radius = max(8.0, min(cornerRadius, seg))
+
+    path.move(to: CGPoint(x: rect.minX, y: rect.minY + seg))
+    path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + radius))
+    path.addQuadCurve(
+      to: CGPoint(x: rect.minX + radius, y: rect.minY),
+      control: CGPoint(x: rect.minX, y: rect.minY)
+    )
+    path.addLine(to: CGPoint(x: rect.minX + seg, y: rect.minY))
+
+    path.move(to: CGPoint(x: rect.maxX - seg, y: rect.minY))
+    path.addLine(to: CGPoint(x: rect.maxX - radius, y: rect.minY))
+    path.addQuadCurve(
+      to: CGPoint(x: rect.maxX, y: rect.minY + radius),
+      control: CGPoint(x: rect.maxX, y: rect.minY)
+    )
+    path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY + seg))
+
+    path.move(to: CGPoint(x: rect.maxX, y: rect.maxY - seg))
+    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
+    path.addQuadCurve(
+      to: CGPoint(x: rect.maxX - radius, y: rect.maxY),
+      control: CGPoint(x: rect.maxX, y: rect.maxY)
+    )
+    path.addLine(to: CGPoint(x: rect.maxX - seg, y: rect.maxY))
+
+    path.move(to: CGPoint(x: rect.minX + seg, y: rect.maxY))
+    path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+    path.addQuadCurve(
+      to: CGPoint(x: rect.minX, y: rect.maxY - radius),
+      control: CGPoint(x: rect.minX, y: rect.maxY)
+    )
+    path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - seg))
+
+    return path
   }
 
   private func parseColor(_ value: String) -> NSColor {

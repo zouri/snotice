@@ -39,9 +39,7 @@ class SNoticeApiClient:
         try:
             with urllib.request.urlopen(req, timeout=self.timeout) as resp:
                 raw = resp.read().decode("utf-8", errors="replace")
-                return ApiResult(
-                    status=resp.status, body=self._parse_json(raw), raw=raw
-                )
+                return ApiResult(status=resp.status, body=self._parse_json(raw), raw=raw)
         except urllib.error.HTTPError as err:
             raw = err.read().decode("utf-8", errors="replace")
             return ApiResult(status=err.code, body=self._parse_json(raw), raw=raw)
@@ -80,9 +78,10 @@ def build_notify_payload(args: argparse.Namespace) -> dict[str, Any]:
         payload["category"] = "flash"
         payload["flashColor"] = args.flash_color
         payload["flashDuration"] = args.flash_duration
-    elif args.mode == "edge":
+    elif args.mode.startswith("edge"):
+        effect = args.mode if args.mode != "edge" else args.edge_effect
         payload["category"] = "flash"
-        payload["flashEffect"] = "edge"
+        payload["flashEffect"] = effect
         payload["flashColor"] = args.flash_color
         payload["flashDuration"] = args.flash_duration
         payload["edgeWidth"] = args.edge_width
@@ -166,7 +165,7 @@ def cmd_smoke(client: SNoticeApiClient, args: argparse.Namespace) -> int:
             "title": "Smoke Test - Edge",
             "body": "Edge lighting from test_http_api.py",
             "category": "flash",
-            "flashEffect": "edge",
+            "flashEffect": args.edge_effect,
             "flashColor": args.flash_color,
             "flashDuration": args.flash_duration,
             "edgeWidth": args.edge_width,
@@ -185,12 +184,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Test SNotice HTTP API endpoints.",
     )
-    parser.add_argument(
-        "--host", default="127.0.0.1", help="Server host (default: 127.0.0.1)"
-    )
-    parser.add_argument(
-        "--port", type=int, default=8642, help="Server port (default: 8642)"
-    )
+    parser.add_argument("--host", default="127.0.0.1", help="Server host (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8642, help="Server port (default: 8642)")
     parser.add_argument(
         "--timeout",
         type=float,
@@ -213,28 +208,37 @@ def build_parser() -> argparse.ArgumentParser:
     notify = subparsers.add_parser("notify", help="Call POST /api/notify")
     notify.add_argument(
         "--mode",
-        choices=["normal", "flash", "edge"],
+        choices=[
+            "normal",
+            "flash",
+            "edge",
+            "edge_pulse",
+            "edge_dual",
+            "edge_dash",
+            "edge_corner",
+            "edge_rainbow",
+        ],
         default="normal",
         help="Notification mode (default: normal)",
     )
-    notify.add_argument(
-        "--title", default="Test Notification", help="Notification title"
-    )
-    notify.add_argument(
-        "--body", default="Sent from test_http_api.py", help="Notification body"
-    )
+    notify.add_argument("--title", default="Test Notification", help="Notification title")
+    notify.add_argument("--body", default="Sent from test_http_api.py", help="Notification body")
     notify.add_argument(
         "--priority",
         default="normal",
         help="Priority field value (default: normal)",
     )
     notify.add_argument("--flash-color", default="#00D1FF", help="Flash/edge color")
-    notify.add_argument(
-        "--flash-duration", type=int, default=700, help="Flash duration (ms)"
-    )
+    notify.add_argument("--flash-duration", type=int, default=700, help="Flash duration (ms)")
     notify.add_argument("--edge-width", type=float, default=14.0, help="Edge width")
     notify.add_argument("--edge-opacity", type=float, default=0.92, help="Edge opacity")
     notify.add_argument("--edge-repeat", type=int, default=2, help="Edge repeat count")
+    notify.add_argument(
+        "--edge-effect",
+        choices=["edge", "edge_pulse", "edge_dual", "edge_dash", "edge_corner", "edge_rainbow"],
+        default="edge",
+        help="Effect used when --mode=edge (default: edge)",
+    )
     notify.add_argument(
         "--extra-json",
         default="",
@@ -250,15 +254,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Also send one edge-lighting notify request",
     )
-    smoke.add_argument(
-        "--flash-color", default="#00D1FF", help="Edge color for smoke test"
-    )
-    smoke.add_argument(
-        "--flash-duration", type=int, default=700, help="Edge duration (ms)"
-    )
+    smoke.add_argument("--flash-color", default="#00D1FF", help="Edge color for smoke test")
+    smoke.add_argument("--flash-duration", type=int, default=700, help="Edge duration (ms)")
     smoke.add_argument("--edge-width", type=float, default=14.0, help="Edge width")
     smoke.add_argument("--edge-opacity", type=float, default=0.92, help="Edge opacity")
     smoke.add_argument("--edge-repeat", type=int, default=2, help="Edge repeat count")
+    smoke.add_argument(
+        "--edge-effect",
+        choices=["edge", "edge_pulse", "edge_dual", "edge_dash", "edge_corner", "edge_rainbow"],
+        default="edge",
+        help="Edge effect used by --include-edge",
+    )
 
     return parser
 
@@ -291,26 +297,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-"""
-# 1) 状态
-python3 /Users/sun/Src/snotice_new/scripts/test_http_api.py status
-
-# 2) 普通通知
-python3 /Users/sun/Src/snotice_new/scripts/test_http_api.py notify --mode normal
-
-# 3) Edge lighting 通知（macOS）
-python3 /Users/sun/Src/snotice_new/scripts/test_http_api.py notify \
-  --mode edge \
-  --title "Edge Test" \
-  --body "from python script" \
-  --flash-color "#00D1FF" \
-  --flash-duration 700 \
-  --edge-width 14 \
-  --edge-opacity 0.92 \
-  --edge-repeat 2
-
-# 4) 冒烟测试（status + normal + edge）
-python3 /Users/sun/Src/snotice_new/scripts/test_http_api.py smoke --include-edge
-"""

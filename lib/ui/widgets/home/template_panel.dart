@@ -260,6 +260,25 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
   int _delayMinutes = 5;
   String _type = 'notification';
   String _icon = '🔔';
+  String _flashColor = '#00D1FF';
+  int _flashDuration = 700;
+  String _flashEffect = 'edge';
+  static const List<String> _flashEffects = [
+    'edge',
+    'edge_pulse',
+    'edge_dual',
+    'edge_dash',
+    'edge_corner',
+    'edge_rainbow',
+  ];
+  static const Map<String, String> _flashEffectLabels = {
+    'edge': 'Edge Sweep',
+    'edge_pulse': 'Edge Pulse',
+    'edge_dual': 'Edge Dual',
+    'edge_dash': 'Edge Dash',
+    'edge_corner': 'Edge Corner',
+    'edge_rainbow': 'Edge Rainbow',
+  };
 
   final List<String> _availableIcons = [
     '🔔',
@@ -399,6 +418,67 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
                     ),
                   ],
                 ),
+                if (_type == 'flash') ...[
+                  const SizedBox(height: 12),
+                  Text(l10n.flashSettings),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildFlashColorButton(context, Colors.red, '#FF0000'),
+                      _buildFlashColorButton(context, Colors.yellow, '#FFFF00'),
+                      _buildFlashColorButton(context, Colors.blue, '#0000FF'),
+                      _buildFlashColorButton(context, Colors.white, '#FFFFFF'),
+                      _buildFlashColorButton(context, Colors.grey, '#808080'),
+                      _buildFlashColorButton(context, Colors.orange, '#FFA500'),
+                      _buildFlashColorButton(
+                        context,
+                        const Color(0xFF00D1FF),
+                        '#00D1FF',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: _flashEffects.contains(_flashEffect)
+                        ? _flashEffect
+                        : _flashEffects.first,
+                    decoration: const InputDecoration(labelText: 'Animation'),
+                    items: _flashEffects
+                        .map(
+                          (effect) => DropdownMenuItem(
+                            value: effect,
+                            child: Text(_flashEffectLabels[effect] ?? effect),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() => _flashEffect = value);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Text(l10n.duration(_flashDuration)),
+                      Expanded(
+                        child: Slider(
+                          value: _flashDuration.toDouble(),
+                          min: 100,
+                          max: 2500,
+                          divisions: 24,
+                          label: l10n.duration(_flashDuration),
+                          onChanged: (value) {
+                            setState(() => _flashDuration = value.round());
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -427,6 +507,36 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
     return l10n.daysFormat(days);
   }
 
+  Widget _buildFlashColorButton(BuildContext context, Color color, String hex) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isSelected = _flashColor == hex;
+    final isLightColor = color.computeLuminance() > 0.6;
+
+    return InkWell(
+      onTap: () => setState(() => _flashColor = hex),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? colorScheme.primary : colorScheme.outline,
+            width: isSelected ? 3 : 1,
+          ),
+        ),
+        child: isSelected
+            ? Icon(
+                Icons.check,
+                size: 16,
+                color: isLightColor ? Colors.black : Colors.white,
+              )
+            : null,
+      ),
+    );
+  }
+
   void _saveTemplate() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -438,6 +548,9 @@ class _CreateTemplateDialogState extends State<_CreateTemplateDialog> {
       defaultTitle: _titleController.text,
       defaultBody: _bodyController.text,
       type: _type,
+      flashColor: _type == 'flash' ? _flashColor : null,
+      flashDuration: _type == 'flash' ? _flashDuration : null,
+      flashEffect: _type == 'flash' ? _flashEffect : null,
       isBuiltIn: false,
       sortOrder: 1000, // Custom templates go last
     );
