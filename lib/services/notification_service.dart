@@ -82,13 +82,21 @@ class NotificationService {
     try {
       final color = request.flashColor ?? '#FF0000';
       final duration = request.flashDuration ?? 500;
+      final effect = request.flashEffect ?? 'full';
 
       _logger.notification(
         'Flash notification: ${request.title}',
         data: request.toJson(),
       );
 
-      await _flashService.triggerFlash(color: color, duration: duration);
+      await _flashService.triggerFlash(
+        color: color,
+        duration: duration,
+        effect: effect,
+        edgeWidth: request.edgeWidth,
+        edgeOpacity: request.edgeOpacity,
+        edgeRepeat: request.edgeRepeat,
+      );
     } catch (e) {
       _logger.error('Failed to trigger flash: $e');
       rethrow;

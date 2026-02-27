@@ -6,6 +6,10 @@ class NotificationRequest {
   String? category;
   String? flashColor;
   int? flashDuration;
+  String? flashEffect;
+  double? edgeWidth;
+  double? edgeOpacity;
+  int? edgeRepeat;
   Map<String, dynamic>? payload;
 
   NotificationRequest({
@@ -16,6 +20,10 @@ class NotificationRequest {
     this.category,
     this.flashColor,
     this.flashDuration,
+    this.flashEffect,
+    this.edgeWidth,
+    this.edgeOpacity,
+    this.edgeRepeat,
     this.payload,
   });
 
@@ -29,6 +37,19 @@ class NotificationRequest {
       }
       if (value is String) {
         return int.tryParse(value.trim());
+      }
+      return null;
+    }
+
+    double? parseDouble(dynamic value) {
+      if (value is double) {
+        return value;
+      }
+      if (value is int) {
+        return value.toDouble();
+      }
+      if (value is String) {
+        return double.tryParse(value.trim());
       }
       return null;
     }
@@ -61,6 +82,10 @@ class NotificationRequest {
       category: parseString(json['category'] ?? json['type']),
       flashColor: parseString(json['flashColor'] ?? json['color']),
       flashDuration: parseInt(json['flashDuration'] ?? json['duration']),
+      flashEffect: parseString(json['flashEffect'] ?? json['effect']),
+      edgeWidth: parseDouble(json['edgeWidth'] ?? json['width']),
+      edgeOpacity: parseDouble(json['edgeOpacity'] ?? json['opacity']),
+      edgeRepeat: parseInt(json['edgeRepeat'] ?? json['repeat']),
       payload: parsePayload(json['payload']),
     );
   }
@@ -74,6 +99,10 @@ class NotificationRequest {
       if (category != null) 'category': category,
       if (flashColor != null) 'flashColor': flashColor,
       if (flashDuration != null) 'flashDuration': flashDuration,
+      if (flashEffect != null) 'flashEffect': flashEffect,
+      if (edgeWidth != null) 'edgeWidth': edgeWidth,
+      if (edgeOpacity != null) 'edgeOpacity': edgeOpacity,
+      if (edgeRepeat != null) 'edgeRepeat': edgeRepeat,
       if (payload != null) 'payload': payload,
     };
   }

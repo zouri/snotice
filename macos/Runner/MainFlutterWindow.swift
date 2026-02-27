@@ -59,13 +59,72 @@ class MainFlutterWindow: NSWindow {
       case "triggerFlash":
         let args = call.arguments as? [String: Any] ?? [:]
         let colorString = args["color"] as? String ?? "#FF0000"
-        let duration = args["duration"] as? Int ?? 500
-        self.triggerNativeFlash(colorString: colorString, durationMs: duration)
+        let duration = self.parseInt(args["duration"], fallback: 500)
+        let effect = (args["effect"] as? String ?? "full").lowercased()
+
+        if effect == "edge" {
+          let width = self.parseDouble(args["width"], fallback: 14.0)
+          let opacity = self.parseDouble(args["opacity"], fallback: 0.92)
+          let repeatCount = max(1, self.parseInt(args["repeat"], fallback: 2))
+          self.triggerEdgeLighting(
+            colorString: colorString,
+            durationMs: duration,
+            lineWidth: width,
+            opacity: opacity,
+            repeatCount: repeatCount
+          )
+        } else {
+          self.triggerNativeFlash(colorString: colorString, durationMs: duration)
+        }
+
         result(true)
       default:
         result(FlutterMethodNotImplemented)
       }
     }
+  }
+
+  private func parseInt(_ value: Any?, fallback: Int) -> Int {
+    if let intValue = value as? Int {
+      return intValue
+    }
+    if let numberValue = value as? NSNumber {
+      return numberValue.intValue
+    }
+    if let stringValue = value as? String, let intValue = Int(stringValue) {
+      return intValue
+    }
+    return fallback
+  }
+
+  private func parseDouble(_ value: Any?, fallback: Double) -> Double {
+    if let doubleValue = value as? Double {
+      return doubleValue
+    }
+    if let floatValue = value as? Float {
+      return Double(floatValue)
+    }
+    if let intValue = value as? Int {
+      return Double(intValue)
+    }
+    if let numberValue = value as? NSNumber {
+      return numberValue.doubleValue
+    }
+    if let stringValue = value as? String, let doubleValue = Double(stringValue) {
+      return doubleValue
+    }
+    return fallback
+  }
+
+  private func clearOverlayWindows() {
+    guard !flashOverlayWindows.isEmpty else {
+      return
+    }
+
+    for window in flashOverlayWindows {
+      window.orderOut(nil)
+    }
+    flashOverlayWindows.removeAll()
   }
 
   private func triggerNativeFlash(colorString: String, durationMs: Int) {
@@ -79,12 +138,7 @@ class MainFlutterWindow: NSWindow {
     flashToken += 1
     let token = flashToken
 
-    if !flashOverlayWindows.isEmpty {
-      for existingWindow in flashOverlayWindows {
-        existingWindow.orderOut(nil)
-      }
-      flashOverlayWindows.removeAll()
-    }
+    clearOverlayWindows()
 
     let screens = NSScreen.screens
     if screens.isEmpty {
@@ -159,13 +213,185 @@ class MainFlutterWindow: NSWindow {
           guard token == self.flashToken else {
             return
           }
-          for window in windows {
-            window.orderOut(nil)
-          }
-          self.flashOverlayWindows.removeAll()
+          self.clearOverlayWindows()
         }
       )
     }
+  }
+
+  private func triggerEdgeLighting(
+    colorString: String,
+    durationMs: Int,
+    lineWidth: Double,
+    opacity: Double,
+    repeatCount: Int
+  ) {
+    if !Thread.isMainThread {
+      DispatchQueue.main.async { [weak self] in
+        self?.triggerEdgeLighting(
+          colorString: colorString,
+          durationMs: durationMs,
+          lineWidth: lineWidth,
+          opacity: opacity,
+          repeatCount: repeatCount
+        )
+      }
+      return
+    }
+
+    flashToken += 1
+    let token = flashToken
+    clearOverlayWindows()
+
+    let screens = NSScreen.screens
+    if screens.isEmpty {
+      return
+    }
+
+    let edgeColor = parseColor(colorString)
+    let clampedOpacity = max(0.1, min(1.0, opacity))
+    let clampedLineWidth = max(2.0, min(48.0, lineWidth))
+    let safeRepeat = max(1, repeatCount)
+    let cycleSeconds = max(0.5, Double(durationMs) / 1000.0)
+    let totalSeconds = cycleSeconds * Double(safeRepeat)
+    let overlayLevel = NSWindow.Level.screenSaver
+
+    var windows: [NSPanel] = []
+
+    for screen in screens {
+      let frame = screen.frame
+      let window = NSPanel(
+        contentRect: frame,
+        styleMask: [.borderless, .nonactivatingPanel],
+        backing: .buffered,
+        defer: false
+      )
+
+      window.level = overlayLevel
+      window.isOpaque = false
+      window.isReleasedWhenClosed = false
+      window.backgroundColor = .clear
+      window.alphaValue = 1
+      window.hasShadow = false
+      window.ignoresMouseEvents = true
+      window.collectionBehavior = [
+        .canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle,
+      ]
+      window.setFrame(frame, display: false)
+
+      let container = NSView(frame: NSRect(origin: .zero, size: frame.size))
+      container.wantsLayer = true
+      container.layer?.backgroundColor = NSColor.clear.cgColor
+
+      if let rootLayer = container.layer {
+        let edgeLayer = buildEdgeLayer(
+          frame: container.bounds,
+          color: edgeColor,
+          lineWidth: CGFloat(clampedLineWidth),
+          opacity: CGFloat(clampedOpacity),
+          cycleSeconds: cycleSeconds,
+          repeatCount: safeRepeat
+        )
+        rootLayer.addSublayer(edgeLayer)
+      }
+
+      window.contentView = container
+      window.orderFrontRegardless()
+      windows.append(window)
+    }
+
+    flashOverlayWindows = windows
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + totalSeconds + 0.05) {
+      [weak self] in
+      guard let self else {
+        return
+      }
+      guard token == self.flashToken else {
+        return
+      }
+
+      NSAnimationContext.runAnimationGroup(
+        { context in
+          context.duration = 0.12
+          for window in windows {
+            window.animator().alphaValue = 0
+          }
+        },
+        completionHandler: { [weak self] in
+          guard let self else {
+            return
+          }
+          guard token == self.flashToken else {
+            return
+          }
+          self.clearOverlayWindows()
+        }
+      )
+    }
+  }
+
+  private func buildEdgeLayer(
+    frame: CGRect,
+    color: NSColor,
+    lineWidth: CGFloat,
+    opacity: CGFloat,
+    cycleSeconds: CFTimeInterval,
+    repeatCount: Int
+  ) -> CAShapeLayer {
+    let inset = max(4.0, lineWidth / 2.0 + 2.0)
+    let roundedRect = frame.insetBy(dx: inset, dy: inset)
+    let cornerRadius = max(16.0, lineWidth * 2.4)
+    let path = CGPath(
+      roundedRect: roundedRect,
+      cornerWidth: cornerRadius,
+      cornerHeight: cornerRadius,
+      transform: nil
+    )
+
+    let edgeLayer = CAShapeLayer()
+    edgeLayer.frame = frame
+    edgeLayer.path = path
+    edgeLayer.fillColor = NSColor.clear.cgColor
+    edgeLayer.strokeColor = color.withAlphaComponent(opacity).cgColor
+    edgeLayer.lineWidth = lineWidth
+    edgeLayer.lineCap = .round
+    edgeLayer.shadowColor = color.cgColor
+    edgeLayer.shadowOffset = .zero
+    edgeLayer.shadowRadius = max(6.0, lineWidth * 1.8)
+    edgeLayer.shadowOpacity = Float(min(1.0, opacity + 0.15))
+    edgeLayer.opacity = Float(opacity)
+    edgeLayer.strokeStart = 0
+    edgeLayer.strokeEnd = 0.16
+
+    let strokeStart = CABasicAnimation(keyPath: "strokeStart")
+    strokeStart.fromValue = -0.2
+    strokeStart.toValue = 1.0
+
+    let strokeEnd = CABasicAnimation(keyPath: "strokeEnd")
+    strokeEnd.fromValue = 0.0
+    strokeEnd.toValue = 1.2
+
+    let sweep = CAAnimationGroup()
+    sweep.animations = [strokeStart, strokeEnd]
+    sweep.duration = cycleSeconds
+    sweep.repeatCount = Float(max(1, repeatCount))
+    sweep.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    sweep.fillMode = .forwards
+    sweep.isRemovedOnCompletion = false
+    edgeLayer.add(sweep, forKey: "edgeSweep")
+
+    let pulse = CABasicAnimation(keyPath: "opacity")
+    pulse.fromValue = max(0.35, opacity * 0.5)
+    pulse.toValue = min(1.0, opacity)
+    pulse.autoreverses = true
+    pulse.duration = max(0.2, cycleSeconds / 2.0)
+    pulse.repeatCount = Float(max(1, repeatCount) * 2)
+    pulse.fillMode = .forwards
+    pulse.isRemovedOnCompletion = false
+    edgeLayer.add(pulse, forKey: "edgePulse")
+
+    return edgeLayer
   }
 
   private func parseColor(_ value: String) -> NSColor {
