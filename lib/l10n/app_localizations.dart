@@ -122,6 +122,18 @@ abstract class AppLocalizations {
   /// **'History'**
   String get navHistory;
 
+  /// No description provided for @navCallLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Call Logs'**
+  String get navCallLogs;
+
+  /// No description provided for @navHttpApi.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP API'**
+  String get navHttpApi;
+
   /// No description provided for @navSettings.
   ///
   /// In en, this message translates to:
@@ -793,6 +805,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear'**
   String get clear;
+
+  /// No description provided for @callLogsFilterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter conditions'**
+  String get callLogsFilterHint;
+
+  /// No description provided for @callLogsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No call logs yet'**
+  String get callLogsEmpty;
 
   /// Minutes format
   ///

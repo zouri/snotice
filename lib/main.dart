@@ -13,22 +13,16 @@ import 'l10n/app_localizations.dart';
 import 'overlay_main.dart' as overlay;
 import 'providers/config_provider.dart';
 import 'providers/locale_provider.dart';
-import 'providers/reminder_provider.dart';
 import 'providers/server_provider.dart';
-import 'providers/template_provider.dart';
 import 'services/config_service.dart';
 import 'services/flash_overlay_service.dart';
 import 'services/http_server_service.dart';
 import 'services/logger_service.dart';
 import 'services/notification_service.dart';
-import 'services/sound_service.dart';
-import 'services/stats_service.dart';
-import 'services/template_service.dart';
 import 'services/tray_service.dart';
 import 'providers/theme_provider.dart';
 import 'theme/theme.dart';
-import 'ui/screens/home_screen.dart';
-import 'ui/settings_screen.dart';
+import 'ui/screens/app_shell.dart';
 
 // 全局导航器 Key，用于在 main.dart 中访问导航
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -107,9 +101,6 @@ Future<void> _startMainApp() async {
   // 创建 FlashOverlayService
   final flashOverlayService = FlashOverlayService(loggerService);
 
-  // 创建 SoundService
-  final soundService = SoundService(loggerService);
-
   final notificationService = NotificationService(
     loggerService,
     flashOverlayService,
@@ -122,20 +113,8 @@ Future<void> _startMainApp() async {
     config: config,
   );
 
-  // 创建 StatsService
-  final statsService = StatsService(loggerService);
-
-  // 创建 TemplateService 和 TemplateProvider
-  final templateService = TemplateService(loggerService);
-
   final configProvider = ConfigProvider()..updateConfig(config);
   final serverProvider = ServerProvider(httpServerService);
-  final reminderProvider = ReminderProvider(
-    loggerService,
-    notificationService,
-    statsService,
-  );
-  final templateProvider = TemplateProvider(templateService, loggerService);
   final themeProvider = ThemeProvider();
   await themeProvider.load();
   final localeProvider = LocaleProvider();
@@ -151,19 +130,10 @@ Future<void> _startMainApp() async {
       }
     },
     onShowWindow: () => _showMainWindow(loggerService),
-    onOpenSettings: () => _openSettings(loggerService),
-    onCreateFromTemplate: (templateId) async {
-      final template = templateProvider.getById(templateId);
-      if (template != null) {
-        reminderProvider.createFromTemplate(template);
-        loggerService.info('Created reminder from tray: ${template.name}');
-      }
-    },
     onExit: () => _exitApplication(
       loggerService: loggerService,
       serverProvider: serverProvider,
       trayService: trayService,
-      soundService: soundService,
     ),
   );
 
@@ -181,15 +151,11 @@ Future<void> _startMainApp() async {
       providers: [
         ChangeNotifierProvider.value(value: configProvider),
         ChangeNotifierProvider.value(value: serverProvider),
-        ChangeNotifierProvider.value(value: reminderProvider),
-        ChangeNotifierProvider.value(value: templateProvider),
         ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider.value(value: localeProvider),
         Provider.value(value: loggerService),
         Provider.value(value: notificationService),
         Provider.value(value: configService),
-        Provider.value(value: statsService),
-        Provider.value(value: soundService),
       ],
       child: const SNoticeApp(),
     ),
@@ -217,23 +183,10 @@ Future<void> _showMainWindow(LoggerService loggerService) async {
   }
 }
 
-Future<void> _openSettings(LoggerService loggerService) async {
-  try {
-    await _showMainWindow(loggerService);
-    // 通过全局导航器打开设置页面
-    navigatorKey.currentState?.push(
-      MaterialPageRoute(builder: (context) => const SettingsScreen()),
-    );
-  } catch (e) {
-    loggerService.error('Failed to open settings: $e');
-  }
-}
-
 Future<void> _exitApplication({
   required LoggerService loggerService,
   required ServerProvider serverProvider,
   required TrayService trayService,
-  required SoundService soundService,
 }) async {
   loggerService.info('Exiting application');
 
@@ -245,7 +198,6 @@ Future<void> _exitApplication({
     loggerService.error('Failed to stop server during exit: $e');
   }
 
-  soundService.dispose();
   await trayService.dispose();
   exit(0);
 }
@@ -259,6 +211,7 @@ class SNoticeApp extends StatelessWidget {
       builder: (context, themeProvider, localeProvider, child) {
         return MaterialApp(
           title: AppConstants.appName,
+          debugShowCheckedModeBanner: false,
           navigatorKey: navigatorKey,
           theme: AppTheme.light,
           darkTheme: AppTheme.dark,
@@ -271,7 +224,7 @@ class SNoticeApp extends StatelessWidget {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
-          home: const HomeScreen(),
+          home: const AppShell(),
         );
       },
     );

@@ -21,6 +21,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navHistory => 'History';
 
   @override
+  String get navCallLogs => 'Call Logs';
+
+  @override
+  String get navHttpApi => 'HTTP API';
+
+  @override
   String get navSettings => 'Settings';
 
   @override
@@ -374,6 +380,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clear => 'Clear';
+
+  @override
+  String get callLogsFilterHint => 'Filter conditions';
+
+  @override
+  String get callLogsEmpty => 'No call logs yet';
 
   @override
   String minutesFormat(int minutes) {

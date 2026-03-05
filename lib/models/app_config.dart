@@ -10,19 +10,20 @@ class AppConfig {
   AppConfig({
     this.port = 8642,
     List<String>? allowedIPs,
-    this.autoStart = true,
+    bool autoStart = true,
     this.showNotifications = true,
-  }) : allowedIPs = List.unmodifiable(
-         allowedIPs ?? AppConstants.defaultAllowedIPs,
+  }) : autoStart = _normalizeAutoStart(autoStart),
+       allowedIPs = List.unmodifiable(
+         _normalizeAllowedIPs(allowedIPs ?? AppConstants.defaultAllowedIPs),
        );
 
   factory AppConfig.fromJson(Map<String, dynamic> json) {
+    final rawAllowedIPs = json['allowedIPs'] as List<dynamic>?;
+
     return AppConfig(
       port: json['port'] as int? ?? 8642,
       allowedIPs:
-          (json['allowedIPs'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
+          rawAllowedIPs?.whereType<String>().map((ip) => ip.trim()).toList() ??
           AppConstants.defaultAllowedIPs,
       autoStart: json['autoStart'] as bool? ?? true,
       showNotifications: json['showNotifications'] as bool? ?? true,
@@ -66,5 +67,25 @@ class AppConfig {
       autoStart: autoStart ?? this.autoStart,
       showNotifications: showNotifications ?? this.showNotifications,
     );
+  }
+
+  static List<String> _normalizeAllowedIPs(List<String> source) {
+    final normalized = <String>[];
+    final seen = <String>{};
+
+    for (final value in source) {
+      final ip = value.trim();
+      if (ip.isEmpty || !seen.add(ip)) {
+        continue;
+      }
+      normalized.add(ip);
+    }
+
+    return normalized;
+  }
+
+  static bool _normalizeAutoStart(bool _) {
+    // Server auto-start is mandatory for current product policy.
+    return true;
   }
 }

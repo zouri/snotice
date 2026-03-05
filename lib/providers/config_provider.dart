@@ -12,7 +12,7 @@ class ConfigProvider with ChangeNotifier {
   }
 
   void toggleAutoStart() {
-    _config = _config.copyWith(autoStart: !_config.autoStart);
+    _config = _config.copyWith(autoStart: true);
     notifyListeners();
   }
 

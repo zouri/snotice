@@ -1,7 +1,6 @@
 import Cocoa
 import CoreGraphics
 import FlutterMacOS
-import audioplayers_darwin
 import flutter_local_notifications
 import screen_retriever_macos
 import shared_preferences_foundation
@@ -61,8 +60,6 @@ class MainFlutterWindow: NSWindow {
   }
 
   private func registerMacOSPlugins(registry: FlutterPluginRegistry) {
-    AudioplayersDarwinPlugin.register(
-      with: registry.registrar(forPlugin: "AudioplayersDarwinPlugin"))
     FlutterLocalNotificationsPlugin.register(
       with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
     ScreenRetrieverMacosPlugin.register(

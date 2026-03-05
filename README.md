@@ -6,11 +6,11 @@ A cross-platform desktop notification webhook application for macOS, Linux, and 
 
 - 📢 **System Notifications**: Send notifications via HTTP API
 - 🌐 **HTTP Webhook**: RESTful API endpoint for sending notifications
-- ⚙️ **Configurable UI**: Full-featured settings interface
-- 📝 **Logging**: Complete request and notification history
-- 📋 **System Tray**: Minimizable to system tray
+- ⚙️ **Configurable UI**: Service status and network settings
+- 📋 **System Tray**: Service control and window actions
 - 🔒 **IP Whitelist**: Simple IP-based access control
 - 🎨 **Flash Screen**: Full-screen overlay notifications with custom colors
+- 🎯 **Focused Scope**: No built-in reminder scheduling or template creation
 
 ## Quick Start
 
@@ -45,6 +45,12 @@ curl -X POST http://localhost:8642/api/notify \
     "body": "This is a notification",
     "priority": "high"
   }'
+```
+
+### Check Server Status
+
+```bash
+curl http://localhost:8642/api/status
 ```
 
 ### Flash Screen Notification

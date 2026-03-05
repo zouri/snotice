@@ -15,6 +15,8 @@ class AppTheme {
   static ThemeData get light => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
+    visualDensity: VisualDensity.compact,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     colorScheme: _lightColorScheme,
     textTheme: _lightTextTheme,
     primaryTextTheme: _lightTextTheme,
@@ -45,8 +47,8 @@ class AppTheme {
       filled: true,
       fillColor: AppColors.surfaceContainer,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppSpacing.radiusMdSm),
@@ -74,8 +76,8 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMdSm),
@@ -87,8 +89,8 @@ class AppTheme {
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.textPrimary,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMdSm),
@@ -101,7 +103,7 @@ class AppTheme {
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primary,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
+          horizontal: AppSpacing.sm,
           vertical: AppSpacing.xs,
         ),
         textStyle: AppTextStyles.buttonMd,
@@ -226,8 +228,8 @@ class AppTheme {
     // 列表瓦片主题
     listTileTheme: ListTileThemeData(
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xxs,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -255,6 +257,8 @@ class AppTheme {
   static ThemeData get dark => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    visualDensity: VisualDensity.compact,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     colorScheme: _darkColorScheme,
     textTheme: _darkTextTheme,
     primaryTextTheme: _darkTextTheme,
@@ -285,8 +289,8 @@ class AppTheme {
       filled: true,
       fillColor: AppColors.surfaceContainerDark,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(AppSpacing.radiusMdSm),
@@ -321,8 +325,8 @@ class AppTheme {
         foregroundColor: Colors.white,
         elevation: 0,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMdSm),
@@ -334,8 +338,8 @@ class AppTheme {
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.textPrimaryDark,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMdSm),
@@ -348,7 +352,7 @@ class AppTheme {
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primaryLight,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
+          horizontal: AppSpacing.sm,
           vertical: AppSpacing.xs,
         ),
         textStyle: AppTextStyles.buttonMd,
@@ -485,8 +489,8 @@ class AppTheme {
       textColor: AppColors.textPrimaryDark,
       iconColor: AppColors.textSecondaryDark,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xxs,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),

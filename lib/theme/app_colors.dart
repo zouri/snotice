@@ -126,6 +126,38 @@ class AppColors {
   /// 遮罩色（浅色）
   static const Color scrimLight = Color(0x80000000);
 
+  // ========== 桌面壳层（双栏布局） ==========
+
+  /// 窗口整体背景（参照设计图）
+  static const Color windowBackground = Color(0xFFEDEDED);
+
+  /// 左侧导航栏背景
+  static const Color sidebarBackground = Color(0xFFEFF1F4);
+
+  /// 右侧工作区背景
+  static const Color workspaceBackground = Color(0xFFF5F5F5);
+
+  /// 面板与日志项背景
+  static const Color panelBackground = Color(0xFFFAFAFA);
+
+  /// 壳层边框与分割线
+  static const Color shellBorder = Color(0xFFDADDE2);
+
+  /// 左侧导航选中态背景
+  static const Color sidebarSelected = Color(0xFFBCCADF);
+
+  /// 桌面壳层主强调色
+  static const Color shellAccent = Color(0xFF2F7CF6);
+
+  /// 调用日志 INFO 颜色
+  static const Color logInfo = Color(0xFF2F7CF6);
+
+  /// 调用日志 WARNING 颜色
+  static const Color logWarning = Color(0xFFF59E0B);
+
+  /// 调用日志 ERROR 颜色
+  static const Color logError = Color(0xFFEF4444);
+
   // ========== 悬浮窗口专用色 ==========
 
   /// 悬浮窗口背景

@@ -21,6 +21,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navHistory => '历史';
 
   @override
+  String get navCallLogs => '调用日志';
+
+  @override
+  String get navHttpApi => 'HTTP API';
+
+  @override
   String get navSettings => '设置';
 
   @override
@@ -372,6 +378,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get clear => '清空';
+
+  @override
+  String get callLogsFilterHint => '过滤条件';
+
+  @override
+  String get callLogsEmpty => '暂无调用日志';
 
   @override
   String minutesFormat(int minutes) {

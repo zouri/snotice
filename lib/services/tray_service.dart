@@ -7,27 +7,18 @@ import '../config/constants.dart';
 import '../providers/locale_provider.dart';
 
 typedef TrayActionCallback = FutureOr<void> Function();
-typedef TemplateActionCallback = FutureOr<void> Function(String templateId);
 
 class TrayService {
   final TrayActionCallback? onStartStop;
   final TrayActionCallback? onShowWindow;
-  final TrayActionCallback? onOpenSettings;
   final TrayActionCallback? onExit;
-  final TemplateActionCallback? onCreateFromTemplate;
 
   final SystemTray _systemTray = SystemTray();
   bool _isServerRunning = false;
   bool _trayReady = false;
   LocaleProvider? _localeProvider;
 
-  TrayService({
-    this.onStartStop,
-    this.onShowWindow,
-    this.onOpenSettings,
-    this.onExit,
-    this.onCreateFromTemplate,
-  });
+  TrayService({this.onStartStop, this.onShowWindow, this.onExit});
 
   /// Set the locale provider for localized strings
   void setLocaleProvider(LocaleProvider provider) {
@@ -116,59 +107,12 @@ class TrayService {
 
       menuItems.add(MenuSeparator());
 
-      // Quick reminders sub-menu
-      if (onCreateFromTemplate != null) {
-        menuItems.add(
-          SubMenu(
-            label: _l10n('⚡ Quick Reminders', '⚡ 快速提醒'),
-            children: [
-              MenuItemLabel(
-                label: _l10n('☕ Break (25 min)', '☕ 休息 (25分钟)'),
-                onClicked: (_) => _runTemplateAction('break_25'),
-              ),
-              MenuItemLabel(
-                label: _l10n('📌 Meeting (15 min)', '📌 会议 (15分钟)'),
-                onClicked: (_) => _runTemplateAction('meeting_15'),
-              ),
-              MenuItemLabel(
-                label: _l10n('💊 Medicine (4h)', '💊 吃药 (4小时)'),
-                onClicked: (_) => _runTemplateAction('medicine_4h'),
-              ),
-              MenuItemLabel(
-                label: _l10n('🍅 Pomodoro (25 min)', '🍅 番茄钟 (25分钟)'),
-                onClicked: (_) => _runTemplateAction('pomodoro'),
-              ),
-              MenuItemLabel(
-                label: _l10n('💧 Water (30 min)', '💧 喝水 (30分钟)'),
-                onClicked: (_) => _runTemplateAction('water'),
-              ),
-              MenuItemLabel(
-                label: _l10n('🧘 Stretch (45 min)', '🧘 伸展 (45分钟)'),
-                onClicked: (_) => _runTemplateAction('stretch'),
-              ),
-            ],
-          ),
-        );
-
-        menuItems.add(MenuSeparator());
-      }
-
       // Service control
       if (onStartStop != null) {
         menuItems.add(
           MenuItemLabel(
             label: actionLabel,
             onClicked: (_) => _runAction(onStartStop),
-          ),
-        );
-      }
-
-      // Settings
-      if (onOpenSettings != null) {
-        menuItems.add(
-          MenuItemLabel(
-            label: _l10n('Settings', '设置'),
-            onClicked: (_) => _runAction(onOpenSettings),
           ),
         );
       }
@@ -217,18 +161,6 @@ class TrayService {
       await action();
     } catch (e) {
       stderr.writeln('Tray action failed: $e');
-    }
-  }
-
-  Future<void> _runTemplateAction(String templateId) async {
-    if (onCreateFromTemplate == null) {
-      return;
-    }
-
-    try {
-      await onCreateFromTemplate!(templateId);
-    } catch (e) {
-      stderr.writeln('Template action failed: $e');
     }
   }
 

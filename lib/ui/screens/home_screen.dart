@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../l10n/app_localizations.dart';
-import '../../providers/server_provider.dart';
-import '../../providers/reminder_provider.dart';
-import '../../models/reminder.dart';
-import '../widgets/home/template_panel.dart';
-import '../widgets/home/active_reminders_panel.dart';
-import '../widgets/home/history_stats_panel.dart';
-import '../settings_screen.dart';
 
-/// Main screen with three-column layout
+import '../../l10n/app_localizations.dart';
+import '../../models/app_config.dart';
+import '../../providers/config_provider.dart';
+import '../../providers/locale_provider.dart';
+import '../../providers/server_provider.dart';
+import '../../providers/theme_provider.dart';
+import '../../services/config_service.dart';
+import '../widgets/main/shell_dimensions.dart';
+import '../widgets/settings/allowed_ips_card.dart';
+import '../widgets/settings/notification_settings_card.dart';
+import '../widgets/settings/server_settings_card.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -18,255 +21,413 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _showRightPanel = true;
-  Reminder? _selectedReminder;
+  final _formKey = GlobalKey<FormState>();
+  final _portController = TextEditingController();
+  final _ipController = TextEditingController();
 
-  void _showSnackBar(String message) {
-    final messenger = ScaffoldMessenger.maybeOf(context);
-    if (messenger == null) return;
+  late AppConfig _initialConfig;
+  List<String> _allowedIPs = const [];
+  bool _showNotifications = true;
 
-    messenger
-      ..clearSnackBars()
-      ..showSnackBar(
-        SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
-      );
+  @override
+  void initState() {
+    super.initState();
+    final config = context.read<ConfigProvider>().config;
+    _initialConfig = config;
+    _portController.text = config.port.toString();
+    _allowedIPs = List.from(config.allowedIPs);
+    _showNotifications = config.showNotifications;
   }
 
   @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final isWideScreen = width > 1200;
-    final isMediumScreen = width > 800 && width <= 1200;
+  void dispose() {
+    _portController.dispose();
+    _ipController.dispose();
+    super.dispose();
+  }
 
-    return Scaffold(
-      appBar: _buildAppBar(context),
-      body: Consumer<ServerProvider>(
-        builder: (context, serverProvider, _) {
-          return Column(
-            children: [
-              if (serverProvider.lastError != null)
-                _ServerErrorBanner(
-                  message: serverProvider.lastError!,
-                  onClose: serverProvider.clearLastError,
-                ),
-              Expanded(child: _buildBody(isWideScreen, isMediumScreen)),
-            ],
-          );
-        },
+  Future<void> _saveSettings() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final port = int.tryParse(_portController.text);
+    if (port == null) {
+      return;
+    }
+
+    final configProvider = context.read<ConfigProvider>();
+    final serverProvider = context.read<ServerProvider>();
+    final configService = context.read<ConfigService>();
+    final l10n = AppLocalizations.of(context)!;
+
+    final newConfig = _initialConfig.copyWith(
+      port: port,
+      allowedIPs: _allowedIPs,
+      autoStart: true,
+      showNotifications: _showNotifications,
+    );
+
+    try {
+      await configService.saveConfig(newConfig);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.settingsSaveFailed)));
+      return;
+    }
+
+    _initialConfig = newConfig;
+    configProvider.updateConfig(newConfig);
+    serverProvider.updateConfig(newConfig);
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.settingsSaved)));
+  }
+
+  void _addIP() {
+    final input = _ipController.text.trim();
+    if (input.isEmpty || _allowedIPs.contains(input)) {
+      return;
+    }
+
+    setState(() {
+      _allowedIPs = [..._allowedIPs, input];
+      _ipController.clear();
+    });
+  }
+
+  void _removeIP(String ip) {
+    setState(() {
+      _allowedIPs = _allowedIPs.where((item) => item != ip).toList();
+    });
+  }
+
+  void _showIpWhitelistInfo() {
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.ipWhitelistTitle),
+        content: Text(l10n.ipWhitelistInfo),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.ok),
+          ),
+        ],
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return AppBar(
-      leading: const Icon(Icons.notifications_active),
-      title: Text(l10n.appTitle, maxLines: 1, overflow: TextOverflow.ellipsis),
-      actions: [
-        // Server status indicator
-        Consumer<ServerProvider>(
-          builder: (context, serverProvider, _) {
-            return _ServerStatusIndicator(
-              isRunning: serverProvider.isRunning,
-              onTap: () => _showQuickSettings(context),
-            );
-          },
-        ),
-        // Right panel toggle button (shown on medium screens)
-        if (MediaQuery.of(context).size.width > 800 &&
-            MediaQuery.of(context).size.width <= 1200)
-          IconButton(
-            icon: Icon(
-              _showRightPanel ? Icons.visibility_off : Icons.visibility,
-            ),
-            tooltip: _showRightPanel
-                ? l10n.hideDetailPanel
-                : l10n.showDetailPanel,
-            onPressed: () {
-              setState(() {
-                _showRightPanel = !_showRightPanel;
-              });
-            },
+    return Consumer2<ServerProvider, ConfigProvider>(
+      builder: (context, serverProvider, configProvider, _) {
+        final config = configProvider.config;
+
+        return Container(
+          color: colorScheme.surface,
+          child: Column(
+            children: [
+              _buildPageHeader(context, l10n.settingsTitle),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isWide = constraints.maxWidth >= 1180;
+                    final leftColumnChildren = <Widget>[
+                      _ServerCard(
+                        isRunning: serverProvider.isRunning,
+                        port: config.port,
+                        error: serverProvider.lastError,
+                        onToggle: () async {
+                          if (serverProvider.isRunning) {
+                            await serverProvider.stop();
+                          } else {
+                            await serverProvider.start();
+                          }
+                        },
+                      ),
+                      const SizedBox(height: ShellDimensions.sectionGap),
+                      Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            ServerSettingsCard(portController: _portController),
+                            const SizedBox(height: ShellDimensions.sectionGap),
+                            AllowedIpsCard(
+                              ipController: _ipController,
+                              allowedIps: _allowedIPs,
+                              onAddIp: _addIP,
+                              onRemoveIp: _removeIP,
+                              onShowInfo: _showIpWhitelistInfo,
+                            ),
+                            const SizedBox(height: ShellDimensions.sectionGap),
+                            NotificationSettingsCard(
+                              showNotifications: _showNotifications,
+                              onShowNotificationsChanged: (value) {
+                                setState(() {
+                                  _showNotifications = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ];
+
+                    final rightColumnChildren = <Widget>[
+                      _buildThemeCard(context),
+                      const SizedBox(height: ShellDimensions.sectionGap),
+                      _buildLanguageCard(context, l10n),
+                      const SizedBox(height: ShellDimensions.sectionGap),
+                      SizedBox(
+                        width: double.infinity,
+                        height: ShellDimensions.buttonHeight,
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                            textStyle: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  fontSize: ShellDimensions.buttonTextSize,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          onPressed: _saveSettings,
+                          child: Text(l10n.settingsSave),
+                        ),
+                      ),
+                    ];
+
+                    if (!isWide) {
+                      return ListView(
+                        padding: const EdgeInsets.all(
+                          ShellDimensions.pagePadding,
+                        ),
+                        children: [
+                          ...leftColumnChildren,
+                          const SizedBox(height: ShellDimensions.sectionGap),
+                          ...rightColumnChildren,
+                        ],
+                      );
+                    }
+
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(
+                        ShellDimensions.pagePadding,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: leftColumnChildren,
+                            ),
+                          ),
+                          const SizedBox(width: ShellDimensions.pagePadding),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: rightColumnChildren,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        const SizedBox(width: 8),
-      ],
-    );
-  }
-
-  Widget _buildBody(bool isWideScreen, bool isMediumScreen) {
-    if (isWideScreen) {
-      // Wide screen: three-column layout
-      return _buildThreeColumnLayout();
-    } else if (isMediumScreen) {
-      // Medium screen: two-column layout
-      return _buildTwoColumnLayout();
-    } else {
-      // Narrow screen: single-column layout
-      return _buildSingleColumnLayout();
-    }
-  }
-
-  /// Three-column layout
-  Widget _buildThreeColumnLayout() {
-    return Row(
-      children: [
-        // Left column: quick templates
-        const SizedBox(width: 250, child: TemplatePanel()),
-        const VerticalDivider(width: 1),
-        // Middle column: active reminders
-        Expanded(
-          child: ActiveRemindersPanel(
-            onReminderSelected: (reminder) {
-              setState(() {
-                _selectedReminder = reminder;
-              });
-            },
-          ),
-        ),
-        const VerticalDivider(width: 1),
-        // Right column: history and stats
-        SizedBox(
-          width: 300,
-          child: HistoryStatsPanel(selectedReminder: _selectedReminder),
-        ),
-      ],
-    );
-  }
-
-  /// Two-column layout
-  Widget _buildTwoColumnLayout() {
-    return Row(
-      children: [
-        // Left column: quick templates
-        const SizedBox(width: 220, child: TemplatePanel()),
-        const VerticalDivider(width: 1),
-        // Middle column: active reminders
-        Expanded(
-          child: ActiveRemindersPanel(
-            onReminderSelected: (reminder) {
-              setState(() {
-                _selectedReminder = reminder;
-              });
-              // On medium screens, show bottom detail sheet
-              _showReminderDetailSheet(reminder);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Single-column layout
-  Widget _buildSingleColumnLayout() {
-    return ActiveRemindersPanel(
-      showQuickTemplates: true, // Show quick templates at top
-      onReminderSelected: (reminder) {
-        _showReminderDetailSheet(reminder);
+        );
       },
     );
   }
 
-  void _showQuickSettings(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const SettingsScreen()));
-  }
+  Widget _buildPageHeader(BuildContext context, String title) {
+    final colorScheme = Theme.of(context).colorScheme;
 
-  void _showReminderDetailSheet(Reminder reminder) {
-    final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.5,
-        minChildSize: 0.25,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (context, scrollController) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      reminder.title,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: _ReminderDetailContent(
-                      reminder: reminder,
-                      onSnoozed: () => _showSnackBar(l10n.snoozed5Minutes),
-                      onCancelled: () => _showSnackBar(l10n.reminderCancelled),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+    return Container(
+      height: ShellDimensions.headerHeight,
+      padding: const EdgeInsets.symmetric(
+        horizontal: ShellDimensions.headerHorizontalPadding,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          fontSize: ShellDimensions.pageTitleSize,
+          height: 1.2,
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
-}
 
-/// Server status indicator
-class _ServerStatusIndicator extends StatelessWidget {
-  final bool isRunning;
-  final VoidCallback onTap;
-
-  const _ServerStatusIndicator({required this.isRunning, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildThemeCard(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final locale = Localizations.localeOf(context);
+    final isZh = locale.languageCode.toLowerCase().startsWith('zh');
     final colorScheme = Theme.of(context).colorScheme;
-    final statusColor = isRunning ? colorScheme.tertiary : colorScheme.error;
-    final l10n = AppLocalizations.of(context)!;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+    final title = isZh ? '外观主题' : 'Theme';
+    final subtitle = isZh ? '可切换浅色、深色或跟随系统' : 'Light, Dark, or follow system';
+
+    String labelFor(ThemeMode mode) {
+      if (!isZh) {
+        switch (mode) {
+          case ThemeMode.system:
+            return 'System';
+          case ThemeMode.light:
+            return 'Light';
+          case ThemeMode.dark:
+            return 'Dark';
+        }
+      }
+
+      switch (mode) {
+        case ThemeMode.system:
+          return '跟随系统';
+        case ThemeMode.light:
+          return '浅色';
+        case ThemeMode.dark:
+          return '深色';
+      }
+    }
+
+    IconData iconFor(ThemeMode mode) {
+      switch (mode) {
+        case ThemeMode.system:
+          return Icons.settings_suggest_outlined;
+        case ThemeMode.light:
+          return Icons.wb_sunny_outlined;
+        case ThemeMode.dark:
+          return Icons.dark_mode_outlined;
+      }
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(ShellDimensions.cardPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontSize: ShellDimensions.cardTitleSize,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontSize: ShellDimensions.bodySmallSize,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ThemeMode.values.map((mode) {
+                  final selected = themeProvider.mode == mode;
+                  final foreground = selected
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurfaceVariant;
+
+                  return ChoiceChip(
+                    showCheckmark: false,
+                    selected: selected,
+                    onSelected: (active) {
+                      if (active) {
+                        themeProvider.setMode(mode);
+                      }
+                    },
+                    avatar: Icon(iconFor(mode), size: 16, color: foreground),
+                    label: Text(
+                      labelFor(mode),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontSize: ShellDimensions.metaSize,
+                        color: foreground,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    selectedColor: colorScheme.primaryContainer,
+                    backgroundColor: colorScheme.surface,
+                    side: BorderSide(
+                      color: selected
+                          ? colorScheme.primary
+                          : colorScheme.outlineVariant,
+                    ),
+                    shape: const StadiumBorder(),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageCard(BuildContext context, AppLocalizations l10n) {
+    final localeProvider = context.watch<LocaleProvider>();
+    final currentLocale = localeProvider.locale;
+
+    return Card(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.all(ShellDimensions.cardPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: statusColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: statusColor.withValues(alpha: 0.35),
-                    blurRadius: 4,
-                    spreadRadius: 1,
-                  ),
-                ],
+            Text(
+              l10n.language,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontSize: ShellDimensions.cardTitleSize,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(width: 8),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 92),
-              child: Text(
-                isRunning ? l10n.statusRunning : l10n.statusStopped,
-                style: Theme.of(context).textTheme.bodySmall,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<Locale?>(
+              initialValue: currentLocale,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              items: LocaleProvider.localeOptions.map((option) {
+                return DropdownMenuItem<Locale?>(
+                  value: option.locale,
+                  child: Text(option.getLabel(currentLocale)),
+                );
+              }).toList(),
+              onChanged: (locale) {
+                localeProvider.setLocale(locale);
+              },
             ),
           ],
         ),
@@ -275,147 +436,87 @@ class _ServerStatusIndicator extends StatelessWidget {
   }
 }
 
-class _ServerErrorBanner extends StatelessWidget {
-  final String message;
-  final VoidCallback onClose;
-
-  const _ServerErrorBanner({required this.message, required this.onClose});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
-
-    return MaterialBanner(
-      leading: Icon(Icons.error_outline, color: colorScheme.onErrorContainer),
-      backgroundColor: colorScheme.errorContainer,
-      content: Text(
-        message,
-        style: TextStyle(color: colorScheme.onErrorContainer),
-      ),
-      actions: [
-        TextButton(
-          onPressed: onClose,
-          child: Text(
-            l10n.close,
-            style: TextStyle(color: colorScheme.onErrorContainer),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Reminder detail content
-class _ReminderDetailContent extends StatelessWidget {
-  final Reminder reminder;
-  final VoidCallback onSnoozed;
-  final VoidCallback onCancelled;
-
-  const _ReminderDetailContent({
-    required this.reminder,
-    required this.onSnoozed,
-    required this.onCancelled,
+class _ServerCard extends StatelessWidget {
+  const _ServerCard({
+    required this.isRunning,
+    required this.port,
+    required this.error,
+    required this.onToggle,
   });
 
+  final bool isRunning;
+  final int port;
+  final String? error;
+  final Future<void> Function() onToggle;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final statusColor = isRunning ? colorScheme.tertiary : colorScheme.error;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildInfoRow(context, l10n.labelTitle, reminder.title),
-        _buildInfoRow(context, l10n.labelContent, reminder.body),
-        _buildInfoRow(
-          context,
-          l10n.labelType,
-          reminder.type == 'flash' ? l10n.typeFlash : l10n.typeNotification,
-        ),
-        _buildInfoRow(
-          context,
-          l10n.labelScheduledTime,
-          _formatDateTime(reminder.scheduledTime),
-        ),
-        _buildInfoRow(
-          context,
-          l10n.labelCreatedAt,
-          _formatDateTime(reminder.createdAt),
-        ),
-        if (reminder.repeatRule != null)
-          _buildInfoRow(
-            context,
-            l10n.labelRepeat,
-            reminder.repeatRule.toString(),
-          ),
-        if (reminder.templateId != null)
-          _buildInfoRow(context, l10n.labelTemplate, reminder.templateId!),
-        const SizedBox(height: 16),
-        Consumer<ReminderProvider>(
-          builder: (context, provider, _) {
-            return Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(ShellDimensions.cardPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.snooze),
-                  label: Text(l10n.snooze5Minutes),
-                  onPressed: () {
-                    provider.snooze(reminder.id, const Duration(minutes: 5));
-                    Navigator.pop(context);
-                    onSnoozed();
-                  },
-                ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.cancel),
-                  label: Text(l10n.cancelReminder),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    foregroundColor: Theme.of(context).colorScheme.onError,
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: statusColor,
+                    shape: BoxShape.circle,
                   ),
-                  onPressed: () {
-                    provider.removeReminder(reminder.id);
-                    Navigator.pop(context);
-                    onCancelled();
-                  },
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isRunning ? l10n.statusRunning : l10n.statusStopped,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize: ShellDimensions.bodySize,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Spacer(),
+                FilledButton.tonal(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, ShellDimensions.buttonHeight),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed: onToggle,
+                  child: Text(
+                    isRunning ? l10n.trayStopService : l10n.trayStartService,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontSize: ShellDimensions.buttonTextSize,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ],
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow(BuildContext context, String label, String value) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 72, maxWidth: 112),
-            child: Text(
-              label,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'HTTP Port: $port',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+                fontSize: ShellDimensions.bodySmallSize,
+                fontWeight: FontWeight.w600,
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-        ],
+            if (error != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                error!,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: colorScheme.error),
+              ),
+            ],
+          ],
+        ),
       ),
     );
-  }
-
-  String _formatDateTime(DateTime dt) {
-    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
-        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
   }
 }

@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../../../l10n/app_localizations.dart';
+import '../main/shell_dimensions.dart';
 
 class ServerSettingsCard extends StatelessWidget {
-  const ServerSettingsCard({
-    required this.portController,
-    required this.autoStart,
-    required this.onAutoStartChanged,
-    super.key,
-  });
+  const ServerSettingsCard({required this.portController, super.key});
 
   final TextEditingController portController;
-  final bool autoStart;
-  final ValueChanged<bool> onAutoStartChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -19,23 +14,32 @@ class ServerSettingsCard extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(ShellDimensions.cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               l10n.serverSettings,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontSize: ShellDimensions.cardTitleSize,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             TextFormField(
               controller: portController,
               decoration: InputDecoration(
                 labelText: l10n.serverPort,
                 border: const OutlineInputBorder(),
-                suffixIcon: const Icon(Icons.settings_ethernet),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: ShellDimensions.inputVerticalPadding,
+                ),
+                suffixIcon: const Icon(Icons.settings_ethernet, size: 20),
+              ),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: ShellDimensions.bodySize,
+                fontWeight: FontWeight.w600,
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
@@ -48,13 +52,6 @@ class ServerSettingsCard extends StatelessWidget {
                 }
                 return null;
               },
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: Text(l10n.serverAutoStart),
-              subtitle: Text(l10n.serverAutoStartDesc),
-              value: autoStart,
-              onChanged: onAutoStartChanged,
             ),
           ],
         ),

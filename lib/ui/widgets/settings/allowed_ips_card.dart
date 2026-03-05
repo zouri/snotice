@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../l10n/app_localizations.dart';
+import '../main/shell_dimensions.dart';
 
 class AllowedIpsCard extends StatelessWidget {
   const AllowedIpsCard({
@@ -21,10 +23,19 @@ class AllowedIpsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
+    final visibleIps = <String>[];
+    final seen = <String>{};
+    for (final value in allowedIps) {
+      final ip = value.trim();
+      if (ip.isEmpty || !seen.add(ip)) {
+        continue;
+      }
+      visibleIps.add(ip);
+    }
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(ShellDimensions.cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -33,17 +44,20 @@ class AllowedIpsCard extends StatelessWidget {
               children: [
                 Text(
                   l10n.allowedIPs,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontSize: ShellDimensions.cardTitleSize,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.info_outline),
+                  iconSize: 18,
+                  visualDensity: VisualDensity.compact,
                   onPressed: onShowInfo,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             LayoutBuilder(
               builder: (context, constraints) {
                 final compact = constraints.maxWidth < 520;
@@ -58,13 +72,31 @@ class AllowedIpsCard extends StatelessWidget {
                           labelText: l10n.addIPAddress,
                           border: const OutlineInputBorder(),
                           hintText: l10n.ipHint,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: ShellDimensions.inputVerticalPadding,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
                       ElevatedButton.icon(
                         onPressed: onAddIp,
-                        icon: const Icon(Icons.add),
-                        label: Text(l10n.add),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: Text(
+                          l10n.add,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                fontSize: ShellDimensions.buttonTextSize,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(
+                            double.infinity,
+                            ShellDimensions.buttonHeight,
+                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                       ),
                     ],
                   );
@@ -79,24 +111,42 @@ class AllowedIpsCard extends StatelessWidget {
                           labelText: l10n.addIPAddress,
                           border: const OutlineInputBorder(),
                           hintText: l10n.ipHint,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: ShellDimensions.inputVerticalPadding,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: onAddIp,
-                      icon: const Icon(Icons.add),
-                      label: Text(l10n.add),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(
+                        l10n.add,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: ShellDimensions.buttonTextSize,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(
+                          0,
+                          ShellDimensions.buttonHeight,
+                        ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                     ),
                   ],
                 );
               },
             ),
-            const SizedBox(height: 16),
-            if (allowedIps.isEmpty)
+            const SizedBox(height: 8),
+            if (visibleIps.isEmpty)
               Text(
                 l10n.noIPsAdded,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: ShellDimensions.bodySmallSize,
                   color: colorScheme.onSurfaceVariant,
                 ),
               )
@@ -104,11 +154,24 @@ class AllowedIpsCard extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: allowedIps.map((ip) {
-                  return Chip(
-                    label: Text(ip),
+                children: visibleIps.map((ip) {
+                  return InputChip(
+                    label: Text(
+                      ip,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontSize: ShellDimensions.codeSize,
+                        color: colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
                     onDeleted: () => onRemoveIp(ip),
-                    deleteIcon: const Icon(Icons.close),
+                    backgroundColor: colorScheme.secondaryContainer,
+                    side: BorderSide(color: colorScheme.outlineVariant),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                    deleteIconColor: colorScheme.onSecondaryContainer,
+                    deleteIcon: const Icon(Icons.close, size: 16),
                   );
                 }).toList(),
               ),

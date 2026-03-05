@@ -9,6 +9,8 @@
   "navCreate": "Create",
   "navReminders": "Reminders",
   "navHistory": "History",
+  "navCallLogs": "Call Logs",
+  "navHttpApi": "HTTP API",
   "navSettings": "Settings",
 
   "reminderSetFor": "Reminder set for {minutes} minutes",
@@ -203,6 +205,8 @@
   "workdays": "Workdays",
   "everyday": "Everyday",
   "clear": "Clear",
+  "callLogsFilterHint": "Filter conditions",
+  "callLogsEmpty": "No call logs yet",
   "minutesFormat": "{minutes} minutes",
   "@minutesFormat": {
     "description": "Minutes format",

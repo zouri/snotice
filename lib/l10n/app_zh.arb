@@ -6,6 +6,8 @@
   "navCreate": "创建",
   "navReminders": "提醒",
   "navHistory": "历史",
+  "navCallLogs": "调用日志",
+  "navHttpApi": "HTTP API",
   "navSettings": "设置",
 
   "reminderSetFor": "提醒已设置为 {minutes} 分钟后",
@@ -136,6 +138,8 @@
   "workdays": "工作日",
   "everyday": "每天",
   "clear": "清空",
+  "callLogsFilterHint": "过滤条件",
+  "callLogsEmpty": "暂无调用日志",
   "minutesFormat": "{minutes} 分钟",
   "hoursFormat": "{hours} 小时",
   "hoursMinutesFormat": "{hours} 小时 {minutes} 分钟",
