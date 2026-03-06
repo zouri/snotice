@@ -24,10 +24,191 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navCallLogs => 'Call Logs';
 
   @override
-  String get navHttpApi => 'HTTP API';
+  String get navHttpApi => 'Usage';
 
   @override
   String get navSettings => 'Settings';
+
+  @override
+  String get httpApiIntroTitle => 'API Overview';
+
+  @override
+  String get httpApiIntroBody =>
+      'SNotice exposes local HTTP APIs for system notifications and flash alerts. The server listens on localhost and the port can be changed in Settings.';
+
+  @override
+  String get httpApiBaseUrlLabel => 'Base URL';
+
+  @override
+  String get httpApiContentTypeLabel => 'Content-Type';
+
+  @override
+  String get httpApiAuthLabel => 'Authentication';
+
+  @override
+  String get httpApiAuthValue =>
+      'No authentication currently; use IP whitelist for access control';
+
+  @override
+  String get httpApiEndpointListTitle => 'Endpoint List';
+
+  @override
+  String get httpApiEndpointMethod => 'Method';
+
+  @override
+  String get httpApiEndpointPath => 'Path';
+
+  @override
+  String get httpApiEndpointDesc => 'Description';
+
+  @override
+  String get httpApiEndpointStatusDesc =>
+      'Read server status, returning running state, port, and uptime (seconds)';
+
+  @override
+  String get httpApiEndpointNotifyDesc =>
+      'Send normal notifications or flash alerts';
+
+  @override
+  String get httpApiEndpointGetConfigDesc =>
+      'Read current server configuration';
+
+  @override
+  String get httpApiEndpointUpdateConfigDesc =>
+      'Update server config (port, IP whitelist, notification switch)';
+
+  @override
+  String get httpApiNotifyParamsTitle => 'POST /api/notify Parameters';
+
+  @override
+  String get httpApiConfigParamsTitle => 'POST /api/config Parameters';
+
+  @override
+  String get httpApiParamName => 'Parameter';
+
+  @override
+  String get httpApiParamType => 'Type';
+
+  @override
+  String get httpApiParamRequired => 'Required';
+
+  @override
+  String get httpApiParamDescription => 'Description';
+
+  @override
+  String get httpApiRequiredYes => 'Yes';
+
+  @override
+  String get httpApiRequiredNo => 'No';
+
+  @override
+  String get httpApiRequiredConditional => 'Conditional';
+
+  @override
+  String get httpApiParamTitleDesc => 'Notification title. Must not be empty.';
+
+  @override
+  String get httpApiParamBodyDesc =>
+      'Notification body. Required for normal notifications; optional when category=flash. Alias: message.';
+
+  @override
+  String get httpApiParamPriorityDesc =>
+      'Notification priority. Allowed: low / normal / high. Default: normal.';
+
+  @override
+  String get httpApiParamCategoryDesc =>
+      'Notification category. Currently only supports: flash. Alias: type.';
+
+  @override
+  String get httpApiParamFlashColorDesc =>
+      'Flash color. Supports #RRGGBB or color name. Alias: color. Default: #FF0000.';
+
+  @override
+  String get httpApiParamFlashDurationDesc =>
+      'Flash duration in milliseconds. Must be > 0. Alias: duration. Default: 500.';
+
+  @override
+  String get httpApiParamFlashEffectDesc =>
+      'Flash effect. Allowed: full / edge. Alias: effect. Default: full.';
+
+  @override
+  String get httpApiParamEdgeWidthDesc =>
+      'Edge glow width. Only valid when flashEffect=edge; must be > 0. Alias: width.';
+
+  @override
+  String get httpApiParamEdgeOpacityDesc =>
+      'Edge glow opacity. Only valid when flashEffect=edge; range 0~1. Alias: opacity.';
+
+  @override
+  String get httpApiParamEdgeRepeatDesc =>
+      'Edge glow repeat count. Only valid when flashEffect=edge; must be > 0. Alias: repeat.';
+
+  @override
+  String get httpApiParamPayloadDesc =>
+      'Optional passthrough object that is attached to local notification payload.';
+
+  @override
+  String get httpApiParamPortDesc => 'Server port, range 1~65535.';
+
+  @override
+  String get httpApiParamAllowedIPsDesc =>
+      'Allowed IP list. Supports exact IP and CIDR. Empty list means allow all.';
+
+  @override
+  String get httpApiParamAutoStartDesc =>
+      'Server auto-start flag. Current product policy forces this to true.';
+
+  @override
+  String get httpApiParamShowNotificationsDesc =>
+      'Whether system notifications are enabled.';
+
+  @override
+  String get httpApiEnumTitle => 'Enum Values';
+
+  @override
+  String get httpApiEnumCategory => 'flash: triggers the flash alert flow.';
+
+  @override
+  String get httpApiEnumFlashEffect =>
+      'full: full-screen flash; edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat).';
+
+  @override
+  String get httpApiEnumPriority =>
+      'low/normal/high: controls normal notification priority; default is normal.';
+
+  @override
+  String get httpApiExampleFlashFull => 'POST /api/notify (flash full)';
+
+  @override
+  String get httpApiExampleFlashEdge => 'POST /api/notify (flash edge)';
+
+  @override
+  String get httpApiExampleConfigUpdate => 'POST /api/config (update config)';
+
+  @override
+  String get httpApiResponseTitle => 'Response Examples';
+
+  @override
+  String get httpApiResponseNotifySuccess =>
+      'POST /api/notify success response';
+
+  @override
+  String get httpApiResponseError => 'Validation error response (HTTP 400)';
+
+  @override
+  String get httpApiNotesTitle => 'Notes';
+
+  @override
+  String get httpApiNotesAliases =>
+      'Some fields accept compatibility aliases (for example body/message, category/type, flashEffect/effect).';
+
+  @override
+  String get httpApiNotesBodyOptional =>
+      'Only flash notifications allow empty body; normal notifications must include body.';
+
+  @override
+  String get httpApiNotesEdgeOnly =>
+      'edgeWidth, edgeOpacity, and edgeRepeat are only valid when flashEffect=edge; otherwise validation fails.';
 
   @override
   String get httpApiEndpoints => 'Endpoints';

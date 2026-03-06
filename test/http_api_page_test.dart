@@ -35,12 +35,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Endpoints'), findsOneWidget);
-      expect(find.text('Examples'), findsOneWidget);
-      expect(find.text('POST /api/notify (normal)'), findsOneWidget);
-      expect(find.text('POST /api/notify (flash)'), findsOneWidget);
-      expect(find.textContaining('"title":"Hello"'), findsOneWidget);
-      expect(find.textContaining('"body":"From SNotice"'), findsOneWidget);
+      expect(find.text('API Overview'), findsOneWidget);
+      expect(find.text('Endpoint List'), findsOneWidget);
+      expect(find.text('Base URL'), findsOneWidget);
+      expect(find.text('Authentication'), findsOneWidget);
+      expect(find.text('http://localhost:8642'), findsOneWidget);
+      expect(
+        find.text('No authentication currently; use IP whitelist for access control'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('renders Chinese labels', (tester) async {
@@ -55,12 +58,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('接口地址'), findsOneWidget);
-      expect(find.text('请求示例'), findsOneWidget);
-      expect(find.text('POST /api/notify（普通通知）'), findsOneWidget);
-      expect(find.text('POST /api/notify（闪屏）'), findsOneWidget);
-      expect(find.textContaining('"title":"你好"'), findsOneWidget);
-      expect(find.textContaining('"body":"来自 SNotice"'), findsOneWidget);
+      expect(find.text('API 概览'), findsOneWidget);
+      expect(find.text('接口清单'), findsOneWidget);
+      expect(find.text('Base URL'), findsOneWidget);
+      expect(find.text('认证方式'), findsOneWidget);
+      expect(find.text('http://localhost:8642'), findsOneWidget);
+      expect(find.text('当前无鉴权，建议结合 IP 白名单使用'), findsOneWidget);
     });
   });
 }

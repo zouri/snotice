@@ -24,10 +24,179 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navCallLogs => '调用日志';
 
   @override
-  String get navHttpApi => 'HTTP API';
+  String get navHttpApi => '使用说明';
 
   @override
   String get navSettings => '设置';
+
+  @override
+  String get httpApiIntroTitle => 'API 概览';
+
+  @override
+  String get httpApiIntroBody =>
+      'SNotice 提供本地 HTTP 接口用于触发系统通知和闪屏提醒。所有接口默认监听在本机端口，可由设置页调整。';
+
+  @override
+  String get httpApiBaseUrlLabel => 'Base URL';
+
+  @override
+  String get httpApiContentTypeLabel => 'Content-Type';
+
+  @override
+  String get httpApiAuthLabel => '认证方式';
+
+  @override
+  String get httpApiAuthValue => '当前无鉴权，建议结合 IP 白名单使用';
+
+  @override
+  String get httpApiEndpointListTitle => '接口清单';
+
+  @override
+  String get httpApiEndpointMethod => '方法';
+
+  @override
+  String get httpApiEndpointPath => '路径';
+
+  @override
+  String get httpApiEndpointDesc => '说明';
+
+  @override
+  String get httpApiEndpointStatusDesc => '读取服务状态，返回运行状态、端口、运行时长（秒）';
+
+  @override
+  String get httpApiEndpointNotifyDesc => '发送普通通知或闪屏提醒';
+
+  @override
+  String get httpApiEndpointGetConfigDesc => '读取当前服务配置';
+
+  @override
+  String get httpApiEndpointUpdateConfigDesc => '更新服务配置（端口、IP 白名单、通知开关）';
+
+  @override
+  String get httpApiNotifyParamsTitle => 'POST /api/notify 参数';
+
+  @override
+  String get httpApiConfigParamsTitle => 'POST /api/config 参数';
+
+  @override
+  String get httpApiParamName => '参数';
+
+  @override
+  String get httpApiParamType => '类型';
+
+  @override
+  String get httpApiParamRequired => '必填';
+
+  @override
+  String get httpApiParamDescription => '说明';
+
+  @override
+  String get httpApiRequiredYes => '是';
+
+  @override
+  String get httpApiRequiredNo => '否';
+
+  @override
+  String get httpApiRequiredConditional => '条件必填';
+
+  @override
+  String get httpApiParamTitleDesc => '通知标题。不能为空。';
+
+  @override
+  String get httpApiParamBodyDesc =>
+      '通知内容。普通通知必填；当 category=flash 时可为空。兼容别名: message。';
+
+  @override
+  String get httpApiParamPriorityDesc =>
+      '通知优先级。可选: low / normal / high。默认: normal。';
+
+  @override
+  String get httpApiParamCategoryDesc => '通知类别。当前仅支持: flash。兼容别名: type。';
+
+  @override
+  String get httpApiParamFlashColorDesc =>
+      '闪屏颜色。支持 #RRGGBB 或颜色名。兼容别名: color。默认: #FF0000。';
+
+  @override
+  String get httpApiParamFlashDurationDesc =>
+      '闪屏时长（毫秒）。必须 > 0。兼容别名: duration。默认: 500。';
+
+  @override
+  String get httpApiParamFlashEffectDesc =>
+      '闪屏效果。可选: full / edge。兼容别名: effect。默认: full。';
+
+  @override
+  String get httpApiParamEdgeWidthDesc =>
+      '边缘发光宽度，仅 flashEffect=edge 时有效，必须 > 0。兼容别名: width。';
+
+  @override
+  String get httpApiParamEdgeOpacityDesc =>
+      '边缘发光透明度，仅 flashEffect=edge 时有效，范围 0~1。兼容别名: opacity。';
+
+  @override
+  String get httpApiParamEdgeRepeatDesc =>
+      '边缘发光重复次数，仅 flashEffect=edge 时有效，必须 > 0。兼容别名: repeat。';
+
+  @override
+  String get httpApiParamPayloadDesc => '透传字段，会随本地通知 payload 一起下发（可选）。';
+
+  @override
+  String get httpApiParamPortDesc => '服务端口，范围 1~65535。';
+
+  @override
+  String get httpApiParamAllowedIPsDesc =>
+      '允许访问的 IP 列表，支持精确 IP 和 CIDR。为空表示允许所有 IP。';
+
+  @override
+  String get httpApiParamAutoStartDesc => '服务自动启动开关。当前产品策略会强制保持 true。';
+
+  @override
+  String get httpApiParamShowNotificationsDesc => '是否显示系统通知。';
+
+  @override
+  String get httpApiEnumTitle => '枚举值说明';
+
+  @override
+  String get httpApiEnumCategory => 'flash: 触发闪屏提醒流程。';
+
+  @override
+  String get httpApiEnumFlashEffect =>
+      'full: 全屏闪烁；edge: 边缘发光（可结合 edgeWidth/edgeOpacity/edgeRepeat）。';
+
+  @override
+  String get httpApiEnumPriority => 'low/normal/high: 影响普通通知优先级，默认 normal。';
+
+  @override
+  String get httpApiExampleFlashFull => 'POST /api/notify（闪屏 full）';
+
+  @override
+  String get httpApiExampleFlashEdge => 'POST /api/notify（闪屏 edge）';
+
+  @override
+  String get httpApiExampleConfigUpdate => 'POST /api/config（更新配置）';
+
+  @override
+  String get httpApiResponseTitle => '响应示例';
+
+  @override
+  String get httpApiResponseNotifySuccess => 'POST /api/notify 成功响应';
+
+  @override
+  String get httpApiResponseError => '参数校验失败响应（HTTP 400）';
+
+  @override
+  String get httpApiNotesTitle => '注意事项';
+
+  @override
+  String get httpApiNotesAliases =>
+      '部分参数支持兼容别名（如 body/message、category/type、flashEffect/effect）。';
+
+  @override
+  String get httpApiNotesBodyOptional => '仅 flash 通知允许 body 为空；普通通知必须提供 body。';
+
+  @override
+  String get httpApiNotesEdgeOnly =>
+      'edgeWidth、edgeOpacity、edgeRepeat 仅在 flashEffect=edge 时可用，否则会返回校验错误。';
 
   @override
   String get httpApiEndpoints => '接口地址';

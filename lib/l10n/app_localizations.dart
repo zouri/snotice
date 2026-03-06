@@ -131,7 +131,7 @@ abstract class AppLocalizations {
   /// No description provided for @navHttpApi.
   ///
   /// In en, this message translates to:
-  /// **'HTTP API'**
+  /// **'Usage'**
   String get navHttpApi;
 
   /// No description provided for @navSettings.
@@ -139,6 +139,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get navSettings;
+
+  /// No description provided for @httpApiIntroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'API Overview'**
+  String get httpApiIntroTitle;
+
+  /// No description provided for @httpApiIntroBody.
+  ///
+  /// In en, this message translates to:
+  /// **'SNotice exposes local HTTP APIs for system notifications and flash alerts. The server listens on localhost and the port can be changed in Settings.'**
+  String get httpApiIntroBody;
+
+  /// No description provided for @httpApiBaseUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Base URL'**
+  String get httpApiBaseUrlLabel;
+
+  /// No description provided for @httpApiContentTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Content-Type'**
+  String get httpApiContentTypeLabel;
+
+  /// No description provided for @httpApiAuthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication'**
+  String get httpApiAuthLabel;
+
+  /// No description provided for @httpApiAuthValue.
+  ///
+  /// In en, this message translates to:
+  /// **'No authentication currently; use IP whitelist for access control'**
+  String get httpApiAuthValue;
+
+  /// No description provided for @httpApiEndpointListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Endpoint List'**
+  String get httpApiEndpointListTitle;
+
+  /// No description provided for @httpApiEndpointMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Method'**
+  String get httpApiEndpointMethod;
+
+  /// No description provided for @httpApiEndpointPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Path'**
+  String get httpApiEndpointPath;
+
+  /// No description provided for @httpApiEndpointDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get httpApiEndpointDesc;
+
+  /// No description provided for @httpApiEndpointStatusDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Read server status, returning running state, port, and uptime (seconds)'**
+  String get httpApiEndpointStatusDesc;
+
+  /// No description provided for @httpApiEndpointNotifyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Send normal notifications or flash alerts'**
+  String get httpApiEndpointNotifyDesc;
+
+  /// No description provided for @httpApiEndpointGetConfigDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Read current server configuration'**
+  String get httpApiEndpointGetConfigDesc;
+
+  /// No description provided for @httpApiEndpointUpdateConfigDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Update server config (port, IP whitelist, notification switch)'**
+  String get httpApiEndpointUpdateConfigDesc;
+
+  /// No description provided for @httpApiNotifyParamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'POST /api/notify Parameters'**
+  String get httpApiNotifyParamsTitle;
+
+  /// No description provided for @httpApiConfigParamsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'POST /api/config Parameters'**
+  String get httpApiConfigParamsTitle;
+
+  /// No description provided for @httpApiParamName.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameter'**
+  String get httpApiParamName;
+
+  /// No description provided for @httpApiParamType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get httpApiParamType;
+
+  /// No description provided for @httpApiParamRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get httpApiParamRequired;
+
+  /// No description provided for @httpApiParamDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get httpApiParamDescription;
+
+  /// No description provided for @httpApiRequiredYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get httpApiRequiredYes;
+
+  /// No description provided for @httpApiRequiredNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get httpApiRequiredNo;
+
+  /// No description provided for @httpApiRequiredConditional.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditional'**
+  String get httpApiRequiredConditional;
+
+  /// No description provided for @httpApiParamTitleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification title. Must not be empty.'**
+  String get httpApiParamTitleDesc;
+
+  /// No description provided for @httpApiParamBodyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification body. Required for normal notifications; optional when category=flash. Alias: message.'**
+  String get httpApiParamBodyDesc;
+
+  /// No description provided for @httpApiParamPriorityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification priority. Allowed: low / normal / high. Default: normal.'**
+  String get httpApiParamPriorityDesc;
+
+  /// No description provided for @httpApiParamCategoryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification category. Currently only supports: flash. Alias: type.'**
+  String get httpApiParamCategoryDesc;
+
+  /// No description provided for @httpApiParamFlashColorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash color. Supports #RRGGBB or color name. Alias: color. Default: #FF0000.'**
+  String get httpApiParamFlashColorDesc;
+
+  /// No description provided for @httpApiParamFlashDurationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash duration in milliseconds. Must be > 0. Alias: duration. Default: 500.'**
+  String get httpApiParamFlashDurationDesc;
+
+  /// No description provided for @httpApiParamFlashEffectDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash effect. Allowed: full / edge. Alias: effect. Default: full.'**
+  String get httpApiParamFlashEffectDesc;
+
+  /// No description provided for @httpApiParamEdgeWidthDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge glow width. Only valid when flashEffect=edge; must be > 0. Alias: width.'**
+  String get httpApiParamEdgeWidthDesc;
+
+  /// No description provided for @httpApiParamEdgeOpacityDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge glow opacity. Only valid when flashEffect=edge; range 0~1. Alias: opacity.'**
+  String get httpApiParamEdgeOpacityDesc;
+
+  /// No description provided for @httpApiParamEdgeRepeatDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge glow repeat count. Only valid when flashEffect=edge; must be > 0. Alias: repeat.'**
+  String get httpApiParamEdgeRepeatDesc;
+
+  /// No description provided for @httpApiParamPayloadDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional passthrough object that is attached to local notification payload.'**
+  String get httpApiParamPayloadDesc;
+
+  /// No description provided for @httpApiParamPortDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Server port, range 1~65535.'**
+  String get httpApiParamPortDesc;
+
+  /// No description provided for @httpApiParamAllowedIPsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed IP list. Supports exact IP and CIDR. Empty list means allow all.'**
+  String get httpApiParamAllowedIPsDesc;
+
+  /// No description provided for @httpApiParamAutoStartDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Server auto-start flag. Current product policy forces this to true.'**
+  String get httpApiParamAutoStartDesc;
+
+  /// No description provided for @httpApiParamShowNotificationsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Whether system notifications are enabled.'**
+  String get httpApiParamShowNotificationsDesc;
+
+  /// No description provided for @httpApiEnumTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enum Values'**
+  String get httpApiEnumTitle;
+
+  /// No description provided for @httpApiEnumCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'flash: triggers the flash alert flow.'**
+  String get httpApiEnumCategory;
+
+  /// No description provided for @httpApiEnumFlashEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'full: full-screen flash; edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat).'**
+  String get httpApiEnumFlashEffect;
+
+  /// No description provided for @httpApiEnumPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'low/normal/high: controls normal notification priority; default is normal.'**
+  String get httpApiEnumPriority;
+
+  /// No description provided for @httpApiExampleFlashFull.
+  ///
+  /// In en, this message translates to:
+  /// **'POST /api/notify (flash full)'**
+  String get httpApiExampleFlashFull;
+
+  /// No description provided for @httpApiExampleFlashEdge.
+  ///
+  /// In en, this message translates to:
+  /// **'POST /api/notify (flash edge)'**
+  String get httpApiExampleFlashEdge;
+
+  /// No description provided for @httpApiExampleConfigUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'POST /api/config (update config)'**
+  String get httpApiExampleConfigUpdate;
+
+  /// No description provided for @httpApiResponseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Response Examples'**
+  String get httpApiResponseTitle;
+
+  /// No description provided for @httpApiResponseNotifySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'POST /api/notify success response'**
+  String get httpApiResponseNotifySuccess;
+
+  /// No description provided for @httpApiResponseError.
+  ///
+  /// In en, this message translates to:
+  /// **'Validation error response (HTTP 400)'**
+  String get httpApiResponseError;
+
+  /// No description provided for @httpApiNotesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get httpApiNotesTitle;
+
+  /// No description provided for @httpApiNotesAliases.
+  ///
+  /// In en, this message translates to:
+  /// **'Some fields accept compatibility aliases (for example body/message, category/type, flashEffect/effect).'**
+  String get httpApiNotesAliases;
+
+  /// No description provided for @httpApiNotesBodyOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Only flash notifications allow empty body; normal notifications must include body.'**
+  String get httpApiNotesBodyOptional;
+
+  /// No description provided for @httpApiNotesEdgeOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'edgeWidth, edgeOpacity, and edgeRepeat are only valid when flashEffect=edge; otherwise validation fails.'**
+  String get httpApiNotesEdgeOnly;
 
   /// No description provided for @httpApiEndpoints.
   ///
