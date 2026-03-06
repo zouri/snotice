@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/log_entry.dart';
 import '../../services/logger_service.dart';
 import '../../theme/app_colors.dart';
+import '../widgets/common/page_header.dart';
 import '../widgets/main/shell_dimensions.dart';
 
 class CallLogPage extends StatefulWidget {
@@ -19,39 +18,35 @@ class CallLogPage extends StatefulWidget {
 
 class _CallLogPageState extends State<CallLogPage> {
   static const String _allLevel = 'ALL';
-  static const List<String> _levels = [
+  static final List<String> _levels = [
     _allLevel,
-    'REQUEST',
-    'INFO',
-    'NOTIFICATION',
-    'WARNING',
-    'ERROR',
-    'DEBUG',
+    ...LogType.values.map((type) => type.code),
   ];
 
   final TextEditingController _keywordController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final DateFormat _timestampFormat = DateFormat('MM-dd HH:mm:ss');
 
-  Timer? _refreshTimer;
+  late final LoggerService _logger;
+  List<LogEntry> _visibleLogs = const [];
+  int _visibleLogCount = 0;
   String _selectedLevel = _allLevel;
   String _keyword = '';
   bool _isPaused = false;
-  int _lastLogCount = 0;
 
   @override
   void initState() {
     super.initState();
+    _logger = context.read<LoggerService>();
+    _visibleLogs = _logger.logs;
+    _visibleLogCount = _visibleLogs.length;
+    _logger.addListener(_onLogsChanged);
     _keywordController.addListener(_onKeywordChanged);
-    _refreshTimer = Timer.periodic(
-      const Duration(milliseconds: 700),
-      (_) => _refreshLogsIfNeeded(),
-    );
   }
 
   @override
   void dispose() {
-    _refreshTimer?.cancel();
+    _logger.removeListener(_onLogsChanged);
     _keywordController
       ..removeListener(_onKeywordChanged)
       ..dispose();
@@ -70,19 +65,27 @@ class _CallLogPageState extends State<CallLogPage> {
     });
   }
 
-  void _refreshLogsIfNeeded() {
-    if (!mounted || _isPaused) {
+  void _onLogsChanged() {
+    if (_isPaused) {
       return;
     }
+    _refreshVisibleLogs(scrollToTop: true);
+  }
 
-    final logCount = context.read<LoggerService>().logs.length;
-    if (logCount == _lastLogCount) {
+  void _refreshVisibleLogs({bool scrollToTop = false}) {
+    final logs = _logger.logs;
+    if (logs.length == _visibleLogCount) {
       return;
     }
 
     setState(() {
-      _lastLogCount = logCount;
+      _visibleLogs = logs;
+      _visibleLogCount = logs.length;
     });
+
+    if (!scrollToTop) {
+      return;
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
@@ -96,9 +99,28 @@ class _CallLogPageState extends State<CallLogPage> {
   }
 
   void _clearLogs() {
-    context.read<LoggerService>().clear();
+    _logger.clear();
+    if (!_isPaused) {
+      return;
+    }
+
     setState(() {
-      _lastLogCount = 0;
+      _visibleLogs = const [];
+      _visibleLogCount = 0;
+    });
+  }
+
+  void _togglePause() {
+    if (_isPaused) {
+      setState(() {
+        _isPaused = false;
+      });
+      _refreshVisibleLogs(scrollToTop: true);
+      return;
+    }
+
+    setState(() {
+      _isPaused = true;
     });
   }
 
@@ -108,8 +130,7 @@ class _CallLogPageState extends State<CallLogPage> {
     return logs
         .where((entry) {
           final levelMatch =
-              _selectedLevel == _allLevel ||
-              entry.type.toUpperCase() == _selectedLevel;
+              _selectedLevel == _allLevel || entry.type.code == _selectedLevel;
           if (!levelMatch) {
             return false;
           }
@@ -119,7 +140,7 @@ class _CallLogPageState extends State<CallLogPage> {
           }
 
           final message = entry.message.toLowerCase();
-          final type = entry.type.toLowerCase();
+          final type = entry.type.code.toLowerCase();
           final data = entry.data?.toString().toLowerCase() ?? '';
           return message.contains(keyword) ||
               type.contains(keyword) ||
@@ -130,17 +151,16 @@ class _CallLogPageState extends State<CallLogPage> {
         .toList();
   }
 
-  Color _colorForLogType(String type) {
-    switch (type.toUpperCase()) {
-      case 'ERROR':
+  Color _colorForLogType(LogType type) {
+    switch (type) {
+      case LogType.error:
         return AppColors.logError;
-      case 'WARNING':
+      case LogType.warning:
         return AppColors.logWarning;
-      case 'INFO':
-      case 'REQUEST':
-      case 'NOTIFICATION':
-      case 'DEBUG':
-      default:
+      case LogType.info:
+      case LogType.request:
+      case LogType.notification:
+      case LogType.debug:
         return AppColors.logInfo;
     }
   }
@@ -148,21 +168,51 @@ class _CallLogPageState extends State<CallLogPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final logger = context.read<LoggerService>();
-    final filteredLogs = _filterLogs(logger.logs);
+    final filteredLogs = _filterLogs(_visibleLogs);
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Column(
       children: [
-        _PageHeader(
+        PageHeader(
           title: l10n.navCallLogs,
-          isPaused: _isPaused,
-          onPauseToggle: () {
-            setState(() {
-              _isPaused = !_isPaused;
-            });
-          },
-          onClear: _clearLogs,
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: _togglePause,
+                icon: Icon(
+                  _isPaused
+                      ? Icons.play_arrow_rounded
+                      : Icons.pause_circle_outline,
+                  size: 26,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(width: 6),
+              SizedBox(
+                height: ShellDimensions.buttonHeight,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    textStyle: textTheme.titleSmall?.copyWith(
+                      fontSize: ShellDimensions.buttonTextSize,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        ShellDimensions.radiusSm,
+                      ),
+                    ),
+                  ),
+                  onPressed: _clearLogs,
+                  child: Text(l10n.clear),
+                ),
+              ),
+            ],
+          ),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -314,7 +364,7 @@ class _CallLogPageState extends State<CallLogPage> {
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    entry.type.toUpperCase(),
+                                    entry.type.code,
                                     style: Theme.of(context)
                                         .textTheme
                                         .labelLarge
@@ -361,81 +411,6 @@ class _CallLogPageState extends State<CallLogPage> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _PageHeader extends StatelessWidget {
-  const _PageHeader({
-    required this.title,
-    required this.isPaused,
-    required this.onPauseToggle,
-    required this.onClear,
-  });
-
-  final String title;
-  final bool isPaused;
-  final VoidCallback onPauseToggle;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      height: ShellDimensions.headerHeight,
-      padding: const EdgeInsets.symmetric(
-        horizontal: ShellDimensions.headerHorizontalPadding,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          Text(
-            title,
-            style: textTheme.headlineSmall?.copyWith(
-              fontSize: ShellDimensions.pageTitleSize,
-              height: 1.2,
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: onPauseToggle,
-            icon: Icon(
-              isPaused ? Icons.play_arrow_rounded : Icons.pause_circle_outline,
-              size: 26,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(width: 6),
-          SizedBox(
-            height: ShellDimensions.buttonHeight,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                textStyle: textTheme.titleSmall?.copyWith(
-                  fontSize: ShellDimensions.buttonTextSize,
-                  fontWeight: FontWeight.w700,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
-                ),
-              ),
-              onPressed: onClear,
-              child: Text(AppLocalizations.of(context)!.clear),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

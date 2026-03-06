@@ -140,6 +140,54 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get navSettings;
 
+  /// No description provided for @httpApiEndpoints.
+  ///
+  /// In en, this message translates to:
+  /// **'Endpoints'**
+  String get httpApiEndpoints;
+
+  /// No description provided for @httpApiExamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Examples'**
+  String get httpApiExamples;
+
+  /// No description provided for @httpApiNotifyNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'POST /api/notify (normal)'**
+  String get httpApiNotifyNormal;
+
+  /// No description provided for @httpApiNotifyFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'POST /api/notify (flash)'**
+  String get httpApiNotifyFlash;
+
+  /// No description provided for @httpApiSampleTitleHello.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello'**
+  String get httpApiSampleTitleHello;
+
+  /// No description provided for @httpApiSampleBodyFromSnotice.
+  ///
+  /// In en, this message translates to:
+  /// **'From SNotice'**
+  String get httpApiSampleBodyFromSnotice;
+
+  /// No description provided for @httpApiSampleTitleAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert'**
+  String get httpApiSampleTitleAlert;
+
+  /// No description provided for @httpApiSampleBodyFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash'**
+  String get httpApiSampleBodyFlash;
+
   /// Confirmation message when reminder is set
   ///
   /// In en, this message translates to:
@@ -169,6 +217,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to save settings'**
   String get settingsSaveFailed;
+
+  /// No description provided for @themeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get themeTitle;
+
+  /// No description provided for @themeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Light, Dark, or follow system'**
+  String get themeSubtitle;
+
+  /// No description provided for @themeModeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeModeSystem;
+
+  /// No description provided for @themeModeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeModeLight;
+
+  /// No description provided for @themeModeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeModeDark;
 
   /// No description provided for @serverSettings.
   ///

@@ -112,13 +112,22 @@ class HttpServerService {
   Future<Response> _handleNotify(Request request) async {
     try {
       final body = await request.readAsString();
-      final json = jsonDecode(body);
+      final decoded = jsonDecode(body);
+      final json = _asJsonObject(decoded);
+      if (json == null) {
+        return ResponseUtil.badRequest('Request body must be a JSON object.');
+      }
+
       final notificationRequest = NotificationRequest.fromJson(json);
 
       _logger.request('POST /api/notify', data: json);
 
-      if (!notificationRequest.isValid) {
-        return ResponseUtil.badRequest('Invalid notification request');
+      final validationErrors = notificationRequest.validate();
+      if (validationErrors.isNotEmpty) {
+        return ResponseUtil.badRequest(
+          'Invalid notification request.',
+          details: {'validationErrors': validationErrors},
+        );
       }
 
       await _notificationService.showNotification(notificationRequest);
@@ -128,10 +137,22 @@ class HttpServerService {
         'message': 'Notification sent',
         'timestamp': DateTime.now().toIso8601String(),
       });
+    } on FormatException {
+      return ResponseUtil.badRequest('Request body must be valid JSON.');
     } catch (e) {
       _logger.error('Error in /api/notify: $e');
       return ResponseUtil.serverError('Internal server error');
     }
+  }
+
+  Map<String, dynamic>? _asJsonObject(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    if (value is Map) {
+      return value.map((key, val) => MapEntry(key.toString(), val));
+    }
+    return null;
   }
 
   Future<Response> _handleStatus(Request request) async {

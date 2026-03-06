@@ -9,10 +9,14 @@ class ResponseUtil {
     );
   }
 
-  static Response badRequest(String message) {
+  static Response badRequest(String message, {Map<String, dynamic>? details}) {
     return Response(
       400,
-      body: jsonEncode({'success': false, 'error': message}),
+      body: jsonEncode({
+        'success': false,
+        'error': message,
+        if (details != null) ...details,
+      }),
       headers: {'Content-Type': 'application/json'},
     );
   }

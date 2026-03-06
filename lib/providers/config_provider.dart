@@ -10,14 +10,4 @@ class ConfigProvider with ChangeNotifier {
     _config = config;
     notifyListeners();
   }
-
-  void toggleAutoStart() {
-    _config = _config.copyWith(autoStart: true);
-    notifyListeners();
-  }
-
-  void toggleShowNotifications() {
-    _config = _config.copyWith(showNotifications: !_config.showNotifications);
-    notifyListeners();
-  }
 }

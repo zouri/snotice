@@ -1,9 +1,11 @@
 import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart';
+
 import '../models/log_entry.dart';
 import '../config/constants.dart';
 
-class LoggerService {
+class LoggerService extends ChangeNotifier {
   final List<LogEntry> _logs = [];
   final int _maxLogEntries;
 
@@ -12,7 +14,7 @@ class LoggerService {
 
   List<LogEntry> get logs => List.unmodifiable(_logs);
 
-  void log(String type, String message, {Map<String, dynamic>? data}) {
+  void log(LogType type, String message, {Map<String, dynamic>? data}) {
     final entry = LogEntry(
       timestamp: DateTime.now(),
       type: type,
@@ -26,34 +28,39 @@ class LoggerService {
       _logs.removeAt(0);
     }
 
-    developer.log(message, name: 'SNotice.$type', time: entry.timestamp);
+    developer.log(message, name: 'SNotice.${type.code}', time: entry.timestamp);
+    notifyListeners();
   }
 
   void info(String message, {Map<String, dynamic>? data}) {
-    log('INFO', message, data: data);
+    log(LogType.info, message, data: data);
   }
 
   void error(String message, {Map<String, dynamic>? data}) {
-    log('ERROR', message, data: data);
+    log(LogType.error, message, data: data);
   }
 
   void warning(String message, {Map<String, dynamic>? data}) {
-    log('WARNING', message, data: data);
+    log(LogType.warning, message, data: data);
   }
 
   void debug(String message, {Map<String, dynamic>? data}) {
-    log('DEBUG', message, data: data);
+    log(LogType.debug, message, data: data);
   }
 
   void request(String message, {Map<String, dynamic>? data}) {
-    log('REQUEST', message, data: data);
+    log(LogType.request, message, data: data);
   }
 
   void notification(String message, {Map<String, dynamic>? data}) {
-    log('NOTIFICATION', message, data: data);
+    log(LogType.notification, message, data: data);
   }
 
   void clear() {
+    if (_logs.isEmpty) {
+      return;
+    }
     _logs.clear();
+    notifyListeners();
   }
 }

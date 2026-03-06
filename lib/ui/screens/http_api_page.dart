@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../providers/config_provider.dart';
+import '../widgets/common/page_header.dart';
 import '../widgets/main/shell_dimensions.dart';
 
 class HttpApiPage extends StatelessWidget {
@@ -18,12 +21,28 @@ class HttpApiPage extends StatelessWidget {
 
     final statusUrl = 'http://localhost:$port/api/status';
     final notifyUrl = 'http://localhost:$port/api/notify';
+    final normalPayload = jsonEncode({
+      'title': l10n.httpApiSampleTitleHello,
+      'body': l10n.httpApiSampleBodyFromSnotice,
+    });
+    final flashPayload = jsonEncode({
+      'title': l10n.httpApiSampleTitleAlert,
+      'body': l10n.httpApiSampleBodyFlash,
+      'category': 'flash',
+      'flashColor': '#FF0000',
+      'flashDuration': 700,
+      'flashEffect': 'edge',
+    });
+    final normalCurlCommand =
+        "curl -X POST $notifyUrl -H \"Content-Type: application/json\" -d '$normalPayload'";
+    final flashCurlCommand =
+        "curl -X POST $notifyUrl -H \"Content-Type: application/json\" -d '$flashPayload'";
 
     return Container(
       color: colorScheme.surface,
       child: Column(
         children: [
-          _buildPageHeader(context, l10n.navHttpApi),
+          PageHeader(title: l10n.navHttpApi),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(ShellDimensions.pagePadding),
@@ -36,7 +55,7 @@ class HttpApiPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Endpoints',
+                            l10n.httpApiEndpoints,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   fontSize: ShellDimensions.cardTitleSize,
@@ -75,7 +94,7 @@ class HttpApiPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Examples',
+                            l10n.httpApiExamples,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   fontSize: ShellDimensions.cardTitleSize,
@@ -84,7 +103,7 @@ class HttpApiPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'POST /api/notify (normal)',
+                            l10n.httpApiNotifyNormal,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   fontSize: ShellDimensions.bodySize,
@@ -93,8 +112,7 @@ class HttpApiPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           SelectableText(
-                            'curl -X POST $notifyUrl -H "Content-Type: application/json" '
-                            '-d "{\\"title\\":\\"Hello\\",\\"body\\":\\"From SNotice\\"}"',
+                            normalCurlCommand,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   fontSize: ShellDimensions.codeSize,
@@ -104,7 +122,7 @@ class HttpApiPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'POST /api/notify (flash)',
+                            l10n.httpApiNotifyFlash,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   fontSize: ShellDimensions.bodySize,
@@ -113,8 +131,7 @@ class HttpApiPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           SelectableText(
-                            'curl -X POST $notifyUrl -H "Content-Type: application/json" '
-                            '-d "{\\"title\\":\\"Alert\\",\\"body\\":\\"Flash\\",\\"category\\":\\"flash\\",\\"flashColor\\":\\"#FF0000\\",\\"flashDuration\\":700,\\"flashEffect\\":\\"edge\\"}"',
+                            flashCurlCommand,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   fontSize: ShellDimensions.codeSize,
@@ -131,33 +148,6 @@ class HttpApiPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPageHeader(BuildContext context, String title) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      height: ShellDimensions.headerHeight,
-      padding: const EdgeInsets.symmetric(
-        horizontal: ShellDimensions.headerHorizontalPadding,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      alignment: Alignment.centerLeft,
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          fontSize: ShellDimensions.pageTitleSize,
-          height: 1.2,
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.w700,
-        ),
       ),
     );
   }

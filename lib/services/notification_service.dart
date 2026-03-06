@@ -35,7 +35,7 @@ class NotificationService {
 
   Future<void> showNotification(NotificationRequest request) async {
     // Flash 提醒允许 body 为空，优先处理 flash 分支
-    if (request.category?.toLowerCase() == 'flash') {
+    if (request.isFlash) {
       await _handleFlashNotification(request);
       return;
     }
@@ -82,7 +82,7 @@ class NotificationService {
     try {
       final color = request.flashColor ?? '#FF0000';
       final duration = request.flashDuration ?? 500;
-      final effect = request.flashEffect ?? 'full';
+      final effect = request.flashEffect?.value ?? FlashEffect.full.value;
 
       _logger.notification(
         'Flash notification: ${request.title}',

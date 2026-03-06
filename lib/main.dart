@@ -153,7 +153,7 @@ Future<void> _startMainApp() async {
         ChangeNotifierProvider.value(value: serverProvider),
         ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider.value(value: localeProvider),
-        Provider.value(value: loggerService),
+        ChangeNotifierProvider.value(value: loggerService),
         Provider.value(value: notificationService),
         Provider.value(value: configService),
       ],
@@ -223,7 +223,7 @@ class SNoticeApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [Locale('en', 'US'), Locale('zh', 'CN')],
+          supportedLocales: AppLocalizations.supportedLocales,
           home: const AppShell(),
         );
       },

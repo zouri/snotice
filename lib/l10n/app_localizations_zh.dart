@@ -30,6 +30,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navSettings => '设置';
 
   @override
+  String get httpApiEndpoints => '接口地址';
+
+  @override
+  String get httpApiExamples => '请求示例';
+
+  @override
+  String get httpApiNotifyNormal => 'POST /api/notify（普通通知）';
+
+  @override
+  String get httpApiNotifyFlash => 'POST /api/notify（闪屏）';
+
+  @override
+  String get httpApiSampleTitleHello => '你好';
+
+  @override
+  String get httpApiSampleBodyFromSnotice => '来自 SNotice';
+
+  @override
+  String get httpApiSampleTitleAlert => '警报';
+
+  @override
+  String get httpApiSampleBodyFlash => '闪屏';
+
+  @override
   String reminderSetFor(int minutes) {
     return '提醒已设置为 $minutes 分钟后';
   }
@@ -45,6 +69,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsSaveFailed => '保存设置失败';
+
+  @override
+  String get themeTitle => '外观主题';
+
+  @override
+  String get themeSubtitle => '可切换浅色、深色或跟随系统';
+
+  @override
+  String get themeModeSystem => '跟随系统';
+
+  @override
+  String get themeModeLight => '浅色';
+
+  @override
+  String get themeModeDark => '深色';
 
   @override
   String get serverSettings => '服务器设置';

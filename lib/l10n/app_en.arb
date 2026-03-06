@@ -12,6 +12,14 @@
   "navCallLogs": "Call Logs",
   "navHttpApi": "HTTP API",
   "navSettings": "Settings",
+  "httpApiEndpoints": "Endpoints",
+  "httpApiExamples": "Examples",
+  "httpApiNotifyNormal": "POST /api/notify (normal)",
+  "httpApiNotifyFlash": "POST /api/notify (flash)",
+  "httpApiSampleTitleHello": "Hello",
+  "httpApiSampleBodyFromSnotice": "From SNotice",
+  "httpApiSampleTitleAlert": "Alert",
+  "httpApiSampleBodyFlash": "Flash",
 
   "reminderSetFor": "Reminder set for {minutes} minutes",
   "@reminderSetFor": {
@@ -27,6 +35,11 @@
   "settingsSave": "Save Settings",
   "settingsSaved": "Settings saved",
   "settingsSaveFailed": "Failed to save settings",
+  "themeTitle": "Theme",
+  "themeSubtitle": "Light, Dark, or follow system",
+  "themeModeSystem": "System",
+  "themeModeLight": "Light",
+  "themeModeDark": "Dark",
 
   "serverSettings": "Server Settings",
   "serverPort": "Port",

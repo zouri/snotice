@@ -30,6 +30,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navSettings => 'Settings';
 
   @override
+  String get httpApiEndpoints => 'Endpoints';
+
+  @override
+  String get httpApiExamples => 'Examples';
+
+  @override
+  String get httpApiNotifyNormal => 'POST /api/notify (normal)';
+
+  @override
+  String get httpApiNotifyFlash => 'POST /api/notify (flash)';
+
+  @override
+  String get httpApiSampleTitleHello => 'Hello';
+
+  @override
+  String get httpApiSampleBodyFromSnotice => 'From SNotice';
+
+  @override
+  String get httpApiSampleTitleAlert => 'Alert';
+
+  @override
+  String get httpApiSampleBodyFlash => 'Flash';
+
+  @override
   String reminderSetFor(int minutes) {
     return 'Reminder set for $minutes minutes';
   }
@@ -45,6 +69,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSaveFailed => 'Failed to save settings';
+
+  @override
+  String get themeTitle => 'Theme';
+
+  @override
+  String get themeSubtitle => 'Light, Dark, or follow system';
+
+  @override
+  String get themeModeSystem => 'System';
+
+  @override
+  String get themeModeLight => 'Light';
+
+  @override
+  String get themeModeDark => 'Dark';
 
   @override
   String get serverSettings => 'Server Settings';

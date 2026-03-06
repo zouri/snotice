@@ -9,6 +9,14 @@
   "navCallLogs": "调用日志",
   "navHttpApi": "HTTP API",
   "navSettings": "设置",
+  "httpApiEndpoints": "接口地址",
+  "httpApiExamples": "请求示例",
+  "httpApiNotifyNormal": "POST /api/notify（普通通知）",
+  "httpApiNotifyFlash": "POST /api/notify（闪屏）",
+  "httpApiSampleTitleHello": "你好",
+  "httpApiSampleBodyFromSnotice": "来自 SNotice",
+  "httpApiSampleTitleAlert": "警报",
+  "httpApiSampleBodyFlash": "闪屏",
 
   "reminderSetFor": "提醒已设置为 {minutes} 分钟后",
 
@@ -16,6 +24,11 @@
   "settingsSave": "保存设置",
   "settingsSaved": "设置已保存",
   "settingsSaveFailed": "保存设置失败",
+  "themeTitle": "外观主题",
+  "themeSubtitle": "可切换浅色、深色或跟随系统",
+  "themeModeSystem": "跟随系统",
+  "themeModeLight": "浅色",
+  "themeModeDark": "深色",
 
   "serverSettings": "服务器设置",
   "serverPort": "端口",

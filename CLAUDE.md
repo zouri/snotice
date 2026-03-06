@@ -26,6 +26,12 @@ flutter run -d windows
 flutter build macos --release
 flutter build linux --release
 flutter build windows --release
+
+# Test HTTP API with Python script
+python3 scripts/test_http_api.py status              # Check server status
+python3 scripts/test_http_api.py notify --mode flash # Send flash notification
+python3 scripts/test_http_api.py smoke               # Run smoke test
+python3 scripts/test_http_api.py --help              # Show all options
 ```
 
 ## High-Level Architecture
@@ -68,9 +74,15 @@ All services use constructor dependency injection with `private final` fields. S
 Uses Provider pattern with ChangeNotifier:
 - `ConfigProvider` - Application configuration
 - `ServerProvider` - HTTP server state (isRunning, start/stop)
-- `LogProvider` - Log history display
+- `ThemeProvider` - Theme mode (system/light/dark) with persistence
+- `LocaleProvider` - Language preference (system/English/Chinese) with persistence
 
 All providers are initialized in `main()` before `runApp()` and consumed in UI using `Consumer<T>` widgets.
+
+**Provider-Service Integration:**
+- `LocaleProvider` is connected to `TrayService` via `setLocaleProvider()` to enable localized system tray menus
+- When locale changes, tray menu automatically rebuilds with new language strings
+- `ThemeProvider` persists user preference across app restarts using SharedPreferences
 
 ### HTTP API
 
@@ -118,7 +130,8 @@ lib/
 ├── providers/
 │   ├── config_provider.dart
 │   ├── server_provider.dart
-│   └── log_provider.dart
+│   ├── theme_provider.dart
+│   └── locale_provider.dart
 ├── services/
 │   ├── http_server_service.dart
 │   ├── notification_service.dart
@@ -127,10 +140,26 @@ lib/
 │   ├── logger_service.dart
 │   └── tray_service.dart
 ├── ui/
-│   ├── main_screen.dart
-│   ├── settings_screen.dart
-│   ├── log_screen.dart
-│   └── test_screen.dart
+│   ├── screens/
+│   │   ├── app_shell.dart       # Main navigation shell with sidebar
+│   │   ├── home_screen.dart     # Settings screen
+│   │   ├── call_log_page.dart   # Call log display
+│   │   └── http_api_page.dart   # API documentation page
+│   └── widgets/
+│       ├── main/                # Shared UI components
+│       └── settings/            # Settings-specific widgets
+├── l10n/
+│   ├── app_localizations.dart       # Generated localizations base
+│   ├── app_localizations_en.dart    # English translations
+│   └── app_localizations_zh.dart    # Chinese translations
+├── theme/
+│   ├── theme.dart              # Theme exports
+│   ├── app_theme.dart          # Light/dark theme definitions
+│   ├── app_colors.dart         # Color palette
+│   ├── app_text_styles.dart    # Typography
+│   ├── app_spacing.dart        # Spacing constants
+│   ├── app_animation.dart      # Animation constants
+│   └── app_breakpoints.dart    # Responsive breakpoints
 └── utils/
     ├── response_util.dart
     └── ip_utils.dart
@@ -182,6 +211,16 @@ Consumer<ServerProvider>(
     return Text(serverProvider.isRunning ? 'Running' : 'Stopped');
   },
 )
+
+// Multiple providers
+Consumer2<ThemeProvider, LocaleProvider>(
+  builder: (context, themeProvider, localeProvider, child) {
+    return MaterialApp(
+      themeMode: themeProvider.mode,
+      locale: localeProvider.locale,
+    );
+  },
+)
 ```
 
 ## Platform Detection
@@ -204,3 +243,90 @@ IP whitelist supports both individual IPs and CIDR notation:
 - CIDR: `192.168.1.0/24`, `fe80::/10`
 
 Validation logic in `AppConfig.isIP()` and `IPUtils` utilities.
+
+## Internationalization (i18n)
+
+The application supports multiple languages using Flutter's built-in localization system.
+
+**Supported Languages:**
+- English (en_US)
+- Chinese Simplified (zh_CN)
+
+**Architecture:**
+- Translations defined in `lib/l10n/` (generated from ARB files)
+- `LocaleProvider` manages language preference with persistence
+- Users can choose: System default, English, or Chinese
+- System tray menu automatically updates when language changes
+
+**Usage in Code:**
+```dart
+// Access localized strings
+final l10n = AppLocalizations.of(context)!;
+Text(l10n.navSettings)
+
+// Change language
+localeProvider.setLocale(Locale('zh', 'CN'));  // Chinese
+localeProvider.setLocale(null);  // System default
+```
+
+**Adding New Strings:**
+1. Add key to `lib/l10n/app_en.arb` and `app_zh.arb`
+2. Run `flutter gen-l10n` to generate Dart code
+3. Access via `AppLocalizations.of(context)!.keyName`
+
+## UI Navigation Pattern
+
+The app uses a sidebar navigation pattern with `AppShell` as the root widget:
+
+**Navigation Structure:**
+- `AppShell` - Root container with sidebar and content area
+- Three main tabs: Call Logs, HTTP API, Settings
+- `IndexedStack` preserves tab state when switching
+- Sidebar shows server status at bottom
+
+**Sidebar Implementation:**
+- Defined in `ui/screens/app_shell.dart`
+- Uses `_ShellTab` enum for navigation state
+- Integrates with `ServerProvider` for status indicator
+- Responsive dimensions defined in `ShellDimensions`
+
+**Consumer Pattern:**
+```dart
+// Sidebar shows real-time server status
+Consumer<ServerProvider>(
+  builder: (context, serverProvider, _) {
+    final isRunning = serverProvider.isRunning;
+    return Text(isRunning ? 'Running' : 'Stopped');
+  },
+)
+```
+
+## Theme System
+
+The application uses a comprehensive theme system with light/dark mode support.
+
+**Theme Architecture:**
+- `ThemeProvider` manages theme mode (system/light/dark)
+- `AppTheme` defines Material 3 color schemes and component themes
+- Theme automatically persists across app restarts
+- System theme follows OS dark mode setting
+
+**Theme Components:**
+- `app_colors.dart` - Brand and semantic color definitions
+- `app_text_styles.dart` - Typography scale
+- `app_spacing.dart` - Spacing and padding constants
+- `app_animation.dart` - Animation durations and curves
+
+**Usage:**
+```dart
+// Toggle theme
+themeProvider.toggle();  // Light ↔ Dark
+
+// Set specific mode
+themeProvider.setDark();
+themeProvider.setLight();
+themeProvider.setSystem();  // Follow OS
+
+// Check current mode
+if (themeProvider.isDarkMode) { ... }
+```
