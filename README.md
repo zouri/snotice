@@ -102,15 +102,59 @@ Supported `notify --mode` values:
 - `edge_corner`
 - `edge_rainbow`
 
+## AI Agent Integration
+
+SNotice can be called by AI agents in two ways: MCP tools or skill scripts.
+
+### 1) Built-in MCP Endpoint
+
+MCP is integrated directly into the SNotice HTTP server.
+
+Endpoint:
+
+- `POST /api/mcp` (default URL: `http://127.0.0.1:8642/api/mcp`)
+
+Exposed MCP tools:
+
+- `snotice_send_notification`
+- `snotice_get_status`
+- `snotice_get_config`
+- `snotice_update_config`
+
+Quick probe:
+
+```bash
+curl -X POST http://127.0.0.1:8642/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+### 2) Skill-Based Calls
+
+This repo includes a reusable skill at:
+
+- `skills/snotice-agent/SKILL.md`
+
+The skill provides:
+
+- a CLI helper script: `skills/snotice-agent/scripts/snotice_call.py`
+- API field references: `skills/snotice-agent/references/*.md`
+
+Quick command examples:
+
+```bash
+python3 skills/snotice-agent/scripts/snotice_call.py status
+python3 skills/snotice-agent/scripts/snotice_call.py notify --title "Build Done" --body "Release package finished"
+```
+
 ## Documentation
 
 For detailed documentation, see the [docs](./docs) directory:
 
-- [Full Documentation](./docs/README.md) - Complete project documentation
-- [Project Plan](./docs/plan.md) - Detailed project plan and architecture
-- [Progress Report](./docs/progress.md) - Implementation status
-- [Build and Test Guide](./docs/build_and_test.md) - Building and testing instructions
-- [Flash Screen Feature](./docs/flash-screen.md) - Flash screen overlay documentation
+- [AI Agent Integration](./docs/agent_integration.md) - MCP and skill setup
+- [Enhancement Notes](./docs/enhance/README.md) - UI and architecture enhancements
+- [UX Improvements](./docs/enhance/UX_IMPROVEMENTS.md) - UX implementation details
+- [Project Status](./docs/enhance/PROJECT_STATUS.md) - Current status snapshot
 
 ## Technology Stack
 

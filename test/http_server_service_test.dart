@@ -42,12 +42,26 @@ Future<_HttpResult> _postNotify({
   required String body,
   String contentType = 'application/json',
 }) async {
+  return _postPath(
+    port: port,
+    path: '/api/notify',
+    body: body,
+    contentType: contentType,
+  );
+}
+
+Future<_HttpResult> _postPath({
+  required int port,
+  required String path,
+  required String body,
+  String contentType = 'application/json',
+}) async {
   final client = HttpClient();
   try {
     final request = await client.post(
       InternetAddress.loopbackIPv4.host,
       port,
-      '/api/notify',
+      path,
     );
     request.headers.set(HttpHeaders.contentTypeHeader, contentType);
     request.write(body);
@@ -153,5 +167,118 @@ void main() {
         expect(notificationService.lastRequest!.isFlash, isTrue);
       },
     );
+  });
+
+  group('HttpServerService /api/mcp', () {
+    late LoggerService logger;
+    late _FakeNotificationService notificationService;
+    late HttpServerService serverService;
+    late int port;
+
+    setUp(() async {
+      logger = LoggerService();
+      notificationService = _FakeNotificationService(logger);
+      port = await _reserveLocalPort();
+
+      serverService = HttpServerService(
+        notificationService: notificationService,
+        logger: logger,
+        config: AppConfig(port: port, allowedIPs: const ['127.0.0.1']),
+      );
+
+      await serverService.start();
+    });
+
+    tearDown(() async {
+      if (serverService.isRunning) {
+        await serverService.stop();
+      }
+    });
+
+    test('initialize returns MCP capabilities', () async {
+      final result = await _postPath(
+        port: port,
+        path: '/api/mcp',
+        body: jsonEncode({
+          'jsonrpc': '2.0',
+          'id': 1,
+          'method': 'initialize',
+          'params': {'protocolVersion': '2024-11-05'},
+        }),
+      );
+
+      expect(result.statusCode, 200);
+      expect(result.body['jsonrpc'], '2.0');
+      expect(result.body['id'], 1);
+      expect(result.body['result'], isA<Map<String, dynamic>>());
+      expect(
+        result.body['result']['capabilities']['tools']['listChanged'],
+        false,
+      );
+    });
+
+    test('tools/list contains built-in SNotice tools', () async {
+      final result = await _postPath(
+        port: port,
+        path: '/api/mcp',
+        body: jsonEncode({'jsonrpc': '2.0', 'id': 2, 'method': 'tools/list'}),
+      );
+
+      expect(result.statusCode, 200);
+      final tools = result.body['result']['tools'] as List<dynamic>;
+      final toolNames = tools
+          .map((tool) => (tool as Map<String, dynamic>)['name'] as String)
+          .toList();
+      expect(toolNames, contains('snotice_send_notification'));
+      expect(toolNames, contains('snotice_get_status'));
+      expect(toolNames, contains('snotice_get_config'));
+      expect(toolNames, contains('snotice_update_config'));
+    });
+
+    test(
+      'tools/call can send notification via snotice_send_notification',
+      () async {
+        final result = await _postPath(
+          port: port,
+          path: '/api/mcp',
+          body: jsonEncode({
+            'jsonrpc': '2.0',
+            'id': 3,
+            'method': 'tools/call',
+            'params': {
+              'name': 'snotice_send_notification',
+              'arguments': {'title': 'MCP', 'body': 'hello'},
+            },
+          }),
+        );
+
+        expect(result.statusCode, 200);
+        expect(result.body['result']['isError'], false);
+        expect(result.body['result']['structuredContent']['status'], 200);
+        expect(notificationService.callCount, 1);
+      },
+    );
+
+    test('tools/call returns error result for invalid args', () async {
+      final result = await _postPath(
+        port: port,
+        path: '/api/mcp',
+        body: jsonEncode({
+          'jsonrpc': '2.0',
+          'id': 4,
+          'method': 'tools/call',
+          'params': {
+            'name': 'snotice_get_status',
+            'arguments': {'unexpected': true},
+          },
+        }),
+      );
+
+      expect(result.statusCode, 200);
+      expect(result.body['result']['isError'], true);
+      final content = result.body['result']['content'] as List<dynamic>;
+      final text = (content.first as Map<String, dynamic>)['text'] as String;
+      expect(text, contains('does not accept arguments'));
+    });
   });
 }
