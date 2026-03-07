@@ -15,7 +15,6 @@ class HttpApiPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final port = context.select<ConfigProvider, int>((provider) {
       return provider.config.port;
     });
@@ -54,15 +53,17 @@ class HttpApiPage extends StatelessWidget {
       'autoStart': true,
       'showNotifications': true,
     };
+
+    final statusCurlCommand = 'curl $baseUrl/api/status';
     final normalCurlCommand =
         'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
         "'${jsonEncode(normalPayloadMap)}'";
-    final flashFullCurlCommand =
-        'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
-        "'${jsonEncode(flashFullPayloadMap)}'";
     final flashEdgeCurlCommand =
         'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
         "'${jsonEncode(flashEdgePayloadMap)}'";
+    final flashFullCurlCommand =
+        'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
+        "'${jsonEncode(flashFullPayloadMap)}'";
     final updateConfigCurlCommand =
         'curl -X POST $configUrl -H "Content-Type: application/json" -d '
         "'${jsonEncode(updateConfigPayloadMap)}'";
@@ -80,10 +81,127 @@ class HttpApiPage extends StatelessWidget {
     final validationErrorResponse = jsonEncoder.convert({
       'success': false,
       'error': 'Invalid notification request.',
-      'validationErrors': [
-        'Field "flashEffect" must be one of: full, edge.',
-      ],
+      'validationErrors': ['Field "flashEffect" must be one of: full, edge.'],
     });
+
+    final endpoints = <_EndpointSpec>[
+      _EndpointSpec(
+        method: 'GET',
+        path: '/api/status',
+        description: l10n.httpApiEndpointStatusDesc,
+      ),
+      _EndpointSpec(
+        method: 'POST',
+        path: '/api/notify',
+        description: l10n.httpApiEndpointNotifyDesc,
+      ),
+      _EndpointSpec(
+        method: 'GET',
+        path: '/api/config',
+        description: l10n.httpApiEndpointGetConfigDesc,
+      ),
+      _EndpointSpec(
+        method: 'POST',
+        path: '/api/config',
+        description: l10n.httpApiEndpointUpdateConfigDesc,
+      ),
+    ];
+
+    final notifyParams = <_ApiParamSpec>[
+      _ApiParamSpec(
+        name: 'title',
+        type: 'string',
+        required: l10n.httpApiRequiredYes,
+        description: l10n.httpApiParamTitleDesc,
+      ),
+      _ApiParamSpec(
+        name: 'body',
+        type: 'string',
+        required: l10n.httpApiRequiredConditional,
+        description: l10n.httpApiParamBodyDesc,
+      ),
+      _ApiParamSpec(
+        name: 'priority',
+        type: 'string',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamPriorityDesc,
+      ),
+      _ApiParamSpec(
+        name: 'category',
+        type: 'string',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamCategoryDesc,
+      ),
+      _ApiParamSpec(
+        name: 'flashColor',
+        type: 'string',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamFlashColorDesc,
+      ),
+      _ApiParamSpec(
+        name: 'flashDuration',
+        type: 'int',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamFlashDurationDesc,
+      ),
+      _ApiParamSpec(
+        name: 'flashEffect',
+        type: 'string',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamFlashEffectDesc,
+      ),
+      _ApiParamSpec(
+        name: 'edgeWidth',
+        type: 'double',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamEdgeWidthDesc,
+      ),
+      _ApiParamSpec(
+        name: 'edgeOpacity',
+        type: 'double',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamEdgeOpacityDesc,
+      ),
+      _ApiParamSpec(
+        name: 'edgeRepeat',
+        type: 'int',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamEdgeRepeatDesc,
+      ),
+      _ApiParamSpec(
+        name: 'payload',
+        type: 'object',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamPayloadDesc,
+      ),
+    ];
+
+    final configParams = <_ApiParamSpec>[
+      _ApiParamSpec(
+        name: 'port',
+        type: 'int',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamPortDesc,
+      ),
+      _ApiParamSpec(
+        name: 'allowedIPs',
+        type: 'string[]',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamAllowedIPsDesc,
+      ),
+      _ApiParamSpec(
+        name: 'autoStart',
+        type: 'bool',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamAutoStartDesc,
+      ),
+      _ApiParamSpec(
+        name: 'showNotifications',
+        type: 'bool',
+        required: l10n.httpApiRequiredNo,
+        description: l10n.httpApiParamShowNotificationsDesc,
+      ),
+    ];
 
     return Container(
       color: colorScheme.surface,
@@ -94,262 +212,143 @@ class HttpApiPage extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(ShellDimensions.pagePadding),
               children: [
-                _DocCard(
+                _HeroCard(
                   title: l10n.httpApiIntroTitle,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.httpApiIntroBody,
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: ShellDimensions.bodySize,
-                          height: 1.45,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      _MetaLine(
-                        label: l10n.httpApiBaseUrlLabel,
-                        value: baseUrl,
-                        isCode: true,
-                      ),
-                      const SizedBox(height: 6),
-                      _MetaLine(
-                        label: l10n.httpApiContentTypeLabel,
-                        value: 'application/json',
-                        isCode: true,
-                      ),
-                      const SizedBox(height: 6),
-                      _MetaLine(
-                        label: l10n.httpApiAuthLabel,
-                        value: l10n.httpApiAuthValue,
-                      ),
-                    ],
-                  ),
+                  description: l10n.httpApiIntroBody,
+                  baseUrlLabel: l10n.httpApiBaseUrlLabel,
+                  baseUrl: baseUrl,
+                  contentTypeLabel: l10n.httpApiContentTypeLabel,
+                  contentType: 'application/json',
+                  authLabel: l10n.httpApiAuthLabel,
+                  authValue: l10n.httpApiAuthValue,
+                  endpointCount: endpoints.length,
+                  sampleCount: 4,
+                  port: port,
                 ),
                 const SizedBox(height: ShellDimensions.sectionGap),
-                _DocCard(
-                  title: l10n.httpApiEndpointListTitle,
-                  child: SelectionArea(
-                    child: _SpecTable(
-                      headers: [
-                        l10n.httpApiEndpointMethod,
-                        l10n.httpApiEndpointPath,
-                        l10n.httpApiEndpointDesc,
-                      ],
-                      rows: [
-                        [
-                          'GET',
-                          '/api/status',
-                          l10n.httpApiEndpointStatusDesc,
-                        ],
-                        [
-                          'POST',
-                          '/api/notify',
-                          l10n.httpApiEndpointNotifyDesc,
-                        ],
-                        [
-                          'GET',
-                          '/api/config',
-                          l10n.httpApiEndpointGetConfigDesc,
-                        ],
-                        [
-                          'POST',
-                          '/api/config',
-                          l10n.httpApiEndpointUpdateConfigDesc,
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _DocCard(
-                  title: l10n.httpApiNotifyParamsTitle,
-                  child: SelectionArea(
-                    child: _SpecTable(
-                      headers: [
-                        l10n.httpApiParamName,
-                        l10n.httpApiParamType,
-                        l10n.httpApiParamRequired,
-                        l10n.httpApiParamDescription,
-                      ],
-                      rows: [
-                        [
-                          'title',
-                          'string',
-                          l10n.httpApiRequiredYes,
-                          l10n.httpApiParamTitleDesc,
-                        ],
-                        [
-                          'body',
-                          'string',
-                          l10n.httpApiRequiredConditional,
-                          l10n.httpApiParamBodyDesc,
-                        ],
-                        [
-                          'priority',
-                          'string',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamPriorityDesc,
-                        ],
-                        [
-                          'category',
-                          'string',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamCategoryDesc,
-                        ],
-                        [
-                          'flashColor',
-                          'string',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamFlashColorDesc,
-                        ],
-                        [
-                          'flashDuration',
-                          'int',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamFlashDurationDesc,
-                        ],
-                        [
-                          'flashEffect',
-                          'string',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamFlashEffectDesc,
-                        ],
-                        [
-                          'edgeWidth',
-                          'double',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamEdgeWidthDesc,
-                        ],
-                        [
-                          'edgeOpacity',
-                          'double',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamEdgeOpacityDesc,
-                        ],
-                        [
-                          'edgeRepeat',
-                          'int',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamEdgeRepeatDesc,
-                        ],
-                        [
-                          'payload',
-                          'object',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamPayloadDesc,
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _DocCard(
-                  title: l10n.httpApiConfigParamsTitle,
-                  child: SelectionArea(
-                    child: _SpecTable(
-                      headers: [
-                        l10n.httpApiParamName,
-                        l10n.httpApiParamType,
-                        l10n.httpApiParamRequired,
-                        l10n.httpApiParamDescription,
-                      ],
-                      rows: [
-                        [
-                          'port',
-                          'int',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamPortDesc,
-                        ],
-                        [
-                          'allowedIPs',
-                          'string[]',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamAllowedIPsDesc,
-                        ],
-                        [
-                          'autoStart',
-                          'bool',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamAutoStartDesc,
-                        ],
-                        [
-                          'showNotifications',
-                          'bool',
-                          l10n.httpApiRequiredNo,
-                          l10n.httpApiParamShowNotificationsDesc,
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _DocCard(
-                  title: l10n.httpApiEnumTitle,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _EnumLine(
-                        name: 'category',
-                        values: 'flash',
-                        description: l10n.httpApiEnumCategory,
-                      ),
-                      const SizedBox(height: 8),
-                      _EnumLine(
-                        name: 'flashEffect',
-                        values: 'full | edge',
-                        description: l10n.httpApiEnumFlashEffect,
-                      ),
-                      const SizedBox(height: 8),
-                      _EnumLine(
-                        name: 'priority',
-                        values: 'low | normal | high',
-                        description: l10n.httpApiEnumPriority,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _DocCard(
+                _SectionCard(
                   title: l10n.httpApiExamples,
+                  subtitle: l10n.httpApiEndpoints,
                   child: SelectionArea(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _ExampleBlock(
+                        _QuickStartStep(
+                          index: 1,
+                          title: 'GET /api/status',
+                          description: l10n.httpApiEndpointStatusDesc,
+                          code: statusCurlCommand,
+                        ),
+                        const SizedBox(height: 8),
+                        _QuickStartStep(
+                          index: 2,
                           title: l10n.httpApiNotifyNormal,
-                          command: normalCurlCommand,
-                          payload: jsonEncoder.convert(normalPayloadMap),
+                          description: l10n.httpApiEndpointNotifyDesc,
+                          code: normalCurlCommand,
                         ),
-                        const SizedBox(height: 10),
-                        _ExampleBlock(
-                          title: l10n.httpApiExampleFlashFull,
-                          command: flashFullCurlCommand,
-                          payload: jsonEncoder.convert(flashFullPayloadMap),
-                        ),
-                        const SizedBox(height: 10),
-                        _ExampleBlock(
+                        const SizedBox(height: 8),
+                        _QuickStartStep(
+                          index: 3,
                           title: l10n.httpApiExampleFlashEdge,
-                          command: flashEdgeCurlCommand,
-                          payload: jsonEncoder.convert(flashEdgePayloadMap),
-                        ),
-                        const SizedBox(height: 10),
-                        _ExampleBlock(
-                          title: l10n.httpApiExampleConfigUpdate,
-                          command: updateConfigCurlCommand,
-                          payload: jsonEncoder.convert(updateConfigPayloadMap),
+                          description: l10n.httpApiEnumFlashEffect,
+                          code: flashEdgeCurlCommand,
                         ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: ShellDimensions.sectionGap),
-                _DocCard(
+                _SectionCard(
+                  title: l10n.httpApiEndpointListTitle,
+                  child: _EndpointGrid(items: endpoints),
+                ),
+                const SizedBox(height: ShellDimensions.sectionGap),
+                _SectionCard(
+                  title: l10n.httpApiNotifyParamsTitle,
+                  child: _ParamList(items: notifyParams),
+                ),
+                const SizedBox(height: ShellDimensions.sectionGap),
+                _SectionCard(
+                  title: l10n.httpApiConfigParamsTitle,
+                  child: _ParamList(items: configParams),
+                ),
+                const SizedBox(height: ShellDimensions.sectionGap),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final wide = constraints.maxWidth >= 920;
+                    final enumCard = _SectionCard(
+                      title: l10n.httpApiEnumTitle,
+                      child: Column(
+                        children: [
+                          _EnumRow(
+                            name: 'category',
+                            values: 'flash',
+                            description: l10n.httpApiEnumCategory,
+                          ),
+                          const SizedBox(height: 8),
+                          _EnumRow(
+                            name: 'flashEffect',
+                            values: 'full | edge',
+                            description: l10n.httpApiEnumFlashEffect,
+                          ),
+                          const SizedBox(height: 8),
+                          _EnumRow(
+                            name: 'priority',
+                            values: 'low | normal | high',
+                            description: l10n.httpApiEnumPriority,
+                          ),
+                        ],
+                      ),
+                    );
+                    final notesCard = _SectionCard(
+                      title: l10n.httpApiNotesTitle,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _NoteLine(text: l10n.httpApiNotesAliases),
+                          const SizedBox(height: 6),
+                          _NoteLine(text: l10n.httpApiNotesBodyOptional),
+                          const SizedBox(height: 6),
+                          _NoteLine(text: l10n.httpApiNotesEdgeOnly),
+                        ],
+                      ),
+                    );
+
+                    if (!wide) {
+                      return Column(
+                        children: [
+                          enumCard,
+                          const SizedBox(height: ShellDimensions.sectionGap),
+                          notesCard,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: enumCard),
+                        const SizedBox(width: ShellDimensions.sectionGap),
+                        Expanded(child: notesCard),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: ShellDimensions.sectionGap),
+                _SectionCard(
                   title: l10n.httpApiResponseTitle,
                   child: SelectionArea(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _LabeledCodeBlock(
+                          label: l10n.httpApiExampleFlashFull,
+                          code: flashFullCurlCommand,
+                        ),
+                        const SizedBox(height: 8),
+                        _LabeledCodeBlock(
+                          label: l10n.httpApiExampleConfigUpdate,
+                          code: updateConfigCurlCommand,
+                        ),
+                        const SizedBox(height: 8),
                         _LabeledCodeBlock(
                           label: 'GET /api/status',
                           code: statusResponse,
@@ -368,20 +367,6 @@ class HttpApiPage extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _DocCard(
-                  title: l10n.httpApiNotesTitle,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _NoteLine(text: l10n.httpApiNotesAliases),
-                      const SizedBox(height: 6),
-                      _NoteLine(text: l10n.httpApiNotesBodyOptional),
-                      const SizedBox(height: 6),
-                      _NoteLine(text: l10n.httpApiNotesEdgeOnly),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
@@ -391,28 +376,266 @@ class HttpApiPage extends StatelessWidget {
   }
 }
 
-class _DocCard extends StatelessWidget {
-  const _DocCard({required this.title, required this.child});
+class _HeroCard extends StatelessWidget {
+  const _HeroCard({
+    required this.title,
+    required this.description,
+    required this.baseUrlLabel,
+    required this.baseUrl,
+    required this.contentTypeLabel,
+    required this.contentType,
+    required this.authLabel,
+    required this.authValue,
+    required this.endpointCount,
+    required this.sampleCount,
+    required this.port,
+  });
 
   final String title;
+  final String description;
+  final String baseUrlLabel;
+  final String baseUrl;
+  final String contentTypeLabel;
+  final String contentType;
+  final String authLabel;
+  final String authValue;
+  final int endpointCount;
+  final int sampleCount;
+  final int port;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(ShellDimensions.radiusMd),
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primaryContainer.withValues(alpha: 0.72),
+            colorScheme.surfaceContainerHighest,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      padding: const EdgeInsets.all(ShellDimensions.cardPadding + 3),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= 860;
+
+          final left = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: textTheme.titleLarge?.copyWith(
+                  fontSize: ShellDimensions.pageTitleSize,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                description,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontSize: ShellDimensions.bodySize,
+                  height: 1.55,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _MetaChip(label: baseUrlLabel, value: baseUrl),
+                  _MetaChip(label: contentTypeLabel, value: contentType),
+                  _MetaChip(label: authLabel, value: authValue),
+                ],
+              ),
+            ],
+          );
+
+          final right = Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _StatChip(label: 'Endpoints', value: '$endpointCount'),
+              _StatChip(label: 'Examples', value: '$sampleCount'),
+              _StatChip(label: 'Port', value: '$port'),
+            ],
+          );
+
+          if (!wide) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [left, const SizedBox(height: 10), right],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: left),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: Align(alignment: Alignment.topRight, child: right),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      constraints: const BoxConstraints(minWidth: 190),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.78),
+        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: textTheme.labelSmall?.copyWith(
+              fontSize: ShellDimensions.metaSize,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 2),
+          SelectableText(
+            value,
+            style: textTheme.bodySmall?.copyWith(
+              fontSize: ShellDimensions.codeSize,
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  const _StatChip({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      width: 118,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(
+          colorScheme.primary.withValues(alpha: 0.08),
+          colorScheme.surface,
+        ),
+        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: textTheme.labelSmall?.copyWith(
+              fontSize: ShellDimensions.metaSize,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: textTheme.titleMedium?.copyWith(
+              fontSize: ShellDimensions.cardTitleSize,
+              fontWeight: FontWeight.w800,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.title, required this.child, this.subtitle});
+
+  final String title;
+  final String? subtitle;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(ShellDimensions.cardPadding),
+        padding: const EdgeInsets.all(ShellDimensions.cardPadding + 1),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontSize: ShellDimensions.cardTitleSize,
-                fontWeight: FontWeight.w700,
-              ),
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontSize: ShellDimensions.cardTitleSize,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    style: textTheme.bodySmall?.copyWith(
+                      fontSize: ShellDimensions.metaSize,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             child,
           ],
         ),
@@ -421,128 +644,366 @@ class _DocCard extends StatelessWidget {
   }
 }
 
-class _MetaLine extends StatelessWidget {
-  const _MetaLine({
-    required this.label,
-    required this.value,
-    this.isCode = false,
+class _QuickStartStep extends StatelessWidget {
+  const _QuickStartStep({
+    required this.index,
+    required this.title,
+    required this.description,
+    required this.code,
   });
 
-  final String label;
-  final String value;
-  final bool isCode;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final valueStyle = isCode
-        ? textTheme.bodySmall?.copyWith(
-            fontSize: ShellDimensions.codeSize,
-            fontFamily: 'monospace',
-            fontWeight: FontWeight.w600,
-          )
-        : textTheme.bodyMedium?.copyWith(
-            fontSize: ShellDimensions.bodySize,
-          );
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 120,
-          child: Text(
-            label,
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: ShellDimensions.bodySmallSize,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        Expanded(
-          child: SelectableText(
-            value,
-            style: valueStyle,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SpecTable extends StatelessWidget {
-  const _SpecTable({required this.headers, required this.rows});
-
-  final List<String> headers;
-  final List<List<String>> rows;
+  final int index;
+  final String title;
+  final String description;
+  final String code;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 880),
-        child: Table(
-          border: TableBorder.all(color: colorScheme.outlineVariant),
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          columnWidths: const {
-            0: FlexColumnWidth(1.4),
-            1: FlexColumnWidth(1.1),
-            2: FlexColumnWidth(1.1),
-            3: FlexColumnWidth(4.4),
-          },
-          children: [
-            TableRow(
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest,
-              ),
-              children: headers.map((text) {
-                return Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Text(
-                    text,
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: ShellDimensions.bodySmallSize,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            ...rows.asMap().entries.map((entry) {
-              final index = entry.key;
-              final cols = entry.value;
-              return TableRow(
+    return Container(
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 22,
+                height: 22,
                 decoration: BoxDecoration(
-                  color: index.isEven
-                      ? colorScheme.surface
-                      : colorScheme.surfaceContainerLowest,
+                  shape: BoxShape.circle,
+                  color: colorScheme.primary,
                 ),
-                children: cols.map((cellText) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: SelectableText(
-                      cellText,
-                      style: textTheme.bodySmall?.copyWith(
-                        fontSize: ShellDimensions.bodySmallSize,
-                        height: 1.35,
+                alignment: Alignment.center,
+                child: Text(
+                  '$index',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: textTheme.bodyMedium?.copyWith(
+                        fontSize: ShellDimensions.bodySize,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  );
-                }).toList(),
-              );
-            }),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: textTheme.bodySmall?.copyWith(
+                        fontSize: ShellDimensions.bodySmallSize,
+                        height: 1.45,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _CodeBlock(code: code),
+        ],
+      ),
+    );
+  }
+}
+
+class _EndpointSpec {
+  const _EndpointSpec({
+    required this.method,
+    required this.path,
+    required this.description,
+  });
+
+  final String method;
+  final String path;
+  final String description;
+}
+
+class _EndpointGrid extends StatelessWidget {
+  const _EndpointGrid({required this.items});
+
+  final List<_EndpointSpec> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final twoColumns = constraints.maxWidth >= 920;
+        if (!twoColumns) {
+          return Column(
+            children: [
+              for (var i = 0; i < items.length; i++) ...[
+                _EndpointCard(item: items[i]),
+                if (i != items.length - 1) const SizedBox(height: 8),
+              ],
+            ],
+          );
+        }
+
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final item in items)
+              SizedBox(
+                width: (constraints.maxWidth - 8) / 2,
+                child: _EndpointCard(item: item),
+              ),
           ],
+        );
+      },
+    );
+  }
+}
+
+class _EndpointCard extends StatelessWidget {
+  const _EndpointCard({required this.item});
+
+  final _EndpointSpec item;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
+        border: Border.all(color: colorScheme.outlineVariant),
+        color: colorScheme.surfaceContainerLowest,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _MethodBadge(method: item.method),
+              const SizedBox(width: 8),
+              Expanded(
+                child: SelectableText(
+                  item.path,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontSize: ShellDimensions.codeSize,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            item.description,
+            style: textTheme.bodySmall?.copyWith(
+              fontSize: ShellDimensions.bodySmallSize,
+              height: 1.45,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MethodBadge extends StatelessWidget {
+  const _MethodBadge({required this.method});
+
+  final String method;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isGet = method.toUpperCase() == 'GET';
+    final background = isGet
+        ? Color.alphaBlend(
+            colorScheme.tertiary.withValues(alpha: 0.16),
+            colorScheme.surface,
+          )
+        : Color.alphaBlend(
+            colorScheme.primary.withValues(alpha: 0.16),
+            colorScheme.surface,
+          );
+    final foreground = isGet ? colorScheme.tertiary : colorScheme.primary;
+
+    return Container(
+      constraints: const BoxConstraints(minWidth: 48),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        method,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontSize: ShellDimensions.metaSize,
+          fontWeight: FontWeight.w800,
+          color: foreground,
         ),
       ),
     );
   }
 }
 
-class _EnumLine extends StatelessWidget {
-  const _EnumLine({
+class _ApiParamSpec {
+  const _ApiParamSpec({
+    required this.name,
+    required this.type,
+    required this.required,
+    required this.description,
+  });
+
+  final String name;
+  final String type;
+  final String required;
+  final String description;
+}
+
+class _ParamList extends StatelessWidget {
+  const _ParamList({required this.items});
+
+  final List<_ApiParamSpec> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (var i = 0; i < items.length; i++) ...[
+          _ParamRow(item: items[i]),
+          if (i != items.length - 1) const SizedBox(height: 7),
+        ],
+      ],
+    );
+  }
+}
+
+class _ParamRow extends StatelessWidget {
+  const _ParamRow({required this.item});
+
+  final _ApiParamSpec item;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final requiredColor =
+        item.required.toLowerCase().contains('yes') ||
+            item.required.contains('是')
+        ? colorScheme.error
+        : colorScheme.onSurfaceVariant;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
+        border: Border.all(color: colorScheme.outlineVariant),
+        color: colorScheme.surface,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SelectableText(
+                  item.name,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontSize: ShellDimensions.codeSize,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              _Badge(
+                label: item.type,
+                foregroundColor: colorScheme.primary,
+                backgroundColor: Color.alphaBlend(
+                  colorScheme.primary.withValues(alpha: 0.12),
+                  colorScheme.surface,
+                ),
+              ),
+              const SizedBox(width: 6),
+              _Badge(
+                label: item.required,
+                foregroundColor: requiredColor,
+                backgroundColor: Color.alphaBlend(
+                  requiredColor.withValues(alpha: 0.1),
+                  colorScheme.surface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            item.description,
+            style: textTheme.bodySmall?.copyWith(
+              fontSize: ShellDimensions.bodySmallSize,
+              height: 1.48,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({
+    required this.label,
+    required this.foregroundColor,
+    required this.backgroundColor,
+  });
+
+  final String label;
+  final Color foregroundColor;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: backgroundColor,
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontSize: ShellDimensions.metaSize,
+          fontWeight: FontWeight.w700,
+          color: foregroundColor,
+        ),
+      ),
+    );
+  }
+}
+
+class _EnumRow extends StatelessWidget {
+  const _EnumRow({
     required this.name,
     required this.values,
     required this.description,
@@ -555,13 +1016,20 @@ class _EnumLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 220,
-          child: SelectableText(
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SelectableText(
             '$name: $values',
             style: textTheme.bodySmall?.copyWith(
               fontSize: ShellDimensions.codeSize,
@@ -569,50 +1037,17 @@ class _EnumLine extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
+          const SizedBox(height: 4),
+          Text(
             description,
-            style: textTheme.bodyMedium?.copyWith(
-              fontSize: ShellDimensions.bodySize,
-              height: 1.4,
+            style: textTheme.bodySmall?.copyWith(
+              fontSize: ShellDimensions.bodySmallSize,
+              height: 1.45,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ExampleBlock extends StatelessWidget {
-  const _ExampleBlock({
-    required this.title,
-    required this.command,
-    required this.payload,
-  });
-
-  final String title;
-  final String command;
-  final String payload;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontSize: ShellDimensions.bodySize,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 4),
-        _CodeBlock(code: command),
-        const SizedBox(height: 6),
-        _CodeBlock(code: payload),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -665,7 +1100,7 @@ class _CodeBlock extends StatelessWidget {
         style: textTheme.bodySmall?.copyWith(
           fontSize: ShellDimensions.codeSize,
           fontFamily: 'monospace',
-          height: 1.35,
+          height: 1.4,
         ),
       ),
     );
@@ -679,12 +1114,14 @@ class _NoteLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 4),
-          child: Icon(Icons.circle, size: 6),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Icon(Icons.circle, size: 6, color: colorScheme.primary),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -692,7 +1129,7 @@ class _NoteLine extends StatelessWidget {
             text,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: ShellDimensions.bodySize,
-              height: 1.4,
+              height: 1.45,
             ),
           ),
         ),

@@ -21,6 +21,15 @@ Widget _buildTestApp({
   );
 }
 
+Future<void> _scrollUntilTextVisible(WidgetTester tester, String text) async {
+  await tester.scrollUntilVisible(
+    find.text(text),
+    260,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.pumpAndSettle();
+}
+
 void main() {
   group('HttpApiPage localization', () {
     testWidgets('renders English labels', (tester) async {
@@ -36,14 +45,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('API Overview'), findsOneWidget);
-      expect(find.text('Endpoint List'), findsOneWidget);
       expect(find.text('Base URL'), findsOneWidget);
       expect(find.text('Authentication'), findsOneWidget);
       expect(find.text('http://localhost:8642'), findsOneWidget);
       expect(
-        find.text('No authentication currently; use IP whitelist for access control'),
+        find.text(
+          'No authentication currently; use IP whitelist for access control',
+        ),
         findsOneWidget,
       );
+      await _scrollUntilTextVisible(tester, 'Endpoint List');
+      expect(find.text('Endpoint List'), findsOneWidget);
     });
 
     testWidgets('renders Chinese labels', (tester) async {
@@ -59,11 +71,12 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('API 概览'), findsOneWidget);
-      expect(find.text('接口清单'), findsOneWidget);
       expect(find.text('Base URL'), findsOneWidget);
       expect(find.text('认证方式'), findsOneWidget);
       expect(find.text('http://localhost:8642'), findsOneWidget);
       expect(find.text('当前无鉴权，建议结合 IP 白名单使用'), findsOneWidget);
+      await _scrollUntilTextVisible(tester, '接口清单');
+      expect(find.text('接口清单'), findsOneWidget);
     });
   });
 }
