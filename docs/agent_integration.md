@@ -92,4 +92,4 @@ python3 skills/snotice-agent/scripts/snotice_call.py notify --title "Deploy" --b
 
 - If you get `401 IP not allowed`, update SNotice `allowedIPs` config.
 - For config updates, do read-then-merge to avoid resetting unspecified fields.
-- For flash mode, `edgeWidth/edgeOpacity/edgeRepeat` only work with `flashEffect=edge`.
+- `edgeWidth/edgeOpacity/edgeRepeat` only work with `category=flash_edge`.

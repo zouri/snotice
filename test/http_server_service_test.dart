@@ -156,8 +156,7 @@ void main() {
       () async {
         final result = await _postNotify(
           port: port,
-          body:
-              '{"title":"Flash","category":"flash","flashEffect":"edge","edgeWidth":6}',
+          body: '{"title":"Flash","category":"flash_edge","edgeWidth":6}',
         );
 
         expect(result.statusCode, 200);

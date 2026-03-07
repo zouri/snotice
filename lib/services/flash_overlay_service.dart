@@ -17,7 +17,7 @@ class FlashOverlayService {
   /// 参数:
   /// - color: 闪烁颜色，支持十六进制（"#FF0000"）或颜色名称（"red"")
   /// - duration: 闪烁持续时间（毫秒），默认 500ms
-  /// - effect: full(全屏) 或 edge(边缘发光)
+  /// - effect: full(全屏) 或 edge(边缘发光)，由 category 映射得到
   /// - edgeWidth: 边缘发光宽度（仅 effect=edge 生效）
   /// - edgeOpacity: 边缘发光透明度（仅 effect=edge 生效）
   /// - edgeRepeat: 边缘发光重复次数（仅 effect=edge 生效）

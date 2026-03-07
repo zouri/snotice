@@ -61,9 +61,25 @@ curl -X POST http://localhost:8642/api/notify \
   -d '{
     "title": "Alert",
     "body": "Screen flash",
-    "category": "flash",
+    "category": "flash_full",
     "flashColor": "gray",
     "flashDuration": 800
+  }'
+```
+
+### Edge Flash Notification
+
+```bash
+curl -X POST http://localhost:8642/api/notify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Edge Alert",
+    "category": "flash_edge",
+    "flashColor": "#00D1FF",
+    "flashDuration": 700,
+    "edgeWidth": 12,
+    "edgeOpacity": 0.92,
+    "edgeRepeat": 2
   }'
 ```
 
@@ -84,23 +100,21 @@ python3 scripts/test_http_api.py config-get
 # Send a normal notification
 python3 scripts/test_http_api.py notify --mode normal
 
-# Send an edge-lighting notification (macOS)
-python3 scripts/test_http_api.py notify --mode edge_rainbow --flash-color "#00D1FF"
+# Send a full-screen flash notification
+python3 scripts/test_http_api.py notify --mode flash_full --flash-color "#FF0000"
+
+# Send an edge-lighting notification
+python3 scripts/test_http_api.py notify --mode flash_edge --flash-color "#00D1FF"
 
 # Run smoke test (status + normal notify + edge notify)
-python3 scripts/test_http_api.py smoke --include-edge --edge-effect edge_dual
+python3 scripts/test_http_api.py smoke --include-edge
 ```
 
 Supported `notify --mode` values:
 
 - `normal`
-- `flash`
-- `edge`
-- `edge_pulse`
-- `edge_dual`
-- `edge_dash`
-- `edge_corner`
-- `edge_rainbow`
+- `flash_full`
+- `flash_edge`
 
 ## AI Agent Integration
 

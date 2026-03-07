@@ -32,17 +32,15 @@ class HttpApiPage extends StatelessWidget {
     final flashFullPayloadMap = <String, dynamic>{
       'title': l10n.httpApiSampleTitleAlert,
       'body': l10n.httpApiSampleBodyFlash,
-      'category': 'flash',
+      'category': 'flash_full',
       'flashColor': '#FF0000',
       'flashDuration': 700,
-      'flashEffect': 'full',
     };
     final flashEdgePayloadMap = <String, dynamic>{
       'title': l10n.httpApiSampleTitleAlert,
-      'category': 'flash',
+      'category': 'flash_edge',
       'flashColor': '#35D6FF',
       'flashDuration': 900,
-      'flashEffect': 'edge',
       'edgeWidth': 16,
       'edgeOpacity': 0.9,
       'edgeRepeat': 2,
@@ -81,7 +79,9 @@ class HttpApiPage extends StatelessWidget {
     final validationErrorResponse = jsonEncoder.convert({
       'success': false,
       'error': 'Invalid notification request.',
-      'validationErrors': ['Field "flashEffect" must be one of: full, edge.'],
+      'validationErrors': [
+        'Field "category" must be one of: flash_full, flash_edge.',
+      ],
     });
 
     final endpoints = <_EndpointSpec>[
@@ -143,12 +143,6 @@ class HttpApiPage extends StatelessWidget {
         type: 'int',
         required: l10n.httpApiRequiredNo,
         description: l10n.httpApiParamFlashDurationDesc,
-      ),
-      _ApiParamSpec(
-        name: 'flashEffect',
-        type: 'string',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamFlashEffectDesc,
       ),
       _ApiParamSpec(
         name: 'edgeWidth',
@@ -249,7 +243,7 @@ class HttpApiPage extends StatelessWidget {
                         _QuickStartStep(
                           index: 3,
                           title: l10n.httpApiExampleFlashEdge,
-                          description: l10n.httpApiEnumFlashEffect,
+                          description: l10n.httpApiEnumCategory,
                           code: flashEdgeCurlCommand,
                         ),
                       ],
@@ -281,14 +275,8 @@ class HttpApiPage extends StatelessWidget {
                         children: [
                           _EnumRow(
                             name: 'category',
-                            values: 'flash',
+                            values: 'flash_full | flash_edge',
                             description: l10n.httpApiEnumCategory,
-                          ),
-                          const SizedBox(height: 8),
-                          _EnumRow(
-                            name: 'flashEffect',
-                            values: 'full | edge',
-                            description: l10n.httpApiEnumFlashEffect,
                           ),
                           const SizedBox(height: 8),
                           _EnumRow(

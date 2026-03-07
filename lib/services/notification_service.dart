@@ -82,7 +82,7 @@ class NotificationService {
     try {
       final color = request.flashColor ?? '#FF0000';
       final duration = request.flashDuration ?? 500;
-      final effect = request.flashEffect?.value ?? FlashEffect.full.value;
+      final effect = request.isEdgeFlash ? 'edge' : 'full';
 
       _logger.notification(
         'Flash notification: ${request.title}',

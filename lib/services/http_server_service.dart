@@ -380,14 +380,10 @@ class HttpServerService {
             },
             'category': {
               'type': 'string',
-              'enum': ['flash'],
+              'enum': ['flash_full', 'flash_edge'],
             },
             'flashColor': {'type': 'string'},
             'flashDuration': {'type': 'integer', 'minimum': 1},
-            'flashEffect': {
-              'type': 'string',
-              'enum': ['full', 'edge'],
-            },
             'edgeWidth': {'type': 'number', 'exclusiveMinimum': 0},
             'edgeOpacity': {'type': 'number', 'minimum': 0, 'maximum': 1},
             'edgeRepeat': {'type': 'integer', 'minimum': 1},

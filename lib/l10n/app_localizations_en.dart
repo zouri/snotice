@@ -109,7 +109,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiParamBodyDesc =>
-      'Notification body. Required for normal notifications; optional when category=flash. Alias: message.';
+      'Notification body. Required for normal notifications; optional when category=flash_full or flash_edge.';
 
   @override
   String get httpApiParamPriorityDesc =>
@@ -117,31 +117,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiParamCategoryDesc =>
-      'Notification category. Currently only supports: flash. Alias: type.';
+      'Notification category. Allowed: flash_full / flash_edge.';
 
   @override
   String get httpApiParamFlashColorDesc =>
-      'Flash color. Supports #RRGGBB or color name. Alias: color. Default: #FF0000.';
+      'Flash color. Supports #RRGGBB or color name. Default: #FF0000.';
 
   @override
   String get httpApiParamFlashDurationDesc =>
-      'Flash duration in milliseconds. Must be > 0. Alias: duration. Default: 500.';
-
-  @override
-  String get httpApiParamFlashEffectDesc =>
-      'Flash effect. Allowed: full / edge. Alias: effect. Default: full.';
+      'Flash duration in milliseconds. Must be > 0. Default: 500.';
 
   @override
   String get httpApiParamEdgeWidthDesc =>
-      'Edge glow width. Only valid when flashEffect=edge; must be > 0. Alias: width.';
+      'Edge glow width. Only valid when category=flash_edge; must be > 0.';
 
   @override
   String get httpApiParamEdgeOpacityDesc =>
-      'Edge glow opacity. Only valid when flashEffect=edge; range 0~1. Alias: opacity.';
+      'Edge glow opacity. Only valid when category=flash_edge; range 0~1.';
 
   @override
   String get httpApiParamEdgeRepeatDesc =>
-      'Edge glow repeat count. Only valid when flashEffect=edge; must be > 0. Alias: repeat.';
+      'Edge glow repeat count. Only valid when category=flash_edge; must be > 0.';
 
   @override
   String get httpApiParamPayloadDesc =>
@@ -166,21 +162,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get httpApiEnumTitle => 'Enum Values';
 
   @override
-  String get httpApiEnumCategory => 'flash: triggers the flash alert flow.';
-
-  @override
-  String get httpApiEnumFlashEffect =>
-      'full: full-screen flash; edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat).';
+  String get httpApiEnumCategory =>
+      'flash_full: full-screen flash; flash_edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat).';
 
   @override
   String get httpApiEnumPriority =>
       'low/normal/high: controls normal notification priority; default is normal.';
 
   @override
-  String get httpApiExampleFlashFull => 'POST /api/notify (flash full)';
+  String get httpApiExampleFlashFull => 'POST /api/notify (flash flash_full)';
 
   @override
-  String get httpApiExampleFlashEdge => 'POST /api/notify (flash edge)';
+  String get httpApiExampleFlashEdge => 'POST /api/notify (flash flash_edge)';
 
   @override
   String get httpApiExampleConfigUpdate => 'POST /api/config (update config)';
@@ -200,15 +193,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiNotesAliases =>
-      'Some fields accept compatibility aliases (for example body/message, category/type, flashEffect/effect).';
+      'Aliases are not supported. Only canonical field names are accepted.';
 
   @override
   String get httpApiNotesBodyOptional =>
-      'Only flash notifications allow empty body; normal notifications must include body.';
+      'Only flash_full / flash_edge notifications allow empty body; normal notifications must include body.';
 
   @override
   String get httpApiNotesEdgeOnly =>
-      'edgeWidth, edgeOpacity, and edgeRepeat are only valid when flashEffect=edge; otherwise validation fails.';
+      'edgeWidth, edgeOpacity, and edgeRepeat are only valid when category=flash_edge; otherwise validation fails.';
 
   @override
   String get httpApiEndpoints => 'Endpoints';

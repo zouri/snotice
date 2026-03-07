@@ -104,38 +104,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get httpApiParamBodyDesc =>
-      '通知内容。普通通知必填；当 category=flash 时可为空。兼容别名: message。';
+      '通知内容。普通通知必填；当 category=flash_full 或 flash_edge 时可为空。';
 
   @override
   String get httpApiParamPriorityDesc =>
       '通知优先级。可选: low / normal / high。默认: normal。';
 
   @override
-  String get httpApiParamCategoryDesc => '通知类别。当前仅支持: flash。兼容别名: type。';
+  String get httpApiParamCategoryDesc => '通知类别。可选: flash_full / flash_edge。';
 
   @override
-  String get httpApiParamFlashColorDesc =>
-      '闪屏颜色。支持 #RRGGBB 或颜色名。兼容别名: color。默认: #FF0000。';
+  String get httpApiParamFlashColorDesc => '闪屏颜色。支持 #RRGGBB 或颜色名。默认: #FF0000。';
 
   @override
-  String get httpApiParamFlashDurationDesc =>
-      '闪屏时长（毫秒）。必须 > 0。兼容别名: duration。默认: 500。';
-
-  @override
-  String get httpApiParamFlashEffectDesc =>
-      '闪屏效果。可选: full / edge。兼容别名: effect。默认: full。';
+  String get httpApiParamFlashDurationDesc => '闪屏时长（毫秒）。必须 > 0。默认: 500。';
 
   @override
   String get httpApiParamEdgeWidthDesc =>
-      '边缘发光宽度，仅 flashEffect=edge 时有效，必须 > 0。兼容别名: width。';
+      '边缘发光宽度，仅 category=flash_edge 时有效，必须 > 0。';
 
   @override
   String get httpApiParamEdgeOpacityDesc =>
-      '边缘发光透明度，仅 flashEffect=edge 时有效，范围 0~1。兼容别名: opacity。';
+      '边缘发光透明度，仅 category=flash_edge 时有效，范围 0~1。';
 
   @override
   String get httpApiParamEdgeRepeatDesc =>
-      '边缘发光重复次数，仅 flashEffect=edge 时有效，必须 > 0。兼容别名: repeat。';
+      '边缘发光重复次数，仅 category=flash_edge 时有效，必须 > 0。';
 
   @override
   String get httpApiParamPayloadDesc => '透传字段，会随本地通知 payload 一起下发（可选）。';
@@ -157,20 +151,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get httpApiEnumTitle => '枚举值说明';
 
   @override
-  String get httpApiEnumCategory => 'flash: 触发闪屏提醒流程。';
-
-  @override
-  String get httpApiEnumFlashEffect =>
-      'full: 全屏闪烁；edge: 边缘发光（可结合 edgeWidth/edgeOpacity/edgeRepeat）。';
+  String get httpApiEnumCategory =>
+      'flash_full: 全屏闪烁；flash_edge: 边缘发光（可结合 edgeWidth/edgeOpacity/edgeRepeat）。';
 
   @override
   String get httpApiEnumPriority => 'low/normal/high: 影响普通通知优先级，默认 normal。';
 
   @override
-  String get httpApiExampleFlashFull => 'POST /api/notify（闪屏 full）';
+  String get httpApiExampleFlashFull => 'POST /api/notify（闪屏 flash_full）';
 
   @override
-  String get httpApiExampleFlashEdge => 'POST /api/notify（闪屏 edge）';
+  String get httpApiExampleFlashEdge => 'POST /api/notify（闪屏 flash_edge）';
 
   @override
   String get httpApiExampleConfigUpdate => 'POST /api/config（更新配置）';
@@ -188,15 +179,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get httpApiNotesTitle => '注意事项';
 
   @override
-  String get httpApiNotesAliases =>
-      '部分参数支持兼容别名（如 body/message、category/type、flashEffect/effect）。';
+  String get httpApiNotesAliases => '不支持别名字段，只接受标准字段名。';
 
   @override
-  String get httpApiNotesBodyOptional => '仅 flash 通知允许 body 为空；普通通知必须提供 body。';
+  String get httpApiNotesBodyOptional =>
+      '仅 flash_full / flash_edge 通知允许 body 为空；普通通知必须提供 body。';
 
   @override
   String get httpApiNotesEdgeOnly =>
-      'edgeWidth、edgeOpacity、edgeRepeat 仅在 flashEffect=edge 时可用，否则会返回校验错误。';
+      'edgeWidth、edgeOpacity、edgeRepeat 仅在 category=flash_edge 时可用，否则会返回校验错误。';
 
   @override
   String get httpApiEndpoints => '接口地址';

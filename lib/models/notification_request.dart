@@ -20,32 +20,24 @@ enum NotificationPriority {
 }
 
 enum NotificationCategory {
-  flash;
+  flashFull,
+  flashEdge;
 
-  String get value => name;
+  String get value {
+    switch (this) {
+      case NotificationCategory.flashFull:
+        return 'flash_full';
+      case NotificationCategory.flashEdge:
+        return 'flash_edge';
+    }
+  }
 
   static NotificationCategory? tryParse(String? rawValue) {
     switch (rawValue?.trim().toLowerCase()) {
-      case 'flash':
-        return NotificationCategory.flash;
-      default:
-        return null;
-    }
-  }
-}
-
-enum FlashEffect {
-  full,
-  edge;
-
-  String get value => name;
-
-  static FlashEffect? tryParse(String? rawValue) {
-    switch (rawValue?.trim().toLowerCase()) {
-      case 'full':
-        return FlashEffect.full;
-      case 'edge':
-        return FlashEffect.edge;
+      case 'flash_full':
+        return NotificationCategory.flashFull;
+      case 'flash_edge':
+        return NotificationCategory.flashEdge;
       default:
         return null;
     }
@@ -60,14 +52,12 @@ class NotificationRequest {
   final NotificationCategory? category;
   final String? flashColor;
   final int? flashDuration;
-  final FlashEffect? flashEffect;
   final double? edgeWidth;
   final double? edgeOpacity;
   final int? edgeRepeat;
   final Map<String, dynamic>? payload;
   final bool _hasInvalidPriority;
   final bool _hasInvalidCategory;
-  final bool _hasInvalidFlashEffect;
 
   NotificationRequest({
     required this.title,
@@ -77,43 +67,36 @@ class NotificationRequest {
     this.category,
     this.flashColor,
     this.flashDuration,
-    this.flashEffect,
     this.edgeWidth,
     this.edgeOpacity,
     this.edgeRepeat,
     Map<String, dynamic>? payload,
     bool hasInvalidPriority = false,
     bool hasInvalidCategory = false,
-    bool hasInvalidFlashEffect = false,
   }) : payload = payload == null ? null : Map.unmodifiable(payload),
        _hasInvalidPriority = hasInvalidPriority,
-       _hasInvalidCategory = hasInvalidCategory,
-       _hasInvalidFlashEffect = hasInvalidFlashEffect;
+       _hasInvalidCategory = hasInvalidCategory;
 
   factory NotificationRequest.fromJson(Map<String, dynamic> json) {
     final rawPriority = _parseString(json['priority']);
-    final rawCategory = _parseString(json['category'] ?? json['type']);
-    final rawFlashEffect = _parseString(json['flashEffect'] ?? json['effect']);
+    final rawCategory = _parseString(json['category']);
     final priority = NotificationPriority.tryParse(rawPriority);
     final category = NotificationCategory.tryParse(rawCategory);
-    final flashEffect = FlashEffect.tryParse(rawFlashEffect);
 
     return NotificationRequest(
       title: _parseString(json['title']) ?? '',
-      body: _parseString(json['body'] ?? json['message']) ?? '',
+      body: _parseString(json['body']) ?? '',
       icon: _parseString(json['icon']),
       priority: priority ?? NotificationPriority.normal,
       category: category,
-      flashColor: _parseString(json['flashColor'] ?? json['color']),
-      flashDuration: _parseInt(json['flashDuration'] ?? json['duration']),
-      flashEffect: flashEffect,
-      edgeWidth: _parseDouble(json['edgeWidth'] ?? json['width']),
-      edgeOpacity: _parseDouble(json['edgeOpacity'] ?? json['opacity']),
-      edgeRepeat: _parseInt(json['edgeRepeat'] ?? json['repeat']),
+      flashColor: _parseString(json['flashColor']),
+      flashDuration: _parseInt(json['flashDuration']),
+      edgeWidth: _parseDouble(json['edgeWidth']),
+      edgeOpacity: _parseDouble(json['edgeOpacity']),
+      edgeRepeat: _parseInt(json['edgeRepeat']),
       payload: _parsePayload(json['payload']),
       hasInvalidPriority: rawPriority != null && priority == null,
       hasInvalidCategory: rawCategory != null && category == null,
-      hasInvalidFlashEffect: rawFlashEffect != null && flashEffect == null,
     );
   }
 
@@ -172,7 +155,6 @@ class NotificationRequest {
       if (category != null) 'category': category!.value,
       if (flashColor != null) 'flashColor': flashColor,
       if (flashDuration != null) 'flashDuration': flashDuration,
-      if (flashEffect != null) 'flashEffect': flashEffect!.value,
       if (edgeWidth != null) 'edgeWidth': edgeWidth,
       if (edgeOpacity != null) 'edgeOpacity': edgeOpacity,
       if (edgeRepeat != null) 'edgeRepeat': edgeRepeat,
@@ -196,11 +178,7 @@ class NotificationRequest {
     }
 
     if (_hasInvalidCategory) {
-      errors.add('Field "category" must be: flash.');
-    }
-
-    if (_hasInvalidFlashEffect) {
-      errors.add('Field "flashEffect" must be one of: full, edge.');
+      errors.add('Field "category" must be one of: flash_full, flash_edge.');
     }
 
     if (flashDuration != null && flashDuration! <= 0) {
@@ -219,14 +197,19 @@ class NotificationRequest {
       errors.add('Field "edgeRepeat" must be greater than 0.');
     }
 
-    if (flashEffect != FlashEffect.edge &&
+    if (category != NotificationCategory.flashEdge &&
         (edgeWidth != null || edgeOpacity != null || edgeRepeat != null)) {
-      errors.add('edgeWidth/edgeOpacity/edgeRepeat require flashEffect=edge.');
+      errors.add(
+        'edgeWidth/edgeOpacity/edgeRepeat require category=flash_edge.',
+      );
     }
 
     return errors;
   }
 
   bool get isValid => validate().isEmpty;
-  bool get isFlash => category == NotificationCategory.flash;
+  bool get isFlash =>
+      category == NotificationCategory.flashFull ||
+      category == NotificationCategory.flashEdge;
+  bool get isEdgeFlash => category == NotificationCategory.flashEdge;
 }

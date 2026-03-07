@@ -73,7 +73,6 @@ def build_parser() -> argparse.ArgumentParser:
     notify.add_argument("--category", default="")
     notify.add_argument("--flash-color", default="")
     notify.add_argument("--flash-duration", type=int, default=0)
-    notify.add_argument("--flash-effect", default="")
     notify.add_argument("--edge-width", type=float, default=0)
     notify.add_argument("--edge-opacity", type=float, default=-1)
     notify.add_argument("--edge-repeat", type=int, default=0)
@@ -107,8 +106,6 @@ def main() -> int:
         payload["flashColor"] = args.flash_color
     if args.flash_duration > 0:
         payload["flashDuration"] = args.flash_duration
-    if args.flash_effect:
-        payload["flashEffect"] = args.flash_effect
     if args.edge_width > 0:
         payload["edgeWidth"] = args.edge_width
     if args.edge_opacity >= 0:

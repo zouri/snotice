@@ -3,32 +3,52 @@ import 'package:snotice_new/models/notification_request.dart';
 
 void main() {
   group('NotificationRequest.fromJson', () {
-    test('parses canonical fields and aliases', () {
+    test('parses canonical fields', () {
       final request = NotificationRequest.fromJson({
         'title': 'Alert',
-        'message': 'Body from alias',
-        'type': 'flash',
-        'color': '#00FF00',
-        'duration': '700',
-        'effect': 'edge',
-        'width': '12.5',
-        'opacity': 0.6,
-        'repeat': 2.0,
+        'body': 'Body',
+        'category': 'flash_edge',
+        'flashColor': '#00FF00',
+        'flashDuration': '700',
+        'edgeWidth': '12.5',
+        'edgeOpacity': 0.6,
+        'edgeRepeat': 2.0,
         'payload': {1: 'one', 'ok': true},
       });
 
       expect(request.title, 'Alert');
-      expect(request.body, 'Body from alias');
-      expect(request.category, NotificationCategory.flash);
+      expect(request.body, 'Body');
+      expect(request.category, NotificationCategory.flashEdge);
       expect(request.flashColor, '#00FF00');
       expect(request.flashDuration, 700);
-      expect(request.flashEffect, FlashEffect.edge);
       expect(request.edgeWidth, 12.5);
       expect(request.edgeOpacity, 0.6);
       expect(request.edgeRepeat, 2);
       expect(request.payload, {'1': 'one', 'ok': true});
       expect(request.isFlash, isTrue);
+      expect(request.isEdgeFlash, isTrue);
       expect(request.isValid, isTrue);
+    });
+
+    test('does not parse legacy alias fields', () {
+      final request = NotificationRequest.fromJson({
+        'title': 'Alert',
+        'message': 'Body from alias',
+        'type': 'flash_edge',
+        'color': '#00FF00',
+        'duration': 700,
+        'width': 12.5,
+        'opacity': 0.6,
+        'repeat': 2,
+      });
+
+      expect(request.body, isEmpty);
+      expect(request.category, isNull);
+      expect(request.flashColor, isNull);
+      expect(request.flashDuration, isNull);
+      expect(request.edgeWidth, isNull);
+      expect(request.edgeOpacity, isNull);
+      expect(request.edgeRepeat, isNull);
     });
 
     test('uses defaults when optional fields are missing', () {
@@ -47,21 +67,18 @@ void main() {
         'body': 'B',
         'priority': 'urgent',
         'category': 'custom',
-        'flashEffect': 'glow',
       });
 
       expect(request.priority, NotificationPriority.normal);
       expect(request.category, isNull);
-      expect(request.flashEffect, isNull);
       expect(request.isFlash, isFalse);
       expect(
         request.validate(),
         contains('Field "priority" must be one of: low, normal, high.'),
       );
-      expect(request.validate(), contains('Field "category" must be: flash.'));
       expect(
         request.validate(),
-        contains('Field "flashEffect" must be one of: full, edge.'),
+        contains('Field "category" must be one of: flash_full, flash_edge.'),
       );
     });
   });
@@ -70,7 +87,7 @@ void main() {
     test('allows flash request with empty body', () {
       final request = NotificationRequest.fromJson({
         'title': 'Flash only',
-        'category': 'flash',
+        'category': 'flash_full',
       });
 
       expect(request.isFlash, isTrue);
@@ -89,7 +106,7 @@ void main() {
       );
     });
 
-    test('requires edge effect when edge-only fields are provided', () {
+    test('requires flash_edge category when edge-only fields are provided', () {
       final request = NotificationRequest.fromJson({
         'title': 'T',
         'body': 'B',
@@ -98,7 +115,9 @@ void main() {
 
       expect(
         request.validate(),
-        contains('edgeWidth/edgeOpacity/edgeRepeat require flashEffect=edge.'),
+        contains(
+          'edgeWidth/edgeOpacity/edgeRepeat require category=flash_edge.',
+        ),
       );
     });
   });

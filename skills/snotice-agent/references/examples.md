@@ -16,8 +16,7 @@
 {
   "title": "Alert",
   "body": "Immediate attention",
-  "category": "flash",
-  "flashEffect": "full",
+  "category": "flash_full",
   "flashColor": "#FF0000",
   "flashDuration": 800
 }
@@ -29,8 +28,7 @@
 {
   "title": "Edge Alert",
   "body": "Peripheral indicator",
-  "category": "flash",
-  "flashEffect": "edge",
+  "category": "flash_edge",
   "flashColor": "#00D1FF",
   "flashDuration": 700,
   "edgeWidth": 12,

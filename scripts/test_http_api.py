@@ -74,14 +74,12 @@ def build_notify_payload(args: argparse.Namespace) -> dict[str, Any]:
         "priority": args.priority,
     }
 
-    if args.mode == "flash":
-        payload["category"] = "flash"
+    if args.mode == "flash_full":
+        payload["category"] = "flash_full"
         payload["flashColor"] = args.flash_color
         payload["flashDuration"] = args.flash_duration
-    elif args.mode.startswith("edge"):
-        effect = args.mode if args.mode != "edge" else args.edge_effect
-        payload["category"] = "flash"
-        payload["flashEffect"] = effect
+    elif args.mode == "flash_edge":
+        payload["category"] = "flash_edge"
         payload["flashColor"] = args.flash_color
         payload["flashDuration"] = args.flash_duration
         payload["edgeWidth"] = args.edge_width
@@ -164,8 +162,7 @@ def cmd_smoke(client: SNoticeApiClient, args: argparse.Namespace) -> int:
         edge_payload = {
             "title": "Smoke Test - Edge",
             "body": "Edge lighting from test_http_api.py",
-            "category": "flash",
-            "flashEffect": args.edge_effect,
+            "category": "flash_edge",
             "flashColor": args.flash_color,
             "flashDuration": args.flash_duration,
             "edgeWidth": args.edge_width,
@@ -210,13 +207,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--mode",
         choices=[
             "normal",
-            "flash",
-            "edge",
-            "edge_pulse",
-            "edge_dual",
-            "edge_dash",
-            "edge_corner",
-            "edge_rainbow",
+            "flash_full",
+            "flash_edge",
         ],
         default="normal",
         help="Notification mode (default: normal)",
@@ -233,12 +225,6 @@ def build_parser() -> argparse.ArgumentParser:
     notify.add_argument("--edge-width", type=float, default=14.0, help="Edge width")
     notify.add_argument("--edge-opacity", type=float, default=0.92, help="Edge opacity")
     notify.add_argument("--edge-repeat", type=int, default=2, help="Edge repeat count")
-    notify.add_argument(
-        "--edge-effect",
-        choices=["edge", "edge_pulse", "edge_dual", "edge_dash", "edge_corner", "edge_rainbow"],
-        default="edge",
-        help="Effect used when --mode=edge (default: edge)",
-    )
     notify.add_argument(
         "--extra-json",
         default="",
@@ -259,13 +245,6 @@ def build_parser() -> argparse.ArgumentParser:
     smoke.add_argument("--edge-width", type=float, default=14.0, help="Edge width")
     smoke.add_argument("--edge-opacity", type=float, default=0.92, help="Edge opacity")
     smoke.add_argument("--edge-repeat", type=int, default=2, help="Edge repeat count")
-    smoke.add_argument(
-        "--edge-effect",
-        choices=["edge", "edge_pulse", "edge_dual", "edge_dash", "edge_corner", "edge_rainbow"],
-        default="edge",
-        help="Edge effect used by --include-edge",
-    )
-
     return parser
 
 

@@ -287,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiParamBodyDesc.
   ///
   /// In en, this message translates to:
-  /// **'Notification body. Required for normal notifications; optional when category=flash. Alias: message.'**
+  /// **'Notification body. Required for normal notifications; optional when category=flash_full or flash_edge.'**
   String get httpApiParamBodyDesc;
 
   /// No description provided for @httpApiParamPriorityDesc.
@@ -299,43 +299,37 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiParamCategoryDesc.
   ///
   /// In en, this message translates to:
-  /// **'Notification category. Currently only supports: flash. Alias: type.'**
+  /// **'Notification category. Allowed: flash_full / flash_edge.'**
   String get httpApiParamCategoryDesc;
 
   /// No description provided for @httpApiParamFlashColorDesc.
   ///
   /// In en, this message translates to:
-  /// **'Flash color. Supports #RRGGBB or color name. Alias: color. Default: #FF0000.'**
+  /// **'Flash color. Supports #RRGGBB or color name. Default: #FF0000.'**
   String get httpApiParamFlashColorDesc;
 
   /// No description provided for @httpApiParamFlashDurationDesc.
   ///
   /// In en, this message translates to:
-  /// **'Flash duration in milliseconds. Must be > 0. Alias: duration. Default: 500.'**
+  /// **'Flash duration in milliseconds. Must be > 0. Default: 500.'**
   String get httpApiParamFlashDurationDesc;
-
-  /// No description provided for @httpApiParamFlashEffectDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Flash effect. Allowed: full / edge. Alias: effect. Default: full.'**
-  String get httpApiParamFlashEffectDesc;
 
   /// No description provided for @httpApiParamEdgeWidthDesc.
   ///
   /// In en, this message translates to:
-  /// **'Edge glow width. Only valid when flashEffect=edge; must be > 0. Alias: width.'**
+  /// **'Edge glow width. Only valid when category=flash_edge; must be > 0.'**
   String get httpApiParamEdgeWidthDesc;
 
   /// No description provided for @httpApiParamEdgeOpacityDesc.
   ///
   /// In en, this message translates to:
-  /// **'Edge glow opacity. Only valid when flashEffect=edge; range 0~1. Alias: opacity.'**
+  /// **'Edge glow opacity. Only valid when category=flash_edge; range 0~1.'**
   String get httpApiParamEdgeOpacityDesc;
 
   /// No description provided for @httpApiParamEdgeRepeatDesc.
   ///
   /// In en, this message translates to:
-  /// **'Edge glow repeat count. Only valid when flashEffect=edge; must be > 0. Alias: repeat.'**
+  /// **'Edge glow repeat count. Only valid when category=flash_edge; must be > 0.'**
   String get httpApiParamEdgeRepeatDesc;
 
   /// No description provided for @httpApiParamPayloadDesc.
@@ -377,14 +371,8 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiEnumCategory.
   ///
   /// In en, this message translates to:
-  /// **'flash: triggers the flash alert flow.'**
+  /// **'flash_full: full-screen flash; flash_edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat).'**
   String get httpApiEnumCategory;
-
-  /// No description provided for @httpApiEnumFlashEffect.
-  ///
-  /// In en, this message translates to:
-  /// **'full: full-screen flash; edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat).'**
-  String get httpApiEnumFlashEffect;
 
   /// No description provided for @httpApiEnumPriority.
   ///
@@ -395,13 +383,13 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiExampleFlashFull.
   ///
   /// In en, this message translates to:
-  /// **'POST /api/notify (flash full)'**
+  /// **'POST /api/notify (flash flash_full)'**
   String get httpApiExampleFlashFull;
 
   /// No description provided for @httpApiExampleFlashEdge.
   ///
   /// In en, this message translates to:
-  /// **'POST /api/notify (flash edge)'**
+  /// **'POST /api/notify (flash flash_edge)'**
   String get httpApiExampleFlashEdge;
 
   /// No description provided for @httpApiExampleConfigUpdate.
@@ -437,19 +425,19 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiNotesAliases.
   ///
   /// In en, this message translates to:
-  /// **'Some fields accept compatibility aliases (for example body/message, category/type, flashEffect/effect).'**
+  /// **'Aliases are not supported. Only canonical field names are accepted.'**
   String get httpApiNotesAliases;
 
   /// No description provided for @httpApiNotesBodyOptional.
   ///
   /// In en, this message translates to:
-  /// **'Only flash notifications allow empty body; normal notifications must include body.'**
+  /// **'Only flash_full / flash_edge notifications allow empty body; normal notifications must include body.'**
   String get httpApiNotesBodyOptional;
 
   /// No description provided for @httpApiNotesEdgeOnly.
   ///
   /// In en, this message translates to:
-  /// **'edgeWidth, edgeOpacity, and edgeRepeat are only valid when flashEffect=edge; otherwise validation fails.'**
+  /// **'edgeWidth, edgeOpacity, and edgeRepeat are only valid when category=flash_edge; otherwise validation fails.'**
   String get httpApiNotesEdgeOnly;
 
   /// No description provided for @httpApiEndpoints.

@@ -36,25 +36,15 @@ Request body key fields:
 - Required: `title`
 - Required for non-flash: `body`
 - Optional: `priority` (`low|normal|high`)
-- Optional flash mode: `category=flash`
+- Optional flash mode: `category=flash_full` or `category=flash_edge`
 - Flash fields:
   - `flashColor` (string)
   - `flashDuration` (>0)
-  - `flashEffect` (`full|edge`)
-  - `edgeWidth` (>0, only when `flashEffect=edge`)
-  - `edgeOpacity` (0~1, only when `flashEffect=edge`)
-  - `edgeRepeat` (>0, only when `flashEffect=edge`)
+  - `edgeWidth` (>0, only when `category=flash_edge`)
+  - `edgeOpacity` (0~1, only when `category=flash_edge`)
+  - `edgeRepeat` (>0, only when `category=flash_edge`)
 
-Compatibility aliases accepted by server model:
-
-- `message` -> `body`
-- `type` -> `category`
-- `color` -> `flashColor`
-- `duration` -> `flashDuration`
-- `effect` -> `flashEffect`
-- `width` -> `edgeWidth`
-- `opacity` -> `edgeOpacity`
-- `repeat` -> `edgeRepeat`
+Compatibility aliases are not supported. Use canonical field names only.
 
 ## Common Error Cases
 
