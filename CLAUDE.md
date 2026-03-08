@@ -28,10 +28,12 @@ flutter build linux --release
 flutter build windows --release
 
 # Test HTTP API with Python script
-python3 scripts/test_http_api.py status              # Check server status
-python3 scripts/test_http_api.py notify --mode flash # Send flash notification
-python3 scripts/test_http_api.py smoke               # Run smoke test
-python3 scripts/test_http_api.py --help              # Show all options
+python3 scripts/test_http_api.py status                  # Check server status
+python3 scripts/test_http_api.py notify --mode flash_full # Send full-screen flash
+python3 scripts/test_http_api.py notify --mode flash_edge # Send edge flash
+python3 scripts/test_http_api.py notify --mode barrage   # Send barrage overlay
+python3 scripts/test_http_api.py smoke                   # Run smoke test
+python3 scripts/test_http_api.py --help                  # Show all options
 ```
 
 ## High-Level Architecture
@@ -88,10 +90,17 @@ All providers are initialized in `main()` before `runApp()` and consumed in UI u
 
 Implemented with `shelf` and `shelf_router`:
 
-- `POST /api/notify` - Send notification or trigger flash
+- `POST /api/notify` - Send notification or trigger flash/barrage
+- `POST /api/mcp` - MCP endpoint for AI agent integration
 - `GET /api/status` - Server status and uptime
 - `GET /api/config` - Get current configuration
 - `POST /api/config` - Update configuration
+
+**Notification Categories:**
+- `normal` - System notification (default)
+- `flash_full` - Full-screen flash overlay
+- `flash_edge` - Edge lighting effect
+- `barrage` - Scrolling text overlay
 
 Middleware chain:
 1. CORS headers (all origins)
@@ -100,20 +109,52 @@ Middleware chain:
 
 Use `ResponseUtil` (lib/utils/response_util.dart) for consistent JSON responses.
 
-### Platform-Specific Flash Overlay
+### Platform-Specific Overlays
+
+**Flash Overlays:**
+- `flash_full`: Full-screen colored overlay
+- `flash_edge`: Edge lighting effect with configurable width, opacity, and repeat count
+
+**Barrage Overlay:**
+- Right-to-left scrolling text overlay
+- Configurable color, duration, speed, font size, and lane position
+- Lanes: `top`, `middle`, `bottom`
+- Default values from `AppConfig` (defaultBarrage*)
 
 **macOS** (`macos/Runner/MainFlutterWindow.swift`):
 - Uses native NSPanel with `NSWindow.Level.screenSaver`
 - Multi-monitor support via `NSScreen.screens`
 - MethodChannel `snotice/flash` for Flutter communication
 - Covers menu bar and all Spaces using `canJoinAllSpaces`
+- Supports flash_full, flash_edge, and barrage overlays
 
 **Other platforms** (`lib/overlay_main.dart`):
 - Uses `desktop_multi_window` package
 - Creates separate hidden Flutter window with arguments
 - `windowManager` for full-screen transparent overlay
+- Supports flash_full and barrage overlays
 
 Detection happens in `main()` - macOS never routes to overlay_main.dart.
+
+## AI Agent Integration
+
+SNotice provides two integration methods for AI agents:
+
+### MCP Endpoint
+Built-in MCP server at `/api/mcp`:
+- `snotice_send_notification` - Send notifications (normal/flash/barrage)
+- `snotice_get_status` - Check server status
+- `snotice_get_config` - Get current configuration
+- `snotice_update_config` - Update configuration
+
+### Skill Integration
+Located at `skills/snotice-agent/`:
+- `SKILL.md` - Skill definition and workflow
+- `scripts/snotice_call.py` - CLI helper script
+- `references/api_contract.md` - API field documentation
+- `references/examples.md` - Payload examples
+
+For detailed integration guide, see `docs/agent_integration.md`.
 
 ## Code Structure
 
@@ -124,8 +165,8 @@ lib/
 ├── config/
 │   └── constants.dart     # AppConstants (port, channel IDs, defaults)
 ├── models/
-│   ├── app_config.dart    # AppConfig with JSON serialization
-│   ├── notification_request.dart  # Notification request model
+│   ├── app_config.dart    # AppConfig with JSON serialization and barrage defaults
+│   ├── notification_request.dart  # Notification request model with type-safe enums
 │   └── log_entry.dart     # Log entry model
 ├── providers/
 │   ├── config_provider.dart
@@ -193,6 +234,27 @@ factory AppConfig.fromJson(Map<String, dynamic> json) {
   );
 }
 ```
+
+### Notification Request Model
+`NotificationRequest` uses type-safe enums for categories and validation:
+
+**Enums:**
+- `NotificationPriority`: low, normal, high
+- `NotificationCategory`: flash_full, flash_edge, barrage
+- `NotificationBarrageLane`: top, middle, bottom
+
+**Validation:**
+- `title` is required for all categories
+- `body` is required for non-overlay notifications (normal category)
+- Edge-specific fields (`edgeWidth`, `edgeOpacity`, `edgeRepeat`) require `category=flash_edge`
+- Barrage-specific fields require `category=barrage`
+- All numeric fields have positive value constraints
+
+**Field Requirements by Category:**
+- `normal`: title, body
+- `flash_full`: title, flashColor (optional), flashDuration (optional)
+- `flash_edge`: title, flashColor, flashDuration, edgeWidth, edgeOpacity, edgeRepeat
+- `barrage`: title, body, barrageColor, barrageDuration, barrageSpeed, barrageFontSize, barrageLane
 
 ### HTTP Response Pattern
 Use `ResponseUtil` for consistent responses:
@@ -330,3 +392,21 @@ themeProvider.setSystem();  // Follow OS
 // Check current mode
 if (themeProvider.isDarkMode) { ... }
 ```
+
+## Barrage Configuration
+
+The `AppConfig` model includes default values for barrage overlays:
+
+**Default Fields:**
+- `defaultBarrageColor` - Default text color (hex string, e.g., '#FFD84D')
+- `defaultBarrageDuration` - Default display duration in milliseconds
+- `defaultBarrageSpeed` - Default scroll speed (pixels per second)
+- `defaultBarrageFontSize` - Default font size in points
+- `defaultBarrageLane` - Default lane position ('top', 'middle', 'bottom')
+
+**Configuration Toggle:**
+- `showBarrage` - Master toggle for barrage functionality (default: true)
+- When disabled, barrage requests are rejected with HTTP 403
+
+**Usage:**
+When a barrage notification omits optional fields, the server fills them from these defaults. This allows agents to send minimal barrage payloads while maintaining consistent styling.
