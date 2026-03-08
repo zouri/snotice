@@ -47,6 +47,31 @@ curl -X POST http://127.0.0.1:8642/api/mcp \
   }'
 ```
 
+### Example MCP `tools/call` for Barrage
+
+```bash
+curl -X POST http://127.0.0.1:8642/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc":"2.0",
+    "id":3,
+    "method":"tools/call",
+    "params":{
+      "name":"snotice_send_notification",
+      "arguments":{
+        "title":"Barrage Alert",
+        "body":"Build passed",
+        "category":"barrage",
+        "barrageColor":"#FFD84D",
+        "barrageDuration":6000,
+        "barrageSpeed":160,
+        "barrageFontSize":30,
+        "barrageLane":"top"
+      }
+    }
+  }'
+```
+
 ### Client config example (HTTP direct)
 
 Use this when your MCP client supports HTTP/remote MCP directly:
@@ -86,6 +111,15 @@ Quick calls:
 python3 skills/snotice-agent/scripts/snotice_call.py status
 python3 skills/snotice-agent/scripts/snotice_call.py config-get
 python3 skills/snotice-agent/scripts/snotice_call.py notify --title "Deploy" --body "Service restarted"
+python3 skills/snotice-agent/scripts/snotice_call.py notify \
+  --title "Barrage" \
+  --category barrage \
+  --body "Build passed" \
+  --barrage-color "#FFD84D" \
+  --barrage-duration 6000 \
+  --barrage-speed 160 \
+  --barrage-font-size 30 \
+  --barrage-lane top
 ```
 
 ## Notes
@@ -93,3 +127,10 @@ python3 skills/snotice-agent/scripts/snotice_call.py notify --title "Deploy" --b
 - If you get `401 IP not allowed`, update SNotice `allowedIPs` config.
 - For config updates, do read-then-merge to avoid resetting unspecified fields.
 - `edgeWidth/edgeOpacity/edgeRepeat` only work with `category=flash_edge`.
+- `barrageColor/barrageDuration/barrageSpeed/barrageFontSize/barrageLane`
+  only work with `category=barrage`.
+- For `category=barrage`, if barrage fields are omitted, the server fills
+  them from config defaults (`defaultBarrage*`).
+- If `showBarrage=false`, barrage calls are rejected with HTTP `403`.
+- MCP/skill callers should use the configured port directly; there is no
+  automatic multi-port probing.

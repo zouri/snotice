@@ -85,6 +85,13 @@ def build_notify_payload(args: argparse.Namespace) -> dict[str, Any]:
         payload["edgeWidth"] = args.edge_width
         payload["edgeOpacity"] = args.edge_opacity
         payload["edgeRepeat"] = args.edge_repeat
+    elif args.mode == "barrage":
+        payload["category"] = "barrage"
+        payload["barrageColor"] = args.barrage_color
+        payload["barrageDuration"] = args.barrage_duration
+        payload["barrageSpeed"] = args.barrage_speed
+        payload["barrageFontSize"] = args.barrage_font_size
+        payload["barrageLane"] = args.barrage_lane
 
     if args.extra_json:
         try:
@@ -209,6 +216,7 @@ def build_parser() -> argparse.ArgumentParser:
             "normal",
             "flash_full",
             "flash_edge",
+            "barrage",
         ],
         default="normal",
         help="Notification mode (default: normal)",
@@ -225,6 +233,30 @@ def build_parser() -> argparse.ArgumentParser:
     notify.add_argument("--edge-width", type=float, default=14.0, help="Edge width")
     notify.add_argument("--edge-opacity", type=float, default=0.92, help="Edge opacity")
     notify.add_argument("--edge-repeat", type=int, default=2, help="Edge repeat count")
+    notify.add_argument("--barrage-color", default="#FFD84D", help="Barrage text color")
+    notify.add_argument(
+        "--barrage-duration",
+        type=int,
+        default=6000,
+        help="Barrage duration (ms)",
+    )
+    notify.add_argument(
+        "--barrage-speed",
+        type=float,
+        default=160.0,
+        help="Barrage speed (px/s)",
+    )
+    notify.add_argument(
+        "--barrage-font-size",
+        type=float,
+        default=30.0,
+        help="Barrage font size",
+    )
+    notify.add_argument(
+        "--barrage-lane",
+        default="top",
+        help="Barrage lane: top|middle|bottom",
+    )
     notify.add_argument(
         "--extra-json",
         default="",

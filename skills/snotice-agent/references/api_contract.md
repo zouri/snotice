@@ -22,6 +22,12 @@ Success body fields:
 - `allowedIPs` (array<string>)
 - `autoStart` (bool)
 - `showNotifications` (bool)
+- `showBarrage` (bool)
+- `defaultBarrageColor` (string)
+- `defaultBarrageDuration` (int, > 0)
+- `defaultBarrageSpeed` (number, > 0)
+- `defaultBarrageFontSize` (number, > 0)
+- `defaultBarrageLane` (`top|middle|bottom`)
 
 ### `POST /api/config`
 
@@ -34,15 +40,27 @@ Important: server model performs full parse, so omitted fields can fall back to 
 Request body key fields:
 
 - Required: `title`
-- Required for non-flash: `body`
+- Required for non-overlay notifications: `body`
 - Optional: `priority` (`low|normal|high`)
-- Optional flash mode: `category=flash_full` or `category=flash_edge`
-- Flash fields:
+- Optional overlay category:
+  `category=flash_full` or `category=flash_edge` or `category=barrage`
+- Flash fields (`flash_full`/`flash_edge`):
   - `flashColor` (string)
   - `flashDuration` (>0)
   - `edgeWidth` (>0, only when `category=flash_edge`)
   - `edgeOpacity` (0~1, only when `category=flash_edge`)
   - `edgeRepeat` (>0, only when `category=flash_edge`)
+- Barrage fields (only when `category=barrage`):
+  - `barrageColor` (string)
+  - `barrageDuration` (>0)
+  - `barrageSpeed` (>0)
+  - `barrageFontSize` (>0)
+  - `barrageLane` (`top|middle|bottom`)
+
+Server-side defaults:
+
+- When `category=barrage`, omitted barrage fields are auto-filled from current
+  config (`defaultBarrageColor/defaultBarrageDuration/defaultBarrageSpeed/defaultBarrageFontSize/defaultBarrageLane`).
 
 Compatibility aliases are not supported. Use canonical field names only.
 
@@ -50,5 +68,6 @@ Compatibility aliases are not supported. Use canonical field names only.
 
 - 400 invalid JSON or validation failure
 - 401 caller IP not in whitelist
+- 403 barrage disabled (`showBarrage=false`)
 - 404 endpoint path mismatch
 - 500 internal runtime error

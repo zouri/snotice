@@ -10,6 +10,7 @@ A cross-platform desktop notification webhook application for macOS, Linux, and 
 - 📋 **System Tray**: Service control and window actions
 - 🔒 **IP Whitelist**: Simple IP-based access control
 - 🎨 **Flash Screen**: Full-screen overlay notifications with custom colors
+- 📺 **Barrage Overlay**: Right-to-left scrolling text overlay reminders
 - 🎯 **Focused Scope**: No built-in reminder scheduling or template creation
 
 ## Quick Start
@@ -83,6 +84,23 @@ curl -X POST http://localhost:8642/api/notify \
   }'
 ```
 
+### Barrage Notification
+
+```bash
+curl -X POST http://localhost:8642/api/notify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Barrage Alert",
+    "body": "Build passed",
+    "category": "barrage",
+    "barrageColor": "#FFD84D",
+    "barrageDuration": 6000,
+    "barrageSpeed": 160,
+    "barrageFontSize": 30,
+    "barrageLane": "top"
+  }'
+```
+
 ### Test API with Python Script
 
 You can use `scripts/test_http_api.py` to quickly test all HTTP endpoints.
@@ -106,6 +124,9 @@ python3 scripts/test_http_api.py notify --mode flash_full --flash-color "#FF0000
 # Send an edge-lighting notification
 python3 scripts/test_http_api.py notify --mode flash_edge --flash-color "#00D1FF"
 
+# Send a barrage overlay notification
+python3 scripts/test_http_api.py notify --mode barrage --body "Deploy finished"
+
 # Run smoke test (status + normal notify + edge notify)
 python3 scripts/test_http_api.py smoke --include-edge
 ```
@@ -115,6 +136,7 @@ Supported `notify --mode` values:
 - `normal`
 - `flash_full`
 - `flash_edge`
+- `barrage`
 
 ## AI Agent Integration
 

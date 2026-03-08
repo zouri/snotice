@@ -37,6 +37,44 @@
 }
 ```
 
+## Barrage Overlay
+
+```json
+{
+  "title": "Barrage Alert",
+  "body": "Build completed",
+  "category": "barrage",
+  "barrageColor": "#FFD84D",
+  "barrageDuration": 6000,
+  "barrageSpeed": 160,
+  "barrageFontSize": 30,
+  "barrageLane": "top"
+}
+```
+
+## MCP tools/call (Barrage)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "snotice_send_notification",
+    "arguments": {
+      "title": "Barrage Alert",
+      "body": "Build completed",
+      "category": "barrage",
+      "barrageColor": "#FFD84D",
+      "barrageDuration": 6000,
+      "barrageSpeed": 160,
+      "barrageFontSize": 30,
+      "barrageLane": "top"
+    }
+  }
+}
+```
+
 ## Config Patch Flow
 
 1. GET `/api/config`

@@ -76,6 +76,11 @@ def build_parser() -> argparse.ArgumentParser:
     notify.add_argument("--edge-width", type=float, default=0)
     notify.add_argument("--edge-opacity", type=float, default=-1)
     notify.add_argument("--edge-repeat", type=int, default=0)
+    notify.add_argument("--barrage-color", default="")
+    notify.add_argument("--barrage-duration", type=int, default=0)
+    notify.add_argument("--barrage-speed", type=float, default=0)
+    notify.add_argument("--barrage-font-size", type=float, default=0)
+    notify.add_argument("--barrage-lane", default="")
 
     return parser
 
@@ -112,6 +117,16 @@ def main() -> int:
         payload["edgeOpacity"] = args.edge_opacity
     if args.edge_repeat > 0:
         payload["edgeRepeat"] = args.edge_repeat
+    if args.barrage_color:
+        payload["barrageColor"] = args.barrage_color
+    if args.barrage_duration > 0:
+        payload["barrageDuration"] = args.barrage_duration
+    if args.barrage_speed > 0:
+        payload["barrageSpeed"] = args.barrage_speed
+    if args.barrage_font_size > 0:
+        payload["barrageFontSize"] = args.barrage_font_size
+    if args.barrage_lane:
+        payload["barrageLane"] = args.barrage_lane
 
     status, body, raw = call_api(base_url, args.timeout, "POST", "/api/notify", payload)
     print_result(status, body, raw)
