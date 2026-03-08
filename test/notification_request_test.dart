@@ -78,7 +78,9 @@ void main() {
       );
       expect(
         request.validate(),
-        contains('Field "category" must be one of: flash_full, flash_edge.'),
+        contains(
+          'Field "category" must be one of: flash_full, flash_edge, barrage.',
+        ),
       );
     });
   });
@@ -94,7 +96,7 @@ void main() {
       expect(request.validate(), isEmpty);
     });
 
-    test('requires body for non-flash notifications', () {
+    test('requires body for non-overlay notifications', () {
       final request = NotificationRequest.fromJson({
         'title': 'No body',
         'category': 'notice',
@@ -102,8 +104,18 @@ void main() {
 
       expect(
         request.validate(),
-        contains('Field "body" is required for non-flash notifications.'),
+        contains('Field "body" is required for non-overlay notifications.'),
       );
+    });
+
+    test('allows barrage request with empty body', () {
+      final request = NotificationRequest.fromJson({
+        'title': 'Barrage only',
+        'category': 'barrage',
+      });
+
+      expect(request.isBarrage, isTrue);
+      expect(request.validate(), isEmpty);
     });
 
     test('requires flash_edge category when edge-only fields are provided', () {

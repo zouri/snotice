@@ -85,4 +85,40 @@ void main() {
       expect(config.isIPAllowed('10.0.0.1'), false);
     });
   });
+
+  group('AppConfig barrage defaults', () {
+    test('normalizes invalid barrage default values', () {
+      final config = AppConfig(
+        defaultBarrageColor: ' ',
+        defaultBarrageDuration: -1,
+        defaultBarrageSpeed: 0,
+        defaultBarrageFontSize: -8,
+        defaultBarrageLane: 'unknown',
+      );
+
+      expect(config.defaultBarrageColor, '#FFD84D');
+      expect(config.defaultBarrageDuration, 6000);
+      expect(config.defaultBarrageSpeed, 120);
+      expect(config.defaultBarrageFontSize, 28);
+      expect(config.defaultBarrageLane, 'top');
+    });
+
+    test('parses barrage defaults from json', () {
+      final config = AppConfig.fromJson({
+        'defaultBarrageColor': '#AABBCC',
+        'defaultBarrageDuration': '7500',
+        'defaultBarrageSpeed': '150.5',
+        'defaultBarrageFontSize': 30,
+        'defaultBarrageLane': 'middle',
+        'showBarrage': false,
+      });
+
+      expect(config.defaultBarrageColor, '#AABBCC');
+      expect(config.defaultBarrageDuration, 7500);
+      expect(config.defaultBarrageSpeed, 150.5);
+      expect(config.defaultBarrageFontSize, 30);
+      expect(config.defaultBarrageLane, 'middle');
+      expect(config.showBarrage, false);
+    });
+  });
 }

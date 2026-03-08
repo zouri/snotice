@@ -26,21 +26,35 @@ class _HomeScreenState extends State<HomeScreen> {
   final _formKey = GlobalKey<FormState>();
   final _portController = TextEditingController();
   final _ipController = TextEditingController();
+  final _barrageColorController = TextEditingController();
+  final _barrageDurationController = TextEditingController();
+  final _barrageSpeedController = TextEditingController();
+  final _barrageFontSizeController = TextEditingController();
 
   late AppConfig _draftConfig;
+  late String _barrageLane;
 
   @override
   void initState() {
     super.initState();
     final config = context.read<ConfigProvider>().config;
     _draftConfig = config;
+    _barrageLane = config.defaultBarrageLane;
     _portController.text = config.port.toString();
+    _barrageColorController.text = config.defaultBarrageColor;
+    _barrageDurationController.text = config.defaultBarrageDuration.toString();
+    _barrageSpeedController.text = config.defaultBarrageSpeed.toString();
+    _barrageFontSizeController.text = config.defaultBarrageFontSize.toString();
   }
 
   @override
   void dispose() {
     _portController.dispose();
     _ipController.dispose();
+    _barrageColorController.dispose();
+    _barrageDurationController.dispose();
+    _barrageSpeedController.dispose();
+    _barrageFontSizeController.dispose();
     super.dispose();
   }
 
@@ -58,8 +72,42 @@ class _HomeScreenState extends State<HomeScreen> {
     final serverProvider = context.read<ServerProvider>();
     final configService = context.read<ConfigService>();
     final l10n = AppLocalizations.of(context)!;
+    final barrageColor = _barrageColorController.text.trim();
+    final barrageDuration = int.tryParse(
+      _barrageDurationController.text.trim(),
+    );
+    final barrageSpeed = double.tryParse(_barrageSpeedController.text.trim());
+    final barrageFontSize = double.tryParse(
+      _barrageFontSizeController.text.trim(),
+    );
 
-    final newConfig = _draftConfig.copyWith(port: port, autoStart: true);
+    final invalidBarrageDefaults =
+        barrageColor.isEmpty ||
+        barrageDuration == null ||
+        barrageDuration <= 0 ||
+        barrageSpeed == null ||
+        barrageSpeed <= 0 ||
+        barrageFontSize == null ||
+        barrageFontSize <= 0;
+    if (invalidBarrageDefaults) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.barrageConfigInvalid)));
+      return;
+    }
+
+    final newConfig = _draftConfig.copyWith(
+      port: port,
+      autoStart: true,
+      defaultBarrageColor: barrageColor,
+      defaultBarrageDuration: barrageDuration,
+      defaultBarrageSpeed: barrageSpeed,
+      defaultBarrageFontSize: barrageFontSize,
+      defaultBarrageLane: _barrageLane,
+    );
 
     try {
       await configService.saveConfig(newConfig);
@@ -177,11 +225,32 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: ShellDimensions.sectionGap),
                         NotificationSettingsCard(
                           showNotifications: _draftConfig.showNotifications,
+                          showBarrage: _draftConfig.showBarrage,
                           onShowNotificationsChanged: (value) {
                             setState(() {
                               _draftConfig = _draftConfig.copyWith(
                                 showNotifications: value,
                               );
+                            });
+                          },
+                          onShowBarrageChanged: (value) {
+                            setState(() {
+                              _draftConfig = _draftConfig.copyWith(
+                                showBarrage: value,
+                              );
+                            });
+                          },
+                          barrageColorController: _barrageColorController,
+                          barrageDurationController: _barrageDurationController,
+                          barrageSpeedController: _barrageSpeedController,
+                          barrageFontSizeController: _barrageFontSizeController,
+                          barrageLane: _barrageLane,
+                          onBarrageLaneChanged: (value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setState(() {
+                              _barrageLane = value;
                             });
                           },
                         ),

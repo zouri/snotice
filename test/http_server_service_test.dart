@@ -131,7 +131,7 @@ void main() {
         expect(result.body['error'], 'Invalid notification request.');
         expect(
           result.body['validationErrors'],
-          contains('Field "body" is required for non-flash notifications.'),
+          contains('Field "body" is required for non-overlay notifications.'),
         );
         expect(notificationService.callCount, 0);
       },
@@ -166,6 +166,75 @@ void main() {
         expect(notificationService.lastRequest!.isFlash, isTrue);
       },
     );
+
+    test(
+      'accepts barrage request with empty body and forwards to service',
+      () async {
+        final result = await _postNotify(
+          port: port,
+          body: '{"title":"Barrage","category":"barrage","barrageSpeed":180}',
+        );
+
+        expect(result.statusCode, 200);
+        expect(result.body['success'], true);
+        expect(notificationService.callCount, 1);
+        expect(notificationService.lastRequest, isNotNull);
+        expect(notificationService.lastRequest!.isBarrage, isTrue);
+      },
+    );
+
+    test(
+      'applies configured barrage defaults when payload omits fields',
+      () async {
+        serverService.updateConfig(
+          AppConfig(
+            port: port,
+            allowedIPs: const ['127.0.0.1'],
+            defaultBarrageColor: '#00FFAA',
+            defaultBarrageDuration: 7777,
+            defaultBarrageSpeed: 210,
+            defaultBarrageFontSize: 32,
+            defaultBarrageLane: 'bottom',
+          ),
+        );
+
+        final result = await _postNotify(
+          port: port,
+          body: '{"title":"Barrage","category":"barrage"}',
+        );
+
+        expect(result.statusCode, 200);
+        expect(notificationService.callCount, 1);
+        final request = notificationService.lastRequest!;
+        expect(request.barrageColor, '#00FFAA');
+        expect(request.barrageDuration, 7777);
+        expect(request.barrageSpeed, 210);
+        expect(request.barrageFontSize, 32);
+        expect(request.barrageLane?.value, 'bottom');
+      },
+    );
+
+    test('returns 403 when barrage is disabled in config', () async {
+      serverService.updateConfig(
+        AppConfig(
+          port: port,
+          allowedIPs: const ['127.0.0.1'],
+          showBarrage: false,
+        ),
+      );
+
+      final result = await _postNotify(
+        port: port,
+        body: '{"title":"Barrage","category":"barrage","body":"x"}',
+      );
+
+      expect(result.statusCode, 403);
+      expect(
+        result.body['error'],
+        'Barrage notifications are disabled in current config.',
+      );
+      expect(notificationService.callCount, 0);
+    });
   });
 
   group('HttpServerService /api/mcp', () {

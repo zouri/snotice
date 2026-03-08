@@ -45,11 +45,27 @@ class HttpApiPage extends StatelessWidget {
       'edgeOpacity': 0.9,
       'edgeRepeat': 2,
     };
+    final barragePayloadMap = <String, dynamic>{
+      'title': l10n.httpApiSampleTitleAlert,
+      'body': '当前接口出现 3 次失败，请尽快处理',
+      'category': 'barrage',
+      'barrageColor': '#FFD84D',
+      'barrageDuration': 6000,
+      'barrageSpeed': 160,
+      'barrageFontSize': 30,
+      'barrageLane': 'top',
+    };
     final updateConfigPayloadMap = <String, dynamic>{
       'port': port,
       'allowedIPs': ['127.0.0.1', '192.168.1.0/24'],
       'autoStart': true,
       'showNotifications': true,
+      'showBarrage': true,
+      'defaultBarrageColor': '#FFD84D',
+      'defaultBarrageDuration': 6000,
+      'defaultBarrageSpeed': 120,
+      'defaultBarrageFontSize': 28,
+      'defaultBarrageLane': 'top',
     };
 
     final statusCurlCommand = 'curl $baseUrl/api/status';
@@ -62,6 +78,9 @@ class HttpApiPage extends StatelessWidget {
     final flashFullCurlCommand =
         'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
         "'${jsonEncode(flashFullPayloadMap)}'";
+    final barrageCurlCommand =
+        'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
+        "'${jsonEncode(barragePayloadMap)}'";
     final updateConfigCurlCommand =
         'curl -X POST $configUrl -H "Content-Type: application/json" -d '
         "'${jsonEncode(updateConfigPayloadMap)}'";
@@ -80,7 +99,7 @@ class HttpApiPage extends StatelessWidget {
       'success': false,
       'error': 'Invalid notification request.',
       'validationErrors': [
-        'Field "category" must be one of: flash_full, flash_edge.',
+        'Field "category" must be one of: flash_full, flash_edge, barrage.',
       ],
     });
 
@@ -118,7 +137,8 @@ class HttpApiPage extends StatelessWidget {
         name: 'body',
         type: 'string',
         required: l10n.httpApiRequiredConditional,
-        description: l10n.httpApiParamBodyDesc,
+        description:
+            'Notification body. Required for normal notifications; optional when category=flash_full, flash_edge, or barrage.',
       ),
       _ApiParamSpec(
         name: 'priority',
@@ -130,7 +150,8 @@ class HttpApiPage extends StatelessWidget {
         name: 'category',
         type: 'string',
         required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamCategoryDesc,
+        description:
+            'Notification category. Allowed: flash_full / flash_edge / barrage.',
       ),
       _ApiParamSpec(
         name: 'flashColor',
@@ -161,6 +182,39 @@ class HttpApiPage extends StatelessWidget {
         type: 'int',
         required: l10n.httpApiRequiredNo,
         description: l10n.httpApiParamEdgeRepeatDesc,
+      ),
+      const _ApiParamSpec(
+        name: 'barrageColor',
+        type: 'string',
+        required: 'No',
+        description:
+            'Barrage text color in hex or named color. Only valid when category=barrage.',
+      ),
+      const _ApiParamSpec(
+        name: 'barrageDuration',
+        type: 'int',
+        required: 'No',
+        description:
+            'Barrage total duration in milliseconds. Only valid when category=barrage.',
+      ),
+      const _ApiParamSpec(
+        name: 'barrageSpeed',
+        type: 'double',
+        required: 'No',
+        description: 'Barrage speed in px/s. Only valid when category=barrage.',
+      ),
+      const _ApiParamSpec(
+        name: 'barrageFontSize',
+        type: 'double',
+        required: 'No',
+        description: 'Barrage font size. Only valid when category=barrage.',
+      ),
+      const _ApiParamSpec(
+        name: 'barrageLane',
+        type: 'string',
+        required: 'No',
+        description:
+            'Barrage lane: top | middle | bottom. Only valid when category=barrage.',
       ),
       _ApiParamSpec(
         name: 'payload',
@@ -195,6 +249,42 @@ class HttpApiPage extends StatelessWidget {
         required: l10n.httpApiRequiredNo,
         description: l10n.httpApiParamShowNotificationsDesc,
       ),
+      const _ApiParamSpec(
+        name: 'showBarrage',
+        type: 'bool',
+        required: 'No',
+        description: 'Whether barrage overlay notifications are enabled.',
+      ),
+      const _ApiParamSpec(
+        name: 'defaultBarrageColor',
+        type: 'string',
+        required: 'No',
+        description: 'Default barrage text color.',
+      ),
+      const _ApiParamSpec(
+        name: 'defaultBarrageDuration',
+        type: 'int',
+        required: 'No',
+        description: 'Default barrage total duration in milliseconds.',
+      ),
+      const _ApiParamSpec(
+        name: 'defaultBarrageSpeed',
+        type: 'double',
+        required: 'No',
+        description: 'Default barrage speed in px/s.',
+      ),
+      const _ApiParamSpec(
+        name: 'defaultBarrageFontSize',
+        type: 'double',
+        required: 'No',
+        description: 'Default barrage font size.',
+      ),
+      const _ApiParamSpec(
+        name: 'defaultBarrageLane',
+        type: 'string',
+        required: 'No',
+        description: 'Default barrage lane: top | middle | bottom.',
+      ),
     ];
 
     return Container(
@@ -216,7 +306,7 @@ class HttpApiPage extends StatelessWidget {
                   authLabel: l10n.httpApiAuthLabel,
                   authValue: l10n.httpApiAuthValue,
                   endpointCount: endpoints.length,
-                  sampleCount: 4,
+                  sampleCount: 5,
                   port: port,
                 ),
                 const SizedBox(height: ShellDimensions.sectionGap),
@@ -245,6 +335,13 @@ class HttpApiPage extends StatelessWidget {
                           title: l10n.httpApiExampleFlashEdge,
                           description: l10n.httpApiEnumCategory,
                           code: flashEdgeCurlCommand,
+                        ),
+                        const SizedBox(height: 8),
+                        _QuickStartStep(
+                          index: 4,
+                          title: 'POST /api/notify (barrage)',
+                          description: 'Send scrolling barrage overlay alert',
+                          code: barrageCurlCommand,
                         ),
                       ],
                     ),
@@ -275,8 +372,9 @@ class HttpApiPage extends StatelessWidget {
                         children: [
                           _EnumRow(
                             name: 'category',
-                            values: 'flash_full | flash_edge',
-                            description: l10n.httpApiEnumCategory,
+                            values: 'flash_full | flash_edge | barrage',
+                            description:
+                                'flash_full: full-screen flash; flash_edge: edge glow; barrage: scrolling overlay text.',
                           ),
                           const SizedBox(height: 8),
                           _EnumRow(
@@ -294,9 +392,17 @@ class HttpApiPage extends StatelessWidget {
                         children: [
                           _NoteLine(text: l10n.httpApiNotesAliases),
                           const SizedBox(height: 6),
-                          _NoteLine(text: l10n.httpApiNotesBodyOptional),
+                          const _NoteLine(
+                            text:
+                                'flash_full / flash_edge / barrage allow empty body; normal notifications must include body.',
+                          ),
                           const SizedBox(height: 6),
                           _NoteLine(text: l10n.httpApiNotesEdgeOnly),
+                          const SizedBox(height: 6),
+                          const _NoteLine(
+                            text:
+                                'barrageColor/barrageDuration/barrageSpeed/barrageFontSize/barrageLane only work when category=barrage.',
+                          ),
                         ],
                       ),
                     );
@@ -330,6 +436,11 @@ class HttpApiPage extends StatelessWidget {
                         _LabeledCodeBlock(
                           label: l10n.httpApiExampleFlashFull,
                           code: flashFullCurlCommand,
+                        ),
+                        const SizedBox(height: 8),
+                        _LabeledCodeBlock(
+                          label: 'POST /api/notify（弹幕 barrage）',
+                          code: barrageCurlCommand,
                         ),
                         const SizedBox(height: 8),
                         _LabeledCodeBlock(

@@ -312,6 +312,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showNotificationsDesc => 'Display system notifications';
 
   @override
+  String get showBarrage => 'Enable Barrage';
+
+  @override
+  String get showBarrageDesc => 'Allow scrolling barrage overlay reminders';
+
+  @override
+  String get barrageDefaultsTitle => 'Barrage Defaults';
+
+  @override
+  String get barrageColorLabel => 'Text Color';
+
+  @override
+  String get barrageDurationLabel => 'Duration (ms)';
+
+  @override
+  String get barrageSpeedLabel => 'Speed (px/s)';
+
+  @override
+  String get barrageFontSizeLabel => 'Font Size';
+
+  @override
+  String get barrageLaneLabel => 'Lane';
+
+  @override
+  String get barrageLaneTop => 'Top';
+
+  @override
+  String get barrageLaneMiddle => 'Middle';
+
+  @override
+  String get barrageLaneBottom => 'Bottom';
+
+  @override
+  String get barrageConfigInvalid =>
+      'Please enter valid barrage default settings.';
+
+  @override
   String get statusRunning => 'Running';
 
   @override

@@ -21,6 +21,10 @@ class FlashOverlayService {
   /// - edgeWidth: 边缘发光宽度（仅 effect=edge 生效）
   /// - edgeOpacity: 边缘发光透明度（仅 effect=edge 生效）
   /// - edgeRepeat: 边缘发光重复次数（仅 effect=edge 生效）
+  /// - text: 弹幕文本（仅 effect=barrage 生效）
+  /// - barrageSpeed: 弹幕速度 px/s（仅 effect=barrage 生效）
+  /// - barrageFontSize: 弹幕字号（仅 effect=barrage 生效）
+  /// - barrageLane: 弹幕轨道 top/middle/bottom（仅 effect=barrage 生效）
   Future<void> triggerFlash({
     required String color,
     int duration = 500,
@@ -28,13 +32,18 @@ class FlashOverlayService {
     double? edgeWidth,
     double? edgeOpacity,
     int? edgeRepeat,
+    String? text,
+    double? barrageSpeed,
+    double? barrageFontSize,
+    String? barrageLane,
   }) async {
     try {
       _logger.info(
         'Creating flash overlay: effect=$effect, color=$color, duration=$duration',
       );
 
-      if (Platform.isMacOS) {
+      final shouldUseNativeFlash = Platform.isMacOS;
+      if (shouldUseNativeFlash) {
         final payload = <String, dynamic>{
           'color': color,
           'duration': duration,
@@ -43,6 +52,10 @@ class FlashOverlayService {
         if (edgeWidth != null) payload['width'] = edgeWidth;
         if (edgeOpacity != null) payload['opacity'] = edgeOpacity;
         if (edgeRepeat != null) payload['repeat'] = edgeRepeat;
+        if (text != null) payload['text'] = text;
+        if (barrageSpeed != null) payload['speed'] = barrageSpeed;
+        if (barrageFontSize != null) payload['fontSize'] = barrageFontSize;
+        if (barrageLane != null) payload['lane'] = barrageLane;
 
         await _flashChannel.invokeMethod('triggerFlash', payload);
         _logger.info('Flash overlay created successfully');
@@ -58,6 +71,10 @@ class FlashOverlayService {
         if (edgeWidth != null) 'width': edgeWidth,
         if (edgeOpacity != null) 'opacity': edgeOpacity,
         if (edgeRepeat != null) 'repeat': edgeRepeat,
+        if (text != null) 'text': text,
+        if (barrageSpeed != null) 'speed': barrageSpeed,
+        if (barrageFontSize != null) 'fontSize': barrageFontSize,
+        if (barrageLane != null) 'lane': barrageLane,
       });
 
       // 创建新窗口（隐藏启动，稍后配置）

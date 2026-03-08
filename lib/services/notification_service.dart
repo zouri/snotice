@@ -34,9 +34,13 @@ class NotificationService {
   }
 
   Future<void> showNotification(NotificationRequest request) async {
-    // Flash 提醒允许 body 为空，优先处理 flash 分支
+    // Overlay 提醒允许 body 为空，优先处理 flash/barrage 分支
     if (request.isFlash) {
       await _handleFlashNotification(request);
+      return;
+    }
+    if (request.isBarrage) {
+      await _handleBarrageNotification(request);
       return;
     }
 
@@ -74,6 +78,35 @@ class NotificationService {
       );
     } catch (e) {
       _logger.error('Failed to send notification: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> _handleBarrageNotification(NotificationRequest request) async {
+    try {
+      final color = request.barrageColor ?? '#FFFFFF';
+      final duration = request.barrageDuration ?? 6000;
+      final speed = request.barrageSpeed ?? 120;
+      final fontSize = request.barrageFontSize ?? 28;
+      final lane = request.barrageLane?.value ?? 'top';
+      final text = request.body.trim().isEmpty ? request.title : request.body;
+
+      _logger.notification(
+        'Barrage notification: ${request.title}',
+        data: request.toJson(),
+      );
+
+      await _flashService.triggerFlash(
+        color: color,
+        duration: duration,
+        effect: 'barrage',
+        text: text,
+        barrageSpeed: speed,
+        barrageFontSize: fontSize,
+        barrageLane: lane,
+      );
+    } catch (e) {
+      _logger.error('Failed to trigger barrage: $e');
       rethrow;
     }
   }

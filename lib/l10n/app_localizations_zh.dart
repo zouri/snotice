@@ -298,6 +298,42 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showNotificationsDesc => '显示系统通知';
 
   @override
+  String get showBarrage => '启用弹幕提醒';
+
+  @override
+  String get showBarrageDesc => '允许显示滚动弹幕覆盖提醒';
+
+  @override
+  String get barrageDefaultsTitle => '弹幕默认参数';
+
+  @override
+  String get barrageColorLabel => '文字颜色';
+
+  @override
+  String get barrageDurationLabel => '时长（毫秒）';
+
+  @override
+  String get barrageSpeedLabel => '速度（像素/秒）';
+
+  @override
+  String get barrageFontSizeLabel => '字号';
+
+  @override
+  String get barrageLaneLabel => '轨道';
+
+  @override
+  String get barrageLaneTop => '顶部';
+
+  @override
+  String get barrageLaneMiddle => '中部';
+
+  @override
+  String get barrageLaneBottom => '底部';
+
+  @override
+  String get barrageConfigInvalid => '请填写有效的弹幕默认参数';
+
+  @override
   String get statusRunning => '运行中';
 
   @override

@@ -1,6 +1,7 @@
 import Cocoa
 import CoreGraphics
 import FlutterMacOS
+import desktop_multi_window
 import flutter_local_notifications
 import screen_retriever_macos
 import shared_preferences_foundation
@@ -10,6 +11,23 @@ import window_manager
 class MainFlutterWindow: NSWindow {
   private var flashToken: Int = 0
   private var flashOverlayWindows: [NSPanel] = []
+
+  private enum BarrageLane {
+    case top
+    case middle
+    case bottom
+
+    static func from(rawValue: String?) -> BarrageLane {
+      switch rawValue?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+      case "middle":
+        return .middle
+      case "bottom":
+        return .bottom
+      default:
+        return .top
+      }
+    }
+  }
 
   private enum EdgeLightingStyle {
     case sweep
@@ -60,6 +78,8 @@ class MainFlutterWindow: NSWindow {
   }
 
   private func registerMacOSPlugins(registry: FlutterPluginRegistry) {
+    FlutterMultiWindowPlugin.register(
+      with: registry.registrar(forPlugin: "FlutterMultiWindowPlugin"))
     FlutterLocalNotificationsPlugin.register(
       with: registry.registrar(forPlugin: "FlutterLocalNotificationsPlugin"))
     ScreenRetrieverMacosPlugin.register(
@@ -95,7 +115,20 @@ class MainFlutterWindow: NSWindow {
         let duration = self.parseInt(args["duration"], fallback: 500)
         let effect = (args["effect"] as? String ?? "full").lowercased()
 
-        if let style = EdgeLightingStyle.from(effect: effect) {
+        if effect == "barrage" {
+          let text = self.parseString(args["text"], fallback: "SNotice")
+          let speed = self.parseDouble(args["speed"], fallback: 120.0)
+          let fontSize = self.parseDouble(args["fontSize"], fallback: 28.0)
+          let lane = BarrageLane.from(rawValue: args["lane"] as? String)
+          self.triggerNativeBarrage(
+            colorString: colorString,
+            text: text,
+            durationMs: duration,
+            speed: speed,
+            fontSize: fontSize,
+            lane: lane
+          )
+        } else if let style = EdgeLightingStyle.from(effect: effect) {
           let width = self.parseDouble(args["width"], fallback: 14.0)
           let opacity = self.parseDouble(args["opacity"], fallback: 0.92)
           let repeatCount = max(1, self.parseInt(args["repeat"], fallback: 2))
@@ -146,6 +179,16 @@ class MainFlutterWindow: NSWindow {
     }
     if let stringValue = value as? String, let doubleValue = Double(stringValue) {
       return doubleValue
+    }
+    return fallback
+  }
+
+  private func parseString(_ value: Any?, fallback: String) -> String {
+    if let stringValue = value as? String {
+      return stringValue
+    }
+    if let numberValue = value as? NSNumber {
+      return numberValue.stringValue
     }
     return fallback
   }
@@ -250,6 +293,193 @@ class MainFlutterWindow: NSWindow {
           self.clearOverlayWindows()
         }
       )
+    }
+  }
+
+  private func triggerNativeBarrage(
+    colorString: String,
+    text: String,
+    durationMs: Int,
+    speed: Double,
+    fontSize: Double,
+    lane: BarrageLane
+  ) {
+    if !Thread.isMainThread {
+      DispatchQueue.main.async { [weak self] in
+        self?.triggerNativeBarrage(
+          colorString: colorString,
+          text: text,
+          durationMs: durationMs,
+          speed: speed,
+          fontSize: fontSize,
+          lane: lane
+        )
+      }
+      return
+    }
+
+    flashToken += 1
+    let token = flashToken
+    clearOverlayWindows()
+
+    let screens = NSScreen.screens
+    if screens.isEmpty {
+      return
+    }
+
+    let overlayLevel = NSWindow.Level.screenSaver
+    let clampedSpeed = max(40.0, min(1200.0, speed))
+    let clampedFontSize = max(12.0, min(96.0, fontSize))
+    let displayText = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      ? "SNotice"
+      : text
+    let textColor = parseColor(colorString)
+    var windows: [NSPanel] = []
+    var totalSeconds: Double = 0.0
+
+    for screen in screens {
+      let frame = screen.frame
+      let window = NSPanel(
+        contentRect: frame,
+        styleMask: [.borderless, .nonactivatingPanel],
+        backing: .buffered,
+        defer: false
+      )
+      window.level = overlayLevel
+      window.isOpaque = false
+      window.isReleasedWhenClosed = false
+      window.backgroundColor = .clear
+      window.alphaValue = 1
+      window.hasShadow = false
+      window.ignoresMouseEvents = true
+      window.collectionBehavior = [
+        .canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle,
+      ]
+      window.setFrame(frame, display: false)
+
+      let container = NSView(frame: NSRect(origin: .zero, size: frame.size))
+      container.wantsLayer = true
+      container.layer?.backgroundColor = NSColor.clear.cgColor
+
+      let font = NSFont.systemFont(ofSize: CGFloat(clampedFontSize), weight: .bold)
+      let shadow = NSShadow()
+      shadow.shadowColor = NSColor.black.withAlphaComponent(0.72)
+      shadow.shadowOffset = NSSize(width: 0, height: -1)
+      shadow.shadowBlurRadius = 8
+      let attributes: [NSAttributedString.Key: Any] = [
+        .font: font,
+        .foregroundColor: textColor,
+        .shadow: shadow,
+      ]
+
+      let label = NSTextField(labelWithString: "")
+      label.attributedStringValue = NSAttributedString(
+        string: displayText,
+        attributes: attributes
+      )
+      label.backgroundColor = .clear
+      label.drawsBackground = false
+      label.isBezeled = false
+      label.isEditable = false
+      label.isSelectable = false
+      label.lineBreakMode = .byClipping
+      label.maximumNumberOfLines = 1
+      label.sizeToFit()
+
+      let textWidth = max(40.0, label.fittingSize.width)
+      let textHeight = max(20.0, label.fittingSize.height)
+      let startX = frame.width + 36.0
+      let endX = -textWidth - 36.0
+      let y = barrageOriginY(
+        lane: lane,
+        containerHeight: frame.height,
+        textHeight: textHeight
+      )
+
+      let bubbleInsetX = 14.0
+      let bubbleInsetY = 8.0
+      let bubble = NSView(
+        frame: NSRect(
+          x: startX - bubbleInsetX,
+          y: y - bubbleInsetY,
+          width: textWidth + bubbleInsetX * 2.0,
+          height: textHeight + bubbleInsetY * 2.0
+        )
+      )
+      bubble.wantsLayer = true
+      bubble.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.22).cgColor
+      bubble.layer?.borderColor = NSColor.white.withAlphaComponent(0.2).cgColor
+      bubble.layer?.borderWidth = 1
+      bubble.layer?.cornerRadius = 12
+
+      label.frame = NSRect(x: startX, y: y, width: textWidth, height: textHeight)
+
+      container.addSubview(bubble)
+      container.addSubview(label)
+
+      window.contentView = container
+      window.orderFrontRegardless()
+      windows.append(window)
+
+      let distance = startX - endX
+      let travelSeconds = distance / clampedSpeed
+      let requestedSeconds = max(0.6, Double(durationMs) / 1000.0)
+      let animationSeconds = max(requestedSeconds, travelSeconds)
+      totalSeconds = max(totalSeconds, animationSeconds)
+
+      NSAnimationContext.runAnimationGroup { context in
+        context.duration = animationSeconds
+        context.timingFunction = CAMediaTimingFunction(name: .linear)
+        label.animator().setFrameOrigin(NSPoint(x: endX, y: y))
+        bubble.animator().setFrameOrigin(NSPoint(x: endX - bubbleInsetX, y: y - bubbleInsetY))
+      }
+    }
+
+    flashOverlayWindows = windows
+
+    DispatchQueue.main.asyncAfter(deadline: .now() + totalSeconds + 0.08) {
+      [weak self] in
+      guard let self else {
+        return
+      }
+      guard token == self.flashToken else {
+        return
+      }
+
+      NSAnimationContext.runAnimationGroup(
+        { context in
+          context.duration = 0.12
+          for window in windows {
+            window.animator().alphaValue = 0
+          }
+        },
+        completionHandler: { [weak self] in
+          guard let self else {
+            return
+          }
+          guard token == self.flashToken else {
+            return
+          }
+          self.clearOverlayWindows()
+        }
+      )
+    }
+  }
+
+  private func barrageOriginY(
+    lane: BarrageLane,
+    containerHeight: CGFloat,
+    textHeight: CGFloat
+  ) -> CGFloat {
+    switch lane {
+    case .top:
+      let topInset = max(48.0, textHeight * 1.4)
+      return max(0, containerHeight - topInset - textHeight)
+    case .middle:
+      return max(0, (containerHeight - textHeight) / 2.0)
+    case .bottom:
+      let bottomInset = max(52.0, textHeight * 1.2)
+      return max(0, bottomInset)
     }
   }
 

@@ -650,6 +650,78 @@ abstract class AppLocalizations {
   /// **'Display system notifications'**
   String get showNotificationsDesc;
 
+  /// No description provided for @showBarrage.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Barrage'**
+  String get showBarrage;
+
+  /// No description provided for @showBarrageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow scrolling barrage overlay reminders'**
+  String get showBarrageDesc;
+
+  /// No description provided for @barrageDefaultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Barrage Defaults'**
+  String get barrageDefaultsTitle;
+
+  /// No description provided for @barrageColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Text Color'**
+  String get barrageColorLabel;
+
+  /// No description provided for @barrageDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration (ms)'**
+  String get barrageDurationLabel;
+
+  /// No description provided for @barrageSpeedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed (px/s)'**
+  String get barrageSpeedLabel;
+
+  /// No description provided for @barrageFontSizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Font Size'**
+  String get barrageFontSizeLabel;
+
+  /// No description provided for @barrageLaneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lane'**
+  String get barrageLaneLabel;
+
+  /// No description provided for @barrageLaneTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get barrageLaneTop;
+
+  /// No description provided for @barrageLaneMiddle.
+  ///
+  /// In en, this message translates to:
+  /// **'Middle'**
+  String get barrageLaneMiddle;
+
+  /// No description provided for @barrageLaneBottom.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom'**
+  String get barrageLaneBottom;
+
+  /// No description provided for @barrageConfigInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter valid barrage default settings.'**
+  String get barrageConfigInvalid;
+
   /// No description provided for @statusRunning.
   ///
   /// In en, this message translates to:

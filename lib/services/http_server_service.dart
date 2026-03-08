@@ -380,13 +380,21 @@ class HttpServerService {
             },
             'category': {
               'type': 'string',
-              'enum': ['flash_full', 'flash_edge'],
+              'enum': ['flash_full', 'flash_edge', 'barrage'],
             },
             'flashColor': {'type': 'string'},
             'flashDuration': {'type': 'integer', 'minimum': 1},
             'edgeWidth': {'type': 'number', 'exclusiveMinimum': 0},
             'edgeOpacity': {'type': 'number', 'minimum': 0, 'maximum': 1},
             'edgeRepeat': {'type': 'integer', 'minimum': 1},
+            'barrageColor': {'type': 'string'},
+            'barrageDuration': {'type': 'integer', 'minimum': 1},
+            'barrageSpeed': {'type': 'number', 'exclusiveMinimum': 0},
+            'barrageFontSize': {'type': 'number', 'exclusiveMinimum': 0},
+            'barrageLane': {
+              'type': 'string',
+              'enum': ['top', 'middle', 'bottom'],
+            },
             'icon': {'type': 'string'},
             'payload': {'type': 'object'},
           },
@@ -426,6 +434,15 @@ class HttpServerService {
             },
             'autoStart': {'type': 'boolean'},
             'showNotifications': {'type': 'boolean'},
+            'showBarrage': {'type': 'boolean'},
+            'defaultBarrageColor': {'type': 'string'},
+            'defaultBarrageDuration': {'type': 'integer', 'minimum': 1},
+            'defaultBarrageSpeed': {'type': 'number', 'exclusiveMinimum': 0},
+            'defaultBarrageFontSize': {'type': 'number', 'exclusiveMinimum': 0},
+            'defaultBarrageLane': {
+              'type': 'string',
+              'enum': ['top', 'middle', 'bottom'],
+            },
           },
           'additionalProperties': false,
         },
@@ -438,8 +455,12 @@ class HttpServerService {
     required String requestLabel,
   }) async {
     try {
-      final notificationRequest = NotificationRequest.fromJson(json);
-      _logger.request(requestLabel, data: json);
+      final normalizedPayload = Map<String, dynamic>.from(json);
+      _applyBarrageDefaults(normalizedPayload);
+      final notificationRequest = NotificationRequest.fromJson(
+        normalizedPayload,
+      );
+      _logger.request(requestLabel, data: normalizedPayload);
 
       final validationErrors = notificationRequest.validate();
       if (validationErrors.isNotEmpty) {
@@ -447,6 +468,13 @@ class HttpServerService {
           'success': false,
           'error': 'Invalid notification request.',
           'validationErrors': validationErrors,
+        });
+      }
+
+      if (notificationRequest.isBarrage && !_config.showBarrage) {
+        return _ServiceCallResult(403, {
+          'success': false,
+          'error': 'Barrage notifications are disabled in current config.',
         });
       }
 
@@ -464,6 +492,26 @@ class HttpServerService {
         'error': 'Internal server error',
       });
     }
+  }
+
+  void _applyBarrageDefaults(Map<String, dynamic> payload) {
+    final rawCategory = payload['category'];
+    final category = rawCategory?.toString().trim().toLowerCase();
+    if (category != NotificationCategory.barrage.value) {
+      return;
+    }
+
+    payload.putIfAbsent('barrageColor', () => _config.defaultBarrageColor);
+    payload.putIfAbsent(
+      'barrageDuration',
+      () => _config.defaultBarrageDuration,
+    );
+    payload.putIfAbsent('barrageSpeed', () => _config.defaultBarrageSpeed);
+    payload.putIfAbsent(
+      'barrageFontSize',
+      () => _config.defaultBarrageFontSize,
+    );
+    payload.putIfAbsent('barrageLane', () => _config.defaultBarrageLane);
   }
 
   _ServiceCallResult _processConfigPayload(

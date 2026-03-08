@@ -30,11 +30,11 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (Platform.isLinux || Platform.isWindows) {
+  if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
     final windowArguments = await _resolveCurrentWindowArguments(args);
     final windowType = windowArguments['windowType'] as String?;
 
-    // 仅在 multi_window 子窗口且明确标记为 flash 时进入闪屏入口
+    // 仅在 multi_window 子窗口且明确标记为 flash 时进入 overlay 入口
     if (windowType == 'flash') {
       overlay.overlayMain(args);
       return;
