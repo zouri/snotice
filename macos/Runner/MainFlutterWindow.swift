@@ -120,13 +120,15 @@ class MainFlutterWindow: NSWindow {
           let speed = self.parseDouble(args["speed"], fallback: 120.0)
           let fontSize = self.parseDouble(args["fontSize"], fallback: 28.0)
           let lane = BarrageLane.from(rawValue: args["lane"] as? String)
+          let repeatCount = max(1, min(8, self.parseInt(args["repeat"], fallback: 1)))
           self.triggerNativeBarrage(
             colorString: colorString,
             text: text,
             durationMs: duration,
             speed: speed,
             fontSize: fontSize,
-            lane: lane
+            lane: lane,
+            repeatCount: repeatCount
           )
         } else if let style = EdgeLightingStyle.from(effect: effect) {
           let width = self.parseDouble(args["width"], fallback: 14.0)
@@ -302,7 +304,8 @@ class MainFlutterWindow: NSWindow {
     durationMs: Int,
     speed: Double,
     fontSize: Double,
-    lane: BarrageLane
+    lane: BarrageLane,
+    repeatCount: Int
   ) {
     if !Thread.isMainThread {
       DispatchQueue.main.async { [weak self] in
@@ -312,7 +315,8 @@ class MainFlutterWindow: NSWindow {
           durationMs: durationMs,
           speed: speed,
           fontSize: fontSize,
-          lane: lane
+          lane: lane,
+          repeatCount: repeatCount
         )
       }
       return
@@ -330,6 +334,7 @@ class MainFlutterWindow: NSWindow {
     let overlayLevel = NSWindow.Level.screenSaver
     let clampedSpeed = max(40.0, min(1200.0, speed))
     let clampedFontSize = max(12.0, min(96.0, fontSize))
+    let safeRepeat = max(1, min(8, repeatCount))
     let displayText = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
       ? "SNotice"
       : text
@@ -372,67 +377,102 @@ class MainFlutterWindow: NSWindow {
         .shadow: shadow,
       ]
 
-      let label = NSTextField(labelWithString: "")
-      label.attributedStringValue = NSAttributedString(
+      let sampleLabel = NSTextField(labelWithString: "")
+      sampleLabel.attributedStringValue = NSAttributedString(
         string: displayText,
         attributes: attributes
       )
-      label.backgroundColor = .clear
-      label.drawsBackground = false
-      label.isBezeled = false
-      label.isEditable = false
-      label.isSelectable = false
-      label.lineBreakMode = .byClipping
-      label.maximumNumberOfLines = 1
-      label.sizeToFit()
+      sampleLabel.sizeToFit()
 
-      let textWidth = max(40.0, label.fittingSize.width)
-      let textHeight = max(20.0, label.fittingSize.height)
+      let textWidth = max(40.0, sampleLabel.fittingSize.width)
+      let textHeight = max(20.0, sampleLabel.fittingSize.height)
       let startX = frame.width + 36.0
-      let endX = -textWidth - 36.0
-      let y = barrageOriginY(
+      let endXBase = -textWidth - 60.0
+      let baseY = barrageOriginY(
         lane: lane,
+        containerHeight: frame.height,
+        textHeight: textHeight
+      )
+      let rowSpacing = max(36.0, min(120.0, textHeight + 12.0))
+      let rowTops = barrageRowPositions(
+        lane: lane,
+        count: safeRepeat,
+        baseY: baseY,
+        rowSpacing: rowSpacing,
         containerHeight: frame.height,
         textHeight: textHeight
       )
 
       let bubbleInsetX = 14.0
       let bubbleInsetY = 8.0
-      let bubble = NSView(
-        frame: NSRect(
-          x: startX - bubbleInsetX,
-          y: y - bubbleInsetY,
-          width: textWidth + bubbleInsetX * 2.0,
-          height: textHeight + bubbleInsetY * 2.0
+      for index in 0..<safeRepeat {
+        let rowY = rowTops[index]
+        let spawnOffset = CGFloat.random(in: (-frame.width * 0.18)...(frame.width * 0.35))
+        let endExtra = CGFloat.random(in: 0...(frame.width * 0.2))
+        let currentStartX = startX + spawnOffset
+        let currentEndX = endXBase - endExtra
+        let initialProgress = CGFloat.random(in: 0.06...0.42)
+        let speedFactor = Double.random(in: 0.82...1.2)
+        let adjustedSpeed = clampedSpeed * speedFactor
+        let startXNow = currentStartX + (currentEndX - currentStartX) * initialProgress
+        let remainingDistance = max(1.0, startXNow - currentEndX)
+        let remainingTravelSeconds = remainingDistance / adjustedSpeed
+        let requestedSeconds = max(0.6, Double(durationMs) / 1000.0)
+        let animationSeconds = max(
+          requestedSeconds * (1.0 - Double(initialProgress) * 0.55),
+          remainingTravelSeconds
         )
-      )
-      bubble.wantsLayer = true
-      bubble.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.22).cgColor
-      bubble.layer?.borderColor = NSColor.white.withAlphaComponent(0.2).cgColor
-      bubble.layer?.borderWidth = 1
-      bubble.layer?.cornerRadius = 12
+        totalSeconds = max(totalSeconds, animationSeconds)
 
-      label.frame = NSRect(x: startX, y: y, width: textWidth, height: textHeight)
+        let bubble = NSView(
+          frame: NSRect(
+            x: startXNow - bubbleInsetX,
+            y: rowY - bubbleInsetY,
+            width: textWidth + bubbleInsetX * 2.0,
+            height: textHeight + bubbleInsetY * 2.0
+          )
+        )
+        bubble.wantsLayer = true
+        bubble.layer?.backgroundColor = NSColor.black.withAlphaComponent(0.22).cgColor
+        bubble.layer?.borderColor = NSColor.white.withAlphaComponent(0.2).cgColor
+        bubble.layer?.borderWidth = 1
+        bubble.layer?.cornerRadius = 12
 
-      container.addSubview(bubble)
-      container.addSubview(label)
+        let label = NSTextField(labelWithString: "")
+        label.attributedStringValue = NSAttributedString(
+          string: displayText,
+          attributes: attributes
+        )
+        label.backgroundColor = .clear
+        label.drawsBackground = false
+        label.isBezeled = false
+        label.isEditable = false
+        label.isSelectable = false
+        label.lineBreakMode = .byClipping
+        label.maximumNumberOfLines = 1
+        label.frame = NSRect(
+          x: startXNow,
+          y: rowY,
+          width: textWidth,
+          height: textHeight
+        )
+
+        container.addSubview(bubble)
+        container.addSubview(label)
+
+        NSAnimationContext.runAnimationGroup { context in
+          context.duration = animationSeconds
+          context.timingFunction = CAMediaTimingFunction(name: .linear)
+          label.animator().setFrameOrigin(NSPoint(x: currentEndX, y: rowY))
+          bubble.animator().setFrameOrigin(
+            NSPoint(x: currentEndX - bubbleInsetX, y: rowY - bubbleInsetY)
+          )
+        }
+      }
 
       window.contentView = container
       window.orderFrontRegardless()
       windows.append(window)
-
-      let distance = startX - endX
-      let travelSeconds = distance / clampedSpeed
-      let requestedSeconds = max(0.6, Double(durationMs) / 1000.0)
-      let animationSeconds = max(requestedSeconds, travelSeconds)
-      totalSeconds = max(totalSeconds, animationSeconds)
-
-      NSAnimationContext.runAnimationGroup { context in
-        context.duration = animationSeconds
-        context.timingFunction = CAMediaTimingFunction(name: .linear)
-        label.animator().setFrameOrigin(NSPoint(x: endX, y: y))
-        bubble.animator().setFrameOrigin(NSPoint(x: endX - bubbleInsetX, y: y - bubbleInsetY))
-      }
     }
 
     flashOverlayWindows = windows
@@ -481,6 +521,75 @@ class MainFlutterWindow: NSWindow {
       let bottomInset = max(52.0, textHeight * 1.2)
       return max(0, bottomInset)
     }
+  }
+
+  private func barrageRowY(
+    lane: BarrageLane,
+    index: Int,
+    baseY: CGFloat,
+    rowSpacing: CGFloat,
+    containerHeight: CGFloat,
+    textHeight: CGFloat
+  ) -> CGFloat {
+    let rawY: CGFloat
+    switch lane {
+    case .top:
+      rawY = baseY - CGFloat(index) * rowSpacing
+    case .middle:
+      rawY = baseY + middleSignedStep(index) * rowSpacing
+    case .bottom:
+      rawY = baseY + CGFloat(index) * rowSpacing
+    }
+    return clampBarrageY(rawY, containerHeight: containerHeight, textHeight: textHeight)
+  }
+
+  private func barrageRowPositions(
+    lane: BarrageLane,
+    count: Int,
+    baseY: CGFloat,
+    rowSpacing: CGFloat,
+    containerHeight: CGFloat,
+    textHeight: CGFloat
+  ) -> [CGFloat] {
+    var rows: [CGFloat] = []
+    rows.reserveCapacity(max(1, count))
+    for index in 0..<max(1, count) {
+      let baseRowY = barrageRowY(
+        lane: lane,
+        index: index,
+        baseY: baseY,
+        rowSpacing: rowSpacing,
+        containerHeight: containerHeight,
+        textHeight: textHeight
+      )
+      let jitter = CGFloat.random(in: (-rowSpacing * 0.35)...(rowSpacing * 0.35))
+      rows.append(
+        clampBarrageY(
+          baseRowY + jitter,
+          containerHeight: containerHeight,
+          textHeight: textHeight
+        )
+      )
+    }
+    return rows.shuffled()
+  }
+
+  private func middleSignedStep(_ index: Int) -> CGFloat {
+    if index == 0 {
+      return 0
+    }
+    let level = CGFloat((index + 1) / 2)
+    return index % 2 == 1 ? level : -level
+  }
+
+  private func clampBarrageY(
+    _ y: CGFloat,
+    containerHeight: CGFloat,
+    textHeight: CGFloat
+  ) -> CGFloat {
+    let minY: CGFloat = 0
+    let maxY = max(0, containerHeight - textHeight)
+    return min(max(y, minY), maxY)
   }
 
   private func triggerEdgeLighting(

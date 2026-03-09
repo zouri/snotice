@@ -319,6 +319,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get barrageFontSizeLabel => '字号';
 
   @override
+  String get barrageRepeatLabel => '重复条数';
+
+  @override
   String get barrageLaneLabel => '轨道';
 
   @override

@@ -395,6 +395,7 @@ class HttpServerService {
               'type': 'string',
               'enum': ['top', 'middle', 'bottom'],
             },
+            'barrageRepeat': {'type': 'integer', 'minimum': 1, 'maximum': 8},
             'icon': {'type': 'string'},
             'payload': {'type': 'object'},
           },
@@ -442,6 +443,11 @@ class HttpServerService {
             'defaultBarrageLane': {
               'type': 'string',
               'enum': ['top', 'middle', 'bottom'],
+            },
+            'defaultBarrageRepeat': {
+              'type': 'integer',
+              'minimum': 1,
+              'maximum': 8,
             },
           },
           'additionalProperties': false,
@@ -512,6 +518,7 @@ class HttpServerService {
       () => _config.defaultBarrageFontSize,
     );
     payload.putIfAbsent('barrageLane', () => _config.defaultBarrageLane);
+    payload.putIfAbsent('barrageRepeat', () => _config.defaultBarrageRepeat);
   }
 
   _ServiceCallResult _processConfigPayload(

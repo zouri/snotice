@@ -89,6 +89,7 @@ class NotificationService {
       final speed = request.barrageSpeed ?? 120;
       final fontSize = request.barrageFontSize ?? 28;
       final lane = request.barrageLane?.value ?? 'top';
+      final repeat = request.barrageRepeat ?? 1;
       final text = request.body.trim().isEmpty ? request.title : request.body;
 
       _logger.notification(
@@ -104,6 +105,7 @@ class NotificationService {
         barrageSpeed: speed,
         barrageFontSize: fontSize,
         barrageLane: lane,
+        barrageRepeat: repeat,
       );
     } catch (e) {
       _logger.error('Failed to trigger barrage: $e');

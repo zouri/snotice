@@ -2,6 +2,8 @@ import '../config/constants.dart';
 import '../utils/ip_utils.dart';
 
 class AppConfig {
+  static const int maxBarrageRepeat = 8;
+
   final int port;
   final List<String> allowedIPs;
   final bool autoStart;
@@ -12,6 +14,7 @@ class AppConfig {
   final double defaultBarrageSpeed;
   final double defaultBarrageFontSize;
   final String defaultBarrageLane;
+  final int defaultBarrageRepeat;
 
   AppConfig({
     this.port = 8642,
@@ -24,6 +27,7 @@ class AppConfig {
     double defaultBarrageSpeed = 120,
     double defaultBarrageFontSize = 28,
     String defaultBarrageLane = 'top',
+    int defaultBarrageRepeat = 1,
   }) : autoStart = _normalizeAutoStart(autoStart),
        allowedIPs = List.unmodifiable(
          _normalizeAllowedIPs(allowedIPs ?? AppConstants.defaultAllowedIPs),
@@ -41,7 +45,8 @@ class AppConfig {
          defaultBarrageFontSize,
          fallback: 28,
        ),
-       defaultBarrageLane = _normalizeBarrageLane(defaultBarrageLane);
+       defaultBarrageLane = _normalizeBarrageLane(defaultBarrageLane),
+       defaultBarrageRepeat = _normalizeBarrageRepeat(defaultBarrageRepeat);
 
   factory AppConfig.fromJson(Map<String, dynamic> json) {
     final rawAllowedIPs = json['allowedIPs'] as List<dynamic>?;
@@ -61,6 +66,7 @@ class AppConfig {
       defaultBarrageFontSize:
           _parseDouble(json['defaultBarrageFontSize']) ?? 28,
       defaultBarrageLane: _parseString(json['defaultBarrageLane']) ?? 'top',
+      defaultBarrageRepeat: _parseInt(json['defaultBarrageRepeat']) ?? 1,
     );
   }
 
@@ -76,6 +82,7 @@ class AppConfig {
       'defaultBarrageSpeed': defaultBarrageSpeed,
       'defaultBarrageFontSize': defaultBarrageFontSize,
       'defaultBarrageLane': defaultBarrageLane,
+      'defaultBarrageRepeat': defaultBarrageRepeat,
     };
   }
 
@@ -106,6 +113,7 @@ class AppConfig {
     double? defaultBarrageSpeed,
     double? defaultBarrageFontSize,
     String? defaultBarrageLane,
+    int? defaultBarrageRepeat,
   }) {
     return AppConfig(
       port: port ?? this.port,
@@ -120,6 +128,7 @@ class AppConfig {
       defaultBarrageFontSize:
           defaultBarrageFontSize ?? this.defaultBarrageFontSize,
       defaultBarrageLane: defaultBarrageLane ?? this.defaultBarrageLane,
+      defaultBarrageRepeat: defaultBarrageRepeat ?? this.defaultBarrageRepeat,
     );
   }
 
@@ -169,6 +178,16 @@ class AppConfig {
       default:
         return 'top';
     }
+  }
+
+  static int _normalizeBarrageRepeat(int value) {
+    if (value <= 0) {
+      return 1;
+    }
+    if (value > maxBarrageRepeat) {
+      return maxBarrageRepeat;
+    }
+    return value;
   }
 
   static bool? _parseBool(dynamic value) {

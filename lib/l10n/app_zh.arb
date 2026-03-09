@@ -106,6 +106,7 @@
   "barrageDurationLabel": "时长（毫秒）",
   "barrageSpeedLabel": "速度（像素/秒）",
   "barrageFontSizeLabel": "字号",
+  "barrageRepeatLabel": "重复条数",
   "barrageLaneLabel": "轨道",
   "barrageLaneTop": "顶部",
   "barrageLaneMiddle": "中部",

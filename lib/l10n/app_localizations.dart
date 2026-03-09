@@ -692,6 +692,12 @@ abstract class AppLocalizations {
   /// **'Font Size'**
   String get barrageFontSizeLabel;
 
+  /// No description provided for @barrageRepeatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat Count'**
+  String get barrageRepeatLabel;
+
   /// No description provided for @barrageLaneLabel.
   ///
   /// In en, this message translates to:

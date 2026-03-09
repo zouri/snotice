@@ -13,6 +13,7 @@ class NotificationSettingsCard extends StatelessWidget {
     required this.barrageDurationController,
     required this.barrageSpeedController,
     required this.barrageFontSizeController,
+    required this.barrageRepeatController,
     required this.barrageLane,
     required this.onBarrageLaneChanged,
     super.key,
@@ -26,6 +27,7 @@ class NotificationSettingsCard extends StatelessWidget {
   final TextEditingController barrageDurationController;
   final TextEditingController barrageSpeedController;
   final TextEditingController barrageFontSizeController;
+  final TextEditingController barrageRepeatController;
   final String barrageLane;
   final ValueChanged<String?> onBarrageLaneChanged;
 
@@ -120,6 +122,11 @@ class NotificationSettingsCard extends StatelessWidget {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
+                  ),
+                  _TextField(
+                    controller: barrageRepeatController,
+                    label: l10n.barrageRepeatLabel,
+                    keyboardType: TextInputType.number,
                   ),
                   DropdownButtonFormField<String>(
                     initialValue: barrageLane,

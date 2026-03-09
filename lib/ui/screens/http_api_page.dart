@@ -54,6 +54,7 @@ class HttpApiPage extends StatelessWidget {
       'barrageSpeed': 160,
       'barrageFontSize': 30,
       'barrageLane': 'top',
+      'barrageRepeat': 3,
     };
     final updateConfigPayloadMap = <String, dynamic>{
       'port': port,
@@ -66,6 +67,7 @@ class HttpApiPage extends StatelessWidget {
       'defaultBarrageSpeed': 120,
       'defaultBarrageFontSize': 28,
       'defaultBarrageLane': 'top',
+      'defaultBarrageRepeat': 1,
     };
 
     final statusCurlCommand = 'curl $baseUrl/api/status';
@@ -216,6 +218,13 @@ class HttpApiPage extends StatelessWidget {
         description:
             'Barrage lane: top | middle | bottom. Only valid when category=barrage.',
       ),
+      const _ApiParamSpec(
+        name: 'barrageRepeat',
+        type: 'int',
+        required: 'No',
+        description:
+            'Barrage repeat count (1-8). Only valid when category=barrage.',
+      ),
       _ApiParamSpec(
         name: 'payload',
         type: 'object',
@@ -284,6 +293,12 @@ class HttpApiPage extends StatelessWidget {
         type: 'string',
         required: 'No',
         description: 'Default barrage lane: top | middle | bottom.',
+      ),
+      const _ApiParamSpec(
+        name: 'defaultBarrageRepeat',
+        type: 'int',
+        required: 'No',
+        description: 'Default barrage repeat count (1-8).',
       ),
     ];
 
@@ -401,7 +416,7 @@ class HttpApiPage extends StatelessWidget {
                           const SizedBox(height: 6),
                           const _NoteLine(
                             text:
-                                'barrageColor/barrageDuration/barrageSpeed/barrageFontSize/barrageLane only work when category=barrage.',
+                                'barrageColor/barrageDuration/barrageSpeed/barrageFontSize/barrageLane/barrageRepeat only work when category=barrage.',
                           ),
                         ],
                       ),

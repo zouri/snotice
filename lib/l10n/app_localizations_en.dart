@@ -333,6 +333,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get barrageFontSizeLabel => 'Font Size';
 
   @override
+  String get barrageRepeatLabel => 'Repeat Count';
+
+  @override
   String get barrageLaneLabel => 'Lane';
 
   @override

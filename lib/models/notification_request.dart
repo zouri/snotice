@@ -71,6 +71,8 @@ enum NotificationBarrageLane {
 }
 
 class NotificationRequest {
+  static const int maxBarrageRepeat = 8;
+
   final String title;
   final String body;
   final String? icon;
@@ -86,6 +88,7 @@ class NotificationRequest {
   final double? barrageSpeed;
   final double? barrageFontSize;
   final NotificationBarrageLane? barrageLane;
+  final int? barrageRepeat;
   final Map<String, dynamic>? payload;
   final bool _hasInvalidPriority;
   final bool _hasInvalidCategory;
@@ -107,6 +110,7 @@ class NotificationRequest {
     this.barrageSpeed,
     this.barrageFontSize,
     this.barrageLane,
+    this.barrageRepeat,
     Map<String, dynamic>? payload,
     bool hasInvalidPriority = false,
     bool hasInvalidCategory = false,
@@ -140,6 +144,7 @@ class NotificationRequest {
       barrageSpeed: _parseDouble(json['barrageSpeed']),
       barrageFontSize: _parseDouble(json['barrageFontSize']),
       barrageLane: barrageLane,
+      barrageRepeat: _parseInt(json['barrageRepeat']),
       payload: _parsePayload(json['payload']),
       hasInvalidPriority: rawPriority != null && priority == null,
       hasInvalidCategory: rawCategory != null && category == null,
@@ -210,6 +215,7 @@ class NotificationRequest {
       if (barrageSpeed != null) 'barrageSpeed': barrageSpeed,
       if (barrageFontSize != null) 'barrageFontSize': barrageFontSize,
       if (barrageLane != null) 'barrageLane': barrageLane!.value,
+      if (barrageRepeat != null) 'barrageRepeat': barrageRepeat,
       if (payload != null) 'payload': payload,
     };
   }
@@ -267,6 +273,16 @@ class NotificationRequest {
       errors.add('Field "barrageFontSize" must be greater than 0.');
     }
 
+    if (barrageRepeat != null && barrageRepeat! <= 0) {
+      errors.add('Field "barrageRepeat" must be greater than 0.');
+    }
+
+    if (barrageRepeat != null && barrageRepeat! > maxBarrageRepeat) {
+      errors.add(
+        'Field "barrageRepeat" must be less than or equal to $maxBarrageRepeat.',
+      );
+    }
+
     if (category != NotificationCategory.flashEdge &&
         (edgeWidth != null || edgeOpacity != null || edgeRepeat != null)) {
       errors.add(
@@ -279,9 +295,10 @@ class NotificationRequest {
             barrageDuration != null ||
             barrageSpeed != null ||
             barrageFontSize != null ||
-            barrageLane != null)) {
+            barrageLane != null ||
+            barrageRepeat != null)) {
       errors.add(
-        'barrageColor/barrageDuration/barrageSpeed/barrageFontSize/barrageLane require category=barrage.',
+        'barrageColor/barrageDuration/barrageSpeed/barrageFontSize/barrageLane/barrageRepeat require category=barrage.',
       );
     }
 

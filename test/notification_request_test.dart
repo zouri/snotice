@@ -118,6 +118,30 @@ void main() {
       expect(request.validate(), isEmpty);
     });
 
+    test('validates barrageRepeat range', () {
+      final tooSmall = NotificationRequest.fromJson({
+        'title': 'Barrage',
+        'category': 'barrage',
+        'barrageRepeat': 0,
+      });
+      final tooLarge = NotificationRequest.fromJson({
+        'title': 'Barrage',
+        'category': 'barrage',
+        'barrageRepeat': 99,
+      });
+
+      expect(
+        tooSmall.validate(),
+        contains('Field "barrageRepeat" must be greater than 0.'),
+      );
+      expect(
+        tooLarge.validate(),
+        contains(
+          'Field "barrageRepeat" must be less than or equal to ${NotificationRequest.maxBarrageRepeat}.',
+        ),
+      );
+    });
+
     test('requires flash_edge category when edge-only fields are provided', () {
       final request = NotificationRequest.fromJson({
         'title': 'T',

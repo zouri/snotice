@@ -94,6 +94,7 @@ void main() {
         defaultBarrageSpeed: 0,
         defaultBarrageFontSize: -8,
         defaultBarrageLane: 'unknown',
+        defaultBarrageRepeat: 0,
       );
 
       expect(config.defaultBarrageColor, '#FFD84D');
@@ -101,6 +102,7 @@ void main() {
       expect(config.defaultBarrageSpeed, 120);
       expect(config.defaultBarrageFontSize, 28);
       expect(config.defaultBarrageLane, 'top');
+      expect(config.defaultBarrageRepeat, 1);
     });
 
     test('parses barrage defaults from json', () {
@@ -110,6 +112,7 @@ void main() {
         'defaultBarrageSpeed': '150.5',
         'defaultBarrageFontSize': 30,
         'defaultBarrageLane': 'middle',
+        'defaultBarrageRepeat': '3',
         'showBarrage': false,
       });
 
@@ -118,6 +121,7 @@ void main() {
       expect(config.defaultBarrageSpeed, 150.5);
       expect(config.defaultBarrageFontSize, 30);
       expect(config.defaultBarrageLane, 'middle');
+      expect(config.defaultBarrageRepeat, 3);
       expect(config.showBarrage, false);
     });
   });

@@ -23,6 +23,7 @@ void overlayMain(List<String> args) async {
     final speed = _parseDouble(arguments['speed']) ?? 120;
     final fontSize = _parseDouble(arguments['fontSize']) ?? 28;
     final lane = _parseString(arguments['lane']) ?? 'top';
+    final repeat = _parseInt(arguments['repeat']) ?? 1;
 
     runApp(
       BarrageOverlayApp(
@@ -32,6 +33,7 @@ void overlayMain(List<String> args) async {
         speed: speed,
         fontSize: fontSize,
         lane: lane,
+        repeat: repeat,
       ),
     );
     return;
@@ -269,6 +271,7 @@ class BarrageOverlayApp extends StatelessWidget {
     required this.speed,
     required this.fontSize,
     required this.lane,
+    required this.repeat,
   });
 
   final String text;
@@ -277,6 +280,7 @@ class BarrageOverlayApp extends StatelessWidget {
   final double speed;
   final double fontSize;
   final String lane;
+  final int repeat;
 
   @override
   Widget build(BuildContext context) {
@@ -289,6 +293,7 @@ class BarrageOverlayApp extends StatelessWidget {
         speed: speed,
         fontSize: fontSize,
         lane: lane,
+        repeat: repeat,
       ),
     );
   }
@@ -303,6 +308,7 @@ class BarrageOverlayScreen extends StatefulWidget {
     required this.speed,
     required this.fontSize,
     required this.lane,
+    required this.repeat,
   });
 
   final String text;
@@ -311,6 +317,7 @@ class BarrageOverlayScreen extends StatefulWidget {
   final double speed;
   final double fontSize;
   final String lane;
+  final int repeat;
 
   @override
   State<BarrageOverlayScreen> createState() => _BarrageOverlayScreenState();
@@ -318,6 +325,8 @@ class BarrageOverlayScreen extends StatefulWidget {
 
 class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
     with SingleTickerProviderStateMixin {
+  static const int _maxBarrageRepeat = 8;
+
   late final AnimationController _controller;
   late final Color _textColor;
   late final TextStyle _textStyle;
@@ -325,6 +334,11 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
   double _textWidth = 0;
   double _startX = 0;
   double _endX = 0;
+  int _repeatCount = 1;
+  double _itemHeight = 48;
+  double _rowSpacing = 60;
+  final math.Random _random = math.Random();
+  List<_BarrageItemLayout> _barrageItems = <_BarrageItemLayout>[];
 
   @override
   void initState() {
@@ -361,12 +375,33 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
   Future<void> _startAnimation() async {
     final media = MediaQuery.of(context);
     final screenWidth = media.size.width;
+    final screenHeight = media.size.height;
     _textWidth = _measureTextWidth(widget.text, _textStyle);
+    final textHeight = _measureTextHeight(widget.text, _textStyle);
+    _itemHeight = textHeight + 16;
+    _rowSpacing = _resolveRowSpacing(_itemHeight);
+    _repeatCount = widget.repeat <= 0
+        ? 1
+        : math.min(widget.repeat, _maxBarrageRepeat);
     _startX = screenWidth + 40;
-    _endX = -_textWidth - 40;
+    _endX = -_textWidth - 60;
 
-    final distance = _startX - _endX;
-    final speed = math.max(1.0, widget.speed);
+    final laneY = screenHeight * _laneFactor();
+    final rowTops = _buildRandomRowTops(laneY: laneY, maxHeight: screenHeight);
+    _barrageItems = List<_BarrageItemLayout>.generate(_repeatCount, (index) {
+      return _BarrageItemLayout(
+        rowTop: rowTops[index],
+        spawnOffsetX: _randomBetween(-screenWidth * 0.18, screenWidth * 0.35),
+        endExtra: _randomBetween(0, screenWidth * 0.2),
+        initialProgress: _randomBetween(0.06, 0.42),
+        speedFactor: _randomBetween(0.82, 1.2),
+      );
+    });
+
+    final farthestStartX = _startX + screenWidth * 0.35;
+    final farthestEndX = _endX - screenWidth * 0.2;
+    final distance = farthestStartX - farthestEndX;
+    final speed = math.max(1.0, widget.speed) * 0.82;
     final travelMs = (distance / speed * 1000).round();
     final effectiveMs = math.max(widget.duration, travelMs);
 
@@ -389,6 +424,16 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
     return painter.width;
   }
 
+  double _measureTextHeight(String text, TextStyle style) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    return painter.height;
+  }
+
   double _laneFactor() {
     switch (widget.lane.toLowerCase()) {
       case 'middle':
@@ -399,6 +444,45 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
       default:
         return 0.18;
     }
+  }
+
+  double _resolveRowSpacing(double itemHeight) {
+    return math.max(36.0, math.min(120.0, itemHeight + 12.0));
+  }
+
+  List<double> _buildRandomRowTops({
+    required double laneY,
+    required double maxHeight,
+  }) {
+    final rows = List<double>.generate(_repeatCount, (index) {
+      final lane = widget.lane.toLowerCase();
+      final rawTop = switch (lane) {
+        'bottom' => laneY - index * _rowSpacing,
+        'middle' => laneY + _middleSignedStep(index) * _rowSpacing,
+        _ => laneY + index * _rowSpacing,
+      };
+      final jitter = _randomBetween(-_rowSpacing * 0.35, _rowSpacing * 0.35);
+      return _clampTop(rawTop + jitter, maxHeight);
+    });
+    rows.shuffle(_random);
+    return rows;
+  }
+
+  double _middleSignedStep(int index) {
+    if (index == 0) {
+      return 0;
+    }
+    final level = ((index + 1) / 2).floorToDouble();
+    return index.isOdd ? level : -level;
+  }
+
+  double _clampTop(double top, double maxHeight) {
+    final maxTop = math.max(0.0, maxHeight - _itemHeight);
+    return top.clamp(0.0, maxTop);
+  }
+
+  double _randomBetween(double min, double max) {
+    return min + _random.nextDouble() * (max - min);
   }
 
   Future<void> _closeOverlayWindow() async {
@@ -419,38 +503,65 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
         ignoring: true,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final laneY = constraints.maxHeight * _laneFactor();
+            final fallbackTop = _clampTop(
+              constraints.maxHeight * _laneFactor(),
+              constraints.maxHeight,
+            );
             return AnimatedBuilder(
               animation: _controller,
               builder: (context, child) {
-                final x = _startX + (_endX - _startX) * _controller.value;
-                return Stack(
-                  children: [
-                    Positioned(
-                      left: x,
-                      top: laneY,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: const Color(0x24000000),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0x33FFFFFF)),
+                final items = _barrageItems.isEmpty
+                    ? <_BarrageItemLayout>[
+                        const _BarrageItemLayout(
+                          rowTop: 0,
+                          spawnOffsetX: 0,
+                          endExtra: 0,
+                          initialProgress: 0,
+                          speedFactor: 1,
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: Text(
-                            widget.text,
-                            style: _textStyle,
-                            maxLines: 1,
-                            overflow: TextOverflow.fade,
-                          ),
+                      ]
+                    : _barrageItems;
+                final barrageItems = List<Widget>.generate(items.length, (
+                  index,
+                ) {
+                  final item = items[index];
+                  final rowTop = _barrageItems.isEmpty
+                      ? fallbackTop
+                      : _clampTop(item.rowTop, constraints.maxHeight);
+                  final startX = _startX + item.spawnOffsetX;
+                  final endX = _endX - item.endExtra;
+                  final baseProgress =
+                      item.initialProgress +
+                      (1 - item.initialProgress) * _controller.value;
+                  final easedProgress =
+                      1 -
+                      math.pow(1 - baseProgress, item.speedFactor).toDouble();
+                  final x = startX + (endX - startX) * easedProgress;
+                  return Positioned(
+                    left: x,
+                    top: rowTop,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: const Color(0x24000000),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0x33FFFFFF)),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        child: Text(
+                          widget.text,
+                          style: _textStyle,
+                          maxLines: 1,
+                          overflow: TextOverflow.fade,
                         ),
                       ),
                     ),
-                  ],
-                );
+                  );
+                });
+                return Stack(children: barrageItems);
               },
             );
           },
@@ -464,4 +575,20 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
     _controller.dispose();
     super.dispose();
   }
+}
+
+class _BarrageItemLayout {
+  const _BarrageItemLayout({
+    required this.rowTop,
+    required this.spawnOffsetX,
+    required this.endExtra,
+    required this.initialProgress,
+    required this.speedFactor,
+  });
+
+  final double rowTop;
+  final double spawnOffsetX;
+  final double endExtra;
+  final double initialProgress;
+  final double speedFactor;
 }

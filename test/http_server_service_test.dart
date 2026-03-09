@@ -195,6 +195,7 @@ void main() {
             defaultBarrageSpeed: 210,
             defaultBarrageFontSize: 32,
             defaultBarrageLane: 'bottom',
+            defaultBarrageRepeat: 4,
           ),
         );
 
@@ -211,6 +212,7 @@ void main() {
         expect(request.barrageSpeed, 210);
         expect(request.barrageFontSize, 32);
         expect(request.barrageLane?.value, 'bottom');
+        expect(request.barrageRepeat, 4);
       },
     );
 

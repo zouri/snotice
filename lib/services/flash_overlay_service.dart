@@ -25,6 +25,7 @@ class FlashOverlayService {
   /// - barrageSpeed: 弹幕速度 px/s（仅 effect=barrage 生效）
   /// - barrageFontSize: 弹幕字号（仅 effect=barrage 生效）
   /// - barrageLane: 弹幕轨道 top/middle/bottom（仅 effect=barrage 生效）
+  /// - barrageRepeat: 弹幕重复条数（仅 effect=barrage 生效）
   Future<void> triggerFlash({
     required String color,
     int duration = 500,
@@ -36,6 +37,7 @@ class FlashOverlayService {
     double? barrageSpeed,
     double? barrageFontSize,
     String? barrageLane,
+    int? barrageRepeat,
   }) async {
     try {
       _logger.info(
@@ -56,6 +58,7 @@ class FlashOverlayService {
         if (barrageSpeed != null) payload['speed'] = barrageSpeed;
         if (barrageFontSize != null) payload['fontSize'] = barrageFontSize;
         if (barrageLane != null) payload['lane'] = barrageLane;
+        if (barrageRepeat != null) payload['repeat'] = barrageRepeat;
 
         await _flashChannel.invokeMethod('triggerFlash', payload);
         _logger.info('Flash overlay created successfully');
@@ -75,6 +78,7 @@ class FlashOverlayService {
         if (barrageSpeed != null) 'speed': barrageSpeed,
         if (barrageFontSize != null) 'fontSize': barrageFontSize,
         if (barrageLane != null) 'lane': barrageLane,
+        if (barrageRepeat != null) 'repeat': barrageRepeat,
       });
 
       // 创建新窗口（隐藏启动，稍后配置）

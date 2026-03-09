@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _barrageDurationController = TextEditingController();
   final _barrageSpeedController = TextEditingController();
   final _barrageFontSizeController = TextEditingController();
+  final _barrageRepeatController = TextEditingController();
 
   late AppConfig _draftConfig;
   late String _barrageLane;
@@ -45,6 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _barrageDurationController.text = config.defaultBarrageDuration.toString();
     _barrageSpeedController.text = config.defaultBarrageSpeed.toString();
     _barrageFontSizeController.text = config.defaultBarrageFontSize.toString();
+    _barrageRepeatController.text = config.defaultBarrageRepeat.toString();
   }
 
   @override
@@ -55,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _barrageDurationController.dispose();
     _barrageSpeedController.dispose();
     _barrageFontSizeController.dispose();
+    _barrageRepeatController.dispose();
     super.dispose();
   }
 
@@ -80,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final barrageFontSize = double.tryParse(
       _barrageFontSizeController.text.trim(),
     );
+    final barrageRepeat = int.tryParse(_barrageRepeatController.text.trim());
 
     final invalidBarrageDefaults =
         barrageColor.isEmpty ||
@@ -88,7 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
         barrageSpeed == null ||
         barrageSpeed <= 0 ||
         barrageFontSize == null ||
-        barrageFontSize <= 0;
+        barrageFontSize <= 0 ||
+        barrageRepeat == null ||
+        barrageRepeat <= 0 ||
+        barrageRepeat > AppConfig.maxBarrageRepeat;
     if (invalidBarrageDefaults) {
       if (!mounted) {
         return;
@@ -107,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
       defaultBarrageSpeed: barrageSpeed,
       defaultBarrageFontSize: barrageFontSize,
       defaultBarrageLane: _barrageLane,
+      defaultBarrageRepeat: barrageRepeat,
     );
 
     try {
@@ -244,6 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           barrageDurationController: _barrageDurationController,
                           barrageSpeedController: _barrageSpeedController,
                           barrageFontSizeController: _barrageFontSizeController,
+                          barrageRepeatController: _barrageRepeatController,
                           barrageLane: _barrageLane,
                           onBarrageLaneChanged: (value) {
                             if (value == null) {
