@@ -232,12 +232,6 @@ class _ApiEndpointsSection extends StatelessWidget {
         description: l10n.httpApiEndpointGetConfigDesc,
         color: AppColors.info,
       ),
-      _EndpointData(
-        method: 'POST',
-        path: '/api/config',
-        description: l10n.httpApiEndpointUpdateConfigDesc,
-        color: AppColors.primary,
-      ),
     ];
 
     return Column(
@@ -534,29 +528,6 @@ class _ParametersGrid extends StatelessWidget {
             'int',
             l10n.httpApiRequiredNo,
             'Barrage repeat count (1-8)',
-          ),
-        ]),
-        const SizedBox(height: 16),
-        _SectionHeader(title: l10n.httpApiConfigParamsTitle),
-        const SizedBox(height: 12),
-        _buildParamsList([
-          _ParamData(
-            'port',
-            'int',
-            l10n.httpApiRequiredNo,
-            l10n.httpApiParamPortDesc,
-          ),
-          _ParamData(
-            'allowedIPs',
-            'string[]',
-            l10n.httpApiRequiredNo,
-            l10n.httpApiParamAllowedIPsDesc,
-          ),
-          _ParamData(
-            'defaultBarrageRepeat',
-            'int',
-            l10n.httpApiRequiredNo,
-            'Default barrage repeat (1-8)',
           ),
         ]),
       ],

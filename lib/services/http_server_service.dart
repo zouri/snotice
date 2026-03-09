@@ -45,7 +45,6 @@ class HttpServerService {
         ..post('/api/notify', _handleNotify)
         ..get('/api/status', _handleStatus)
         ..get('/api/config', _handleGetConfig)
-        ..post('/api/config', _handleUpdateConfig)
         ..post('/api/mcp', _handleMcp)
         ..all('/<ignored|.*>', _handleNotFound);
 
@@ -144,25 +143,6 @@ class HttpServerService {
   Future<Response> _handleGetConfig(Request request) async {
     _logger.request('GET /api/config');
     return _jsonResponse(200, _config.toJson());
-  }
-
-  Future<Response> _handleUpdateConfig(Request request) async {
-    try {
-      final body = await request.readAsString();
-      final decoded = jsonDecode(body);
-      final json = _asJsonObject(decoded);
-      if (json == null) {
-        return ResponseUtil.badRequest('Request body must be a JSON object.');
-      }
-
-      final result = _processConfigPayload(
-        json,
-        requestLabel: 'POST /api/config',
-      );
-      return _jsonResponse(result.statusCode, result.body);
-    } on FormatException {
-      return ResponseUtil.badRequest('Request body must be valid JSON.');
-    }
   }
 
   Future<Response> _handleMcp(Request request) async {
