@@ -14,473 +14,32 @@ class HttpApiPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
     final port = context.select<ConfigProvider, int>((provider) {
       return provider.config.port;
     });
 
     final baseUrl = 'http://localhost:$port';
     final notifyUrl = '$baseUrl/api/notify';
-    final configUrl = '$baseUrl/api/config';
-    const jsonEncoder = JsonEncoder.withIndent('  ');
-
-    final normalPayloadMap = <String, dynamic>{
-      'title': l10n.httpApiSampleTitleHello,
-      'body': l10n.httpApiSampleBodyFromSnotice,
-      'priority': 'normal',
-    };
-    final flashFullPayloadMap = <String, dynamic>{
-      'title': l10n.httpApiSampleTitleAlert,
-      'body': l10n.httpApiSampleBodyFlash,
-      'category': 'flash_full',
-      'flashColor': '#FF0000',
-      'flashDuration': 700,
-    };
-    final flashEdgePayloadMap = <String, dynamic>{
-      'title': l10n.httpApiSampleTitleAlert,
-      'category': 'flash_edge',
-      'flashColor': '#35D6FF',
-      'flashDuration': 900,
-      'edgeWidth': 16,
-      'edgeOpacity': 0.9,
-      'edgeRepeat': 2,
-    };
-    final barragePayloadMap = <String, dynamic>{
-      'title': l10n.httpApiSampleTitleAlert,
-      'body': '当前接口出现 3 次失败，请尽快处理',
-      'category': 'barrage',
-      'barrageColor': '#FFD84D',
-      'barrageDuration': 6000,
-      'barrageSpeed': 160,
-      'barrageFontSize': 30,
-      'barrageLane': 'top',
-      'barrageRepeat': 3,
-    };
-    final updateConfigPayloadMap = <String, dynamic>{
-      'port': port,
-      'allowedIPs': ['127.0.0.1', '192.168.1.0/24'],
-      'autoStart': true,
-      'showNotifications': true,
-      'showBarrage': true,
-      'defaultBarrageColor': '#FFD84D',
-      'defaultBarrageDuration': 6000,
-      'defaultBarrageSpeed': 120,
-      'defaultBarrageFontSize': 28,
-      'defaultBarrageLane': 'top',
-      'defaultBarrageRepeat': 1,
-    };
-
-    final statusCurlCommand = 'curl $baseUrl/api/status';
-    final normalCurlCommand =
-        'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
-        "'${jsonEncode(normalPayloadMap)}'";
-    final flashEdgeCurlCommand =
-        'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
-        "'${jsonEncode(flashEdgePayloadMap)}'";
-    final flashFullCurlCommand =
-        'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
-        "'${jsonEncode(flashFullPayloadMap)}'";
-    final barrageCurlCommand =
-        'curl -X POST $notifyUrl -H "Content-Type: application/json" -d '
-        "'${jsonEncode(barragePayloadMap)}'";
-    final updateConfigCurlCommand =
-        'curl -X POST $configUrl -H "Content-Type: application/json" -d '
-        "'${jsonEncode(updateConfigPayloadMap)}'";
-
-    final statusResponse = jsonEncoder.convert({
-      'running': true,
-      'port': port,
-      'uptime': 128,
-    });
-    final notifySuccessResponse = jsonEncoder.convert({
-      'success': true,
-      'message': 'Notification sent',
-      'timestamp': '2026-03-06T12:34:56.789Z',
-    });
-    final validationErrorResponse = jsonEncoder.convert({
-      'success': false,
-      'error': 'Invalid notification request.',
-      'validationErrors': [
-        'Field "category" must be one of: flash_full, flash_edge, barrage.',
-      ],
-    });
-
-    final endpoints = <_EndpointSpec>[
-      _EndpointSpec(
-        method: 'GET',
-        path: '/api/status',
-        description: l10n.httpApiEndpointStatusDesc,
-      ),
-      _EndpointSpec(
-        method: 'POST',
-        path: '/api/notify',
-        description: l10n.httpApiEndpointNotifyDesc,
-      ),
-      _EndpointSpec(
-        method: 'GET',
-        path: '/api/config',
-        description: l10n.httpApiEndpointGetConfigDesc,
-      ),
-      _EndpointSpec(
-        method: 'POST',
-        path: '/api/config',
-        description: l10n.httpApiEndpointUpdateConfigDesc,
-      ),
-    ];
-
-    final notifyParams = <_ApiParamSpec>[
-      _ApiParamSpec(
-        name: 'title',
-        type: 'string',
-        required: l10n.httpApiRequiredYes,
-        description: l10n.httpApiParamTitleDesc,
-      ),
-      _ApiParamSpec(
-        name: 'body',
-        type: 'string',
-        required: l10n.httpApiRequiredConditional,
-        description:
-            'Notification body. Required for normal notifications; optional when category=flash_full, flash_edge, or barrage.',
-      ),
-      _ApiParamSpec(
-        name: 'priority',
-        type: 'string',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamPriorityDesc,
-      ),
-      _ApiParamSpec(
-        name: 'category',
-        type: 'string',
-        required: l10n.httpApiRequiredNo,
-        description:
-            'Notification category. Allowed: flash_full / flash_edge / barrage.',
-      ),
-      _ApiParamSpec(
-        name: 'flashColor',
-        type: 'string',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamFlashColorDesc,
-      ),
-      _ApiParamSpec(
-        name: 'flashDuration',
-        type: 'int',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamFlashDurationDesc,
-      ),
-      _ApiParamSpec(
-        name: 'edgeWidth',
-        type: 'double',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamEdgeWidthDesc,
-      ),
-      _ApiParamSpec(
-        name: 'edgeOpacity',
-        type: 'double',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamEdgeOpacityDesc,
-      ),
-      _ApiParamSpec(
-        name: 'edgeRepeat',
-        type: 'int',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamEdgeRepeatDesc,
-      ),
-      const _ApiParamSpec(
-        name: 'barrageColor',
-        type: 'string',
-        required: 'No',
-        description:
-            'Barrage text color in hex or named color. Only valid when category=barrage.',
-      ),
-      const _ApiParamSpec(
-        name: 'barrageDuration',
-        type: 'int',
-        required: 'No',
-        description:
-            'Barrage total duration in milliseconds. Only valid when category=barrage.',
-      ),
-      const _ApiParamSpec(
-        name: 'barrageSpeed',
-        type: 'double',
-        required: 'No',
-        description: 'Barrage speed in px/s. Only valid when category=barrage.',
-      ),
-      const _ApiParamSpec(
-        name: 'barrageFontSize',
-        type: 'double',
-        required: 'No',
-        description: 'Barrage font size. Only valid when category=barrage.',
-      ),
-      const _ApiParamSpec(
-        name: 'barrageLane',
-        type: 'string',
-        required: 'No',
-        description:
-            'Barrage lane: top | middle | bottom. Only valid when category=barrage.',
-      ),
-      const _ApiParamSpec(
-        name: 'barrageRepeat',
-        type: 'int',
-        required: 'No',
-        description:
-            'Barrage repeat count (1-8). Only valid when category=barrage.',
-      ),
-      _ApiParamSpec(
-        name: 'payload',
-        type: 'object',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamPayloadDesc,
-      ),
-    ];
-
-    final configParams = <_ApiParamSpec>[
-      _ApiParamSpec(
-        name: 'port',
-        type: 'int',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamPortDesc,
-      ),
-      _ApiParamSpec(
-        name: 'allowedIPs',
-        type: 'string[]',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamAllowedIPsDesc,
-      ),
-      _ApiParamSpec(
-        name: 'autoStart',
-        type: 'bool',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamAutoStartDesc,
-      ),
-      _ApiParamSpec(
-        name: 'showNotifications',
-        type: 'bool',
-        required: l10n.httpApiRequiredNo,
-        description: l10n.httpApiParamShowNotificationsDesc,
-      ),
-      const _ApiParamSpec(
-        name: 'showBarrage',
-        type: 'bool',
-        required: 'No',
-        description: 'Whether barrage overlay notifications are enabled.',
-      ),
-      const _ApiParamSpec(
-        name: 'defaultBarrageColor',
-        type: 'string',
-        required: 'No',
-        description: 'Default barrage text color.',
-      ),
-      const _ApiParamSpec(
-        name: 'defaultBarrageDuration',
-        type: 'int',
-        required: 'No',
-        description: 'Default barrage total duration in milliseconds.',
-      ),
-      const _ApiParamSpec(
-        name: 'defaultBarrageSpeed',
-        type: 'double',
-        required: 'No',
-        description: 'Default barrage speed in px/s.',
-      ),
-      const _ApiParamSpec(
-        name: 'defaultBarrageFontSize',
-        type: 'double',
-        required: 'No',
-        description: 'Default barrage font size.',
-      ),
-      const _ApiParamSpec(
-        name: 'defaultBarrageLane',
-        type: 'string',
-        required: 'No',
-        description: 'Default barrage lane: top | middle | bottom.',
-      ),
-      const _ApiParamSpec(
-        name: 'defaultBarrageRepeat',
-        type: 'int',
-        required: 'No',
-        description: 'Default barrage repeat count (1-8).',
-      ),
-    ];
 
     return Container(
-      color: colorScheme.surface,
+      decoration: _buildTerminalBackground(context),
       child: Column(
         children: [
-          PageHeader(title: l10n.navHttpApi),
+          const _ScanlineOverlay(),
+          PageHeader(title: l10n.navHttpApi, trailing: _buildPortBadge(port)),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(ShellDimensions.pagePadding),
               children: [
-                _HeroCard(
-                  title: l10n.httpApiIntroTitle,
-                  description: l10n.httpApiIntroBody,
-                  baseUrlLabel: l10n.httpApiBaseUrlLabel,
-                  baseUrl: baseUrl,
-                  contentTypeLabel: l10n.httpApiContentTypeLabel,
-                  contentType: 'application/json',
-                  authLabel: l10n.httpApiAuthLabel,
-                  authValue: l10n.httpApiAuthValue,
-                  endpointCount: endpoints.length,
-                  sampleCount: 5,
-                  port: port,
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _SectionCard(
-                  title: l10n.httpApiExamples,
-                  subtitle: l10n.httpApiEndpoints,
-                  child: SelectionArea(
-                    child: Column(
-                      children: [
-                        _QuickStartStep(
-                          index: 1,
-                          title: 'GET /api/status',
-                          description: l10n.httpApiEndpointStatusDesc,
-                          code: statusCurlCommand,
-                        ),
-                        const SizedBox(height: 8),
-                        _QuickStartStep(
-                          index: 2,
-                          title: l10n.httpApiNotifyNormal,
-                          description: l10n.httpApiEndpointNotifyDesc,
-                          code: normalCurlCommand,
-                        ),
-                        const SizedBox(height: 8),
-                        _QuickStartStep(
-                          index: 3,
-                          title: l10n.httpApiExampleFlashEdge,
-                          description: l10n.httpApiEnumCategory,
-                          code: flashEdgeCurlCommand,
-                        ),
-                        const SizedBox(height: 8),
-                        _QuickStartStep(
-                          index: 4,
-                          title: 'POST /api/notify (barrage)',
-                          description: 'Send scrolling barrage overlay alert',
-                          code: barrageCurlCommand,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _SectionCard(
-                  title: l10n.httpApiEndpointListTitle,
-                  child: _EndpointGrid(items: endpoints),
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _SectionCard(
-                  title: l10n.httpApiNotifyParamsTitle,
-                  child: _ParamList(items: notifyParams),
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _SectionCard(
-                  title: l10n.httpApiConfigParamsTitle,
-                  child: _ParamList(items: configParams),
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final wide = constraints.maxWidth >= 920;
-                    final enumCard = _SectionCard(
-                      title: l10n.httpApiEnumTitle,
-                      child: Column(
-                        children: [
-                          _EnumRow(
-                            name: 'category',
-                            values: 'flash_full | flash_edge | barrage',
-                            description:
-                                'flash_full: full-screen flash; flash_edge: edge glow; barrage: scrolling overlay text.',
-                          ),
-                          const SizedBox(height: 8),
-                          _EnumRow(
-                            name: 'priority',
-                            values: 'low | normal | high',
-                            description: l10n.httpApiEnumPriority,
-                          ),
-                        ],
-                      ),
-                    );
-                    final notesCard = _SectionCard(
-                      title: l10n.httpApiNotesTitle,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _NoteLine(text: l10n.httpApiNotesAliases),
-                          const SizedBox(height: 6),
-                          const _NoteLine(
-                            text:
-                                'flash_full / flash_edge / barrage allow empty body; normal notifications must include body.',
-                          ),
-                          const SizedBox(height: 6),
-                          _NoteLine(text: l10n.httpApiNotesEdgeOnly),
-                          const SizedBox(height: 6),
-                          const _NoteLine(
-                            text:
-                                'barrageColor/barrageDuration/barrageSpeed/barrageFontSize/barrageLane/barrageRepeat only work when category=barrage.',
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (!wide) {
-                      return Column(
-                        children: [
-                          enumCard,
-                          const SizedBox(height: ShellDimensions.sectionGap),
-                          notesCard,
-                        ],
-                      );
-                    }
-
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: enumCard),
-                        const SizedBox(width: ShellDimensions.sectionGap),
-                        Expanded(child: notesCard),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: ShellDimensions.sectionGap),
-                _SectionCard(
-                  title: l10n.httpApiResponseTitle,
-                  child: SelectionArea(
-                    child: Column(
-                      children: [
-                        _LabeledCodeBlock(
-                          label: l10n.httpApiExampleFlashFull,
-                          code: flashFullCurlCommand,
-                        ),
-                        const SizedBox(height: 8),
-                        _LabeledCodeBlock(
-                          label: 'POST /api/notify（弹幕 barrage）',
-                          code: barrageCurlCommand,
-                        ),
-                        const SizedBox(height: 8),
-                        _LabeledCodeBlock(
-                          label: l10n.httpApiExampleConfigUpdate,
-                          code: updateConfigCurlCommand,
-                        ),
-                        const SizedBox(height: 8),
-                        _LabeledCodeBlock(
-                          label: 'GET /api/status',
-                          code: statusResponse,
-                        ),
-                        const SizedBox(height: 8),
-                        _LabeledCodeBlock(
-                          label: l10n.httpApiResponseNotifySuccess,
-                          code: notifySuccessResponse,
-                        ),
-                        const SizedBox(height: 8),
-                        _LabeledCodeBlock(
-                          label: l10n.httpApiResponseError,
-                          code: validationErrorResponse,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                _HeroTerminal(baseUrl: baseUrl),
+                const SizedBox(height: 16),
+                _ApiEndpointsSection(),
+                const SizedBox(height: 16),
+                _CodeExamplesSection(notifyUrl: notifyUrl),
+                const SizedBox(height: 16),
+                _ParametersGrid(),
+                const SizedBox(height: 16),
+                _ResponseExamplesSection(port: port),
               ],
             ),
           ),
@@ -488,449 +47,454 @@ class HttpApiPage extends StatelessWidget {
       ),
     );
   }
+
+  BoxDecoration _buildTerminalBackground(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return BoxDecoration(
+      color: isDark ? const Color(0xFF0A0E14) : const Color(0xFFF5F5F0),
+    );
+  }
+
+  Widget _buildPortBadge(int port) {
+    return _TerminalBadge(label: 'PORT:$port', color: const Color(0xFF00FF9F));
+  }
 }
 
-class _HeroCard extends StatelessWidget {
-  const _HeroCard({
+class _ScanlineOverlay extends StatelessWidget {
+  const _ScanlineOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(child: Container(height: 0));
+  }
+}
+
+class _TerminalBadge extends StatelessWidget {
+  const _TerminalBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        border: Border.all(color: color, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.3),
+            blurRadius: 8,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          color: color,
+          letterSpacing: 1.5,
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroTerminal extends StatelessWidget {
+  const _HeroTerminal({required this.baseUrl});
+
+  final String baseUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return _TerminalWindow(
+      title: '~/snotice/api',
+      color: const Color(0xFF00D9FF),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTerminalPrompt(
+              '>',
+              'API_ENDPOINT',
+              baseUrl,
+              const Color(0xFFFF6B9D),
+            ),
+            const SizedBox(height: 12),
+            _buildTerminalPrompt(
+              '>',
+              'METHOD',
+              'POST / GET',
+              const Color(0xFFFFB800),
+            ),
+            const SizedBox(height: 12),
+            _buildTerminalPrompt(
+              '>',
+              'FORMAT',
+              'application/json',
+              const Color(0xFF9D4EDD),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.03)
+                    : Colors.black.withValues(alpha: 0.02),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'STATUS: ONLINE',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      color: const Color(0xFF00FF9F),
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.httpApiIntroBody,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.6,
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.8)
+                          : Colors.black.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTerminalPrompt(
+    String symbol,
+    String label,
+    String value,
+    Color color,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          symbol,
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 16,
+            color: color,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          '$label:',
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 14,
+            color: color,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: SelectableText(
+            value,
+            style: TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 14,
+              color: Colors.white.withValues(alpha: 0.9),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TerminalWindow extends StatelessWidget {
+  const _TerminalWindow({
     required this.title,
-    required this.description,
-    required this.baseUrlLabel,
-    required this.baseUrl,
-    required this.contentTypeLabel,
-    required this.contentType,
-    required this.authLabel,
-    required this.authValue,
-    required this.endpointCount,
-    required this.sampleCount,
-    required this.port,
+    required this.color,
+    required this.child,
   });
 
   final String title;
-  final String description;
-  final String baseUrlLabel;
-  final String baseUrl;
-  final String contentTypeLabel;
-  final String contentType;
-  final String authLabel;
-  final String authValue;
-  final int endpointCount;
-  final int sampleCount;
-  final int port;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(ShellDimensions.radiusMd),
-        gradient: LinearGradient(
-          colors: [
-            colorScheme.primaryContainer.withValues(alpha: 0.72),
-            colorScheme.surfaceContainerHighest,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      padding: const EdgeInsets.all(ShellDimensions.cardPadding + 3),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 860;
-
-          final left = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: textTheme.titleLarge?.copyWith(
-                  fontSize: ShellDimensions.pageTitleSize,
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                description,
-                style: textTheme.bodyMedium?.copyWith(
-                  fontSize: ShellDimensions.bodySize,
-                  height: 1.55,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _MetaChip(label: baseUrlLabel, value: baseUrl),
-                  _MetaChip(label: contentTypeLabel, value: contentType),
-                  _MetaChip(label: authLabel, value: authValue),
-                ],
-              ),
-            ],
-          );
-
-          final right = Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _StatChip(label: 'Endpoints', value: '$endpointCount'),
-              _StatChip(label: 'Examples', value: '$sampleCount'),
-              _StatChip(label: 'Port', value: '$port'),
-            ],
-          );
-
-          if (!wide) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [left, const SizedBox(height: 10), right],
-            );
-          }
-
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 3, child: left),
-              const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: Align(alignment: Alignment.topRight, child: right),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      constraints: const BoxConstraints(minWidth: 190),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withValues(alpha: 0.78),
-        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: textTheme.labelSmall?.copyWith(
-              fontSize: ShellDimensions.metaSize,
-              fontWeight: FontWeight.w700,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 2),
-          SelectableText(
-            value,
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: ShellDimensions.codeSize,
-              fontFamily: 'monospace',
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  const _StatChip({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      width: 118,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: Color.alphaBlend(
-          colorScheme.primary.withValues(alpha: 0.08),
-          colorScheme.surface,
-        ),
-        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: textTheme.labelSmall?.copyWith(
-              fontSize: ShellDimensions.metaSize,
-              fontWeight: FontWeight.w700,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: textTheme.titleMedium?.copyWith(
-              fontSize: ShellDimensions.cardTitleSize,
-              fontWeight: FontWeight.w800,
-              color: colorScheme.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.child, this.subtitle});
-
-  final String title;
-  final String? subtitle;
+  final Color color;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(ShellDimensions.cardPadding + 1),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontSize: ShellDimensions.cardTitleSize,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                if (subtitle != null)
-                  Text(
-                    subtitle!,
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: ShellDimensions.metaSize,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            child,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickStartStep extends StatelessWidget {
-  const _QuickStartStep({
-    required this.index,
-    required this.title,
-    required this.description,
-    required this.code,
-  });
-
-  final int index;
-  final String title;
-  final String description;
-  final String code;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
-        border: Border.all(color: colorScheme.outlineVariant),
+        color: isDark ? const Color(0xFF1A1F2E) : const Color(0xFFFFFFFF),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.2),
+            blurRadius: 20,
+            spreadRadius: -5,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.primary,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              border: Border(
+                bottom: BorderSide(
+                  color: color.withValues(alpha: 0.3),
+                  width: 1,
                 ),
-                alignment: Alignment.center,
-                child: Text(
-                  '$index',
-                  style: textTheme.labelMedium?.copyWith(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.w800,
+              ),
+            ),
+            child: Row(
+              children: [
+                _WindowButton(color: const Color(0xFFFF5F56)),
+                const SizedBox(width: 8),
+                _WindowButton(color: const Color(0xFFFFBD2E)),
+                const SizedBox(width: 8),
+                _WindowButton(color: const Color(0xFF27C93F)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 13,
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: textTheme.bodyMedium?.copyWith(
-                        fontSize: ShellDimensions.bodySize,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      description,
-                      style: textTheme.bodySmall?.copyWith(
-                        fontSize: ShellDimensions.bodySmallSize,
-                        height: 1.45,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          _CodeBlock(code: code),
+          child,
         ],
       ),
     );
   }
 }
 
-class _EndpointSpec {
-  const _EndpointSpec({
+class _WindowButton extends StatelessWidget {
+  const _WindowButton({required this.color});
+
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.2),
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.5),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ApiEndpointsSection extends StatelessWidget {
+  const _ApiEndpointsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    final endpoints = [
+      _EndpointData(
+        method: 'GET',
+        path: '/api/status',
+        description: l10n.httpApiEndpointStatusDesc,
+        color: const Color(0xFF00FF9F),
+      ),
+      _EndpointData(
+        method: 'POST',
+        path: '/api/notify',
+        description: l10n.httpApiEndpointNotifyDesc,
+        color: const Color(0xFFFF6B9D),
+      ),
+      _EndpointData(
+        method: 'GET',
+        path: '/api/config',
+        description: l10n.httpApiEndpointGetConfigDesc,
+        color: const Color(0xFFFFB800),
+      ),
+      _EndpointData(
+        method: 'POST',
+        path: '/api/config',
+        description: l10n.httpApiEndpointUpdateConfigDesc,
+        color: const Color(0xFF9D4EDD),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(
+          title: l10n.httpApiEndpointListTitle,
+          color: const Color(0xFF00D9FF),
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide = constraints.maxWidth >= 800;
+            if (isWide) {
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: endpoints
+                    .map(
+                      (e) => SizedBox(
+                        width: (constraints.maxWidth - 12) / 2,
+                        child: _EndpointCard(endpoint: e),
+                      ),
+                    )
+                    .toList(),
+              );
+            }
+            return Column(
+              children: endpoints
+                  .map(
+                    (e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _EndpointCard(endpoint: e),
+                    ),
+                  )
+                  .toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _EndpointData {
+  const _EndpointData({
     required this.method,
     required this.path,
     required this.description,
+    required this.color,
   });
 
   final String method;
   final String path;
   final String description;
-}
-
-class _EndpointGrid extends StatelessWidget {
-  const _EndpointGrid({required this.items});
-
-  final List<_EndpointSpec> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final twoColumns = constraints.maxWidth >= 920;
-        if (!twoColumns) {
-          return Column(
-            children: [
-              for (var i = 0; i < items.length; i++) ...[
-                _EndpointCard(item: items[i]),
-                if (i != items.length - 1) const SizedBox(height: 8),
-              ],
-            ],
-          );
-        }
-
-        return Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final item in items)
-              SizedBox(
-                width: (constraints.maxWidth - 8) / 2,
-                child: _EndpointCard(item: item),
-              ),
-          ],
-        );
-      },
-    );
-  }
+  final Color color;
 }
 
 class _EndpointCard extends StatelessWidget {
-  const _EndpointCard({required this.item});
+  const _EndpointCard({required this.endpoint});
 
-  final _EndpointSpec item;
+  final _EndpointData endpoint;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(9),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
-        border: Border.all(color: colorScheme.outlineVariant),
-        color: colorScheme.surfaceContainerLowest,
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.02)
+            : Colors.black.withValues(alpha: 0.02),
+        border: Border.all(
+          color: endpoint.color.withValues(alpha: 0.4),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: endpoint.color.withValues(alpha: 0.15),
+            blurRadius: 12,
+            spreadRadius: -3,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              _MethodBadge(method: item.method),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: endpoint.color.withValues(alpha: 0.2),
+                  border: Border.all(color: endpoint.color),
+                ),
+                child: Text(
+                  endpoint.method,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: endpoint.color,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: SelectableText(
-                  item.path,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontSize: ShellDimensions.codeSize,
+                  endpoint.path,
+                  style: TextStyle(
                     fontFamily: 'monospace',
+                    fontSize: 15,
                     fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           Text(
-            item.description,
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: ShellDimensions.bodySmallSize,
-              height: 1.45,
-              color: colorScheme.onSurfaceVariant,
+            endpoint.description,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.5,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.7)
+                  : Colors.black.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -939,53 +503,205 @@ class _EndpointCard extends StatelessWidget {
   }
 }
 
-class _MethodBadge extends StatelessWidget {
-  const _MethodBadge({required this.method});
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, required this.color});
 
-  final String method;
+  final String title;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isGet = method.toUpperCase() == 'GET';
-    final background = isGet
-        ? Color.alphaBlend(
-            colorScheme.tertiary.withValues(alpha: 0.16),
-            colorScheme.surface,
-          )
-        : Color.alphaBlend(
-            colorScheme.primary.withValues(alpha: 0.16),
-            colorScheme.surface,
-          );
-    final foreground = isGet ? colorScheme.tertiary : colorScheme.primary;
-
     return Container(
-      constraints: const BoxConstraints(minWidth: 48),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
+        color: color.withValues(alpha: 0.1),
+        border: Border(left: BorderSide(color: color, width: 4)),
       ),
-      alignment: Alignment.center,
       child: Text(
-        method,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          fontSize: ShellDimensions.metaSize,
+        title.toUpperCase(),
+        style: TextStyle(
+          fontFamily: 'monospace',
+          fontSize: 16,
           fontWeight: FontWeight.w800,
-          color: foreground,
+          color: color,
+          letterSpacing: 2,
         ),
       ),
     );
   }
 }
 
-class _ApiParamSpec {
-  const _ApiParamSpec({
-    required this.name,
-    required this.type,
-    required this.required,
-    required this.description,
+class _CodeExamplesSection extends StatelessWidget {
+  const _CodeExamplesSection({required this.notifyUrl});
+
+  final String notifyUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(
+          title: l10n.httpApiExamples,
+          color: const Color(0xFFFF6B9D),
+        ),
+        const SizedBox(height: 12),
+        _CodeExample(
+          title: 'GET /api/status',
+          color: const Color(0xFF00FF9F),
+          code: 'curl http://localhost:8642/api/status',
+        ),
+        const SizedBox(height: 12),
+        _CodeExample(
+          title: l10n.httpApiNotifyNormal,
+          color: const Color(0xFFFF6B9D),
+          code: '''curl -X POST $notifyUrl \\
+  -H "Content-Type: application/json" \\
+  -d '{"title": "Hello", "body": "From SNotice", "priority": "normal"}' ''',
+        ),
+        const SizedBox(height: 12),
+        _CodeExample(
+          title: 'POST /api/notify (barrage)',
+          color: const Color(0xFFFFB800),
+          code: '''curl -X POST $notifyUrl \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "title": "Alert",
+    "body": "API出现3次失败",
+    "category": "barrage",
+    "barrageColor": "#FFD84D",
+    "barrageDuration": 6000,
+    "barrageSpeed": 160,
+    "barrageFontSize": 30,
+    "barrageLane": "top",
+    "barrageRepeat": 3
+  }' ''',
+        ),
+      ],
+    );
+  }
+}
+
+class _CodeExample extends StatelessWidget {
+  const _CodeExample({
+    required this.title,
+    required this.color,
+    required this.code,
   });
+
+  final String title;
+  final Color color;
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    return _TerminalWindow(
+      title: title,
+      color: color,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        child: SelectableText(
+          code,
+          style: const TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 13,
+            height: 1.5,
+            color: Color(0xFFE0E0E0),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ParametersGrid extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(
+          title: l10n.httpApiNotifyParamsTitle,
+          color: const Color(0xFF9D4EDD),
+        ),
+        const SizedBox(height: 12),
+        _buildParamsList([
+          _ParamData(
+            'title',
+            'string',
+            l10n.httpApiRequiredYes,
+            l10n.httpApiParamTitleDesc,
+          ),
+          _ParamData(
+            'body',
+            'string',
+            l10n.httpApiRequiredConditional,
+            l10n.httpApiParamBodyDesc,
+          ),
+          _ParamData(
+            'category',
+            'string',
+            l10n.httpApiRequiredNo,
+            'flash_full / flash_edge / barrage',
+          ),
+          _ParamData(
+            'barrageRepeat',
+            'int',
+            l10n.httpApiRequiredNo,
+            'Barrage repeat count (1-8)',
+          ),
+        ]),
+        const SizedBox(height: 16),
+        _SectionHeader(
+          title: l10n.httpApiConfigParamsTitle,
+          color: const Color(0xFFFFB800),
+        ),
+        const SizedBox(height: 12),
+        _buildParamsList([
+          _ParamData(
+            'port',
+            'int',
+            l10n.httpApiRequiredNo,
+            l10n.httpApiParamPortDesc,
+          ),
+          _ParamData(
+            'allowedIPs',
+            'string[]',
+            l10n.httpApiRequiredNo,
+            l10n.httpApiParamAllowedIPsDesc,
+          ),
+          _ParamData(
+            'defaultBarrageRepeat',
+            'int',
+            l10n.httpApiRequiredNo,
+            'Default barrage repeat (1-8)',
+          ),
+        ]),
+      ],
+    );
+  }
+
+  Widget _buildParamsList(List<_ParamData> params) {
+    return Column(
+      children: params
+          .map(
+            (p) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _ParamRow(param: p),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _ParamData {
+  const _ParamData(this.name, this.type, this.required, this.description);
 
   final String name;
   final String type;
@@ -993,90 +709,90 @@ class _ApiParamSpec {
   final String description;
 }
 
-class _ParamList extends StatelessWidget {
-  const _ParamList({required this.items});
-
-  final List<_ApiParamSpec> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        for (var i = 0; i < items.length; i++) ...[
-          _ParamRow(item: items[i]),
-          if (i != items.length - 1) const SizedBox(height: 7),
-        ],
-      ],
-    );
-  }
-}
-
 class _ParamRow extends StatelessWidget {
-  const _ParamRow({required this.item});
+  const _ParamRow({required this.param});
 
-  final _ApiParamSpec item;
+  final _ParamData param;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final requiredColor =
-        item.required.toLowerCase().contains('yes') ||
-            item.required.contains('是')
-        ? colorScheme.error
-        : colorScheme.onSurfaceVariant;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isRequired =
+        param.required.toLowerCase().contains('yes') ||
+        param.required.contains('是');
+    final color = isRequired
+        ? const Color(0xFFFF6B9D)
+        : const Color(0xFF00D9FF);
 
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
-        border: Border.all(color: colorScheme.outlineVariant),
-        color: colorScheme.surface,
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.02)
+            : Colors.black.withValues(alpha: 0.02),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: SelectableText(
-                  item.name,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontSize: ShellDimensions.codeSize,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  border: Border.all(color: color),
+                ),
+                child: Text(
+                  param.name,
+                  style: TextStyle(
                     fontFamily: 'monospace',
+                    fontSize: 12,
                     fontWeight: FontWeight.w700,
+                    color: color,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
-              _Badge(
-                label: item.type,
-                foregroundColor: colorScheme.primary,
-                backgroundColor: Color.alphaBlend(
-                  colorScheme.primary.withValues(alpha: 0.12),
-                  colorScheme.surface,
+              const SizedBox(width: 12),
+              Text(
+                param.type,
+                style: TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.6)
+                      : Colors.black.withValues(alpha: 0.5),
                 ),
               ),
-              const SizedBox(width: 6),
-              _Badge(
-                label: item.required,
-                foregroundColor: requiredColor,
-                backgroundColor: Color.alphaBlend(
-                  requiredColor.withValues(alpha: 0.1),
-                  colorScheme.surface,
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isRequired
+                      ? const Color(0xFFFF6B9D).withValues(alpha: 0.2)
+                      : Colors.grey.withValues(alpha: 0.2),
+                ),
+                child: Text(
+                  param.required,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: isRequired ? const Color(0xFFFF6B9D) : Colors.grey,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 8),
           Text(
-            item.description,
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: ShellDimensions.bodySmallSize,
-              height: 1.48,
-              color: colorScheme.onSurfaceVariant,
+            param.description,
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.5,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.7)
+                  : Colors.black.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -1085,167 +801,54 @@ class _ParamRow extends StatelessWidget {
   }
 }
 
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.label,
-    required this.foregroundColor,
-    required this.backgroundColor,
-  });
+class _ResponseExamplesSection extends StatelessWidget {
+  const _ResponseExamplesSection({required this.port});
 
-  final String label;
-  final Color foregroundColor;
-  final Color backgroundColor;
+  final int port;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: backgroundColor,
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          fontSize: ShellDimensions.metaSize,
-          fontWeight: FontWeight.w700,
-          color: foregroundColor,
-        ),
-      ),
-    );
-  }
-}
+    final l10n = AppLocalizations.of(context)!;
+    final jsonEncoder = const JsonEncoder.withIndent('  ');
 
-class _EnumRow extends StatelessWidget {
-  const _EnumRow({
-    required this.name,
-    required this.values,
-    required this.description,
-  });
-
-  final String name;
-  final String values;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SelectableText(
-            '$name: $values',
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: ShellDimensions.codeSize,
-              fontFamily: 'monospace',
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            description,
-            style: textTheme.bodySmall?.copyWith(
-              fontSize: ShellDimensions.bodySmallSize,
-              height: 1.45,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LabeledCodeBlock extends StatelessWidget {
-  const _LabeledCodeBlock({required this.label, required this.code});
-
-  final String label;
-  final String code;
-
-  @override
-  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontSize: ShellDimensions.bodySize,
-            fontWeight: FontWeight.w700,
-          ),
+        _SectionHeader(
+          title: l10n.httpApiResponseTitle,
+          color: const Color(0xFF00FF9F),
         ),
-        const SizedBox(height: 4),
-        _CodeBlock(code: code),
-      ],
-    );
-  }
-}
-
-class _CodeBlock extends StatelessWidget {
-  const _CodeBlock({required this.code});
-
-  final String code;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(ShellDimensions.radiusSm),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      padding: const EdgeInsets.all(8),
-      child: SelectableText(
-        code,
-        style: textTheme.bodySmall?.copyWith(
-          fontSize: ShellDimensions.codeSize,
-          fontFamily: 'monospace',
-          height: 1.4,
+        const SizedBox(height: 12),
+        _CodeExample(
+          title: 'GET /api/status → 200 OK',
+          color: const Color(0xFF00FF9F),
+          code: jsonEncoder.convert({
+            'running': true,
+            'port': port,
+            'uptime': 128,
+          }),
         ),
-      ),
-    );
-  }
-}
-
-class _NoteLine extends StatelessWidget {
-  const _NoteLine({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Icon(Icons.circle, size: 6, color: colorScheme.primary),
+        const SizedBox(height: 12),
+        _CodeExample(
+          title: 'POST /api/notify → 200 OK',
+          color: const Color(0xFFFF6B9D),
+          code: jsonEncoder.convert({
+            'success': true,
+            'message': 'Notification sent',
+            'timestamp': '2026-03-06T12:34:56.789Z',
+          }),
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontSize: ShellDimensions.bodySize,
-              height: 1.45,
-            ),
-          ),
+        const SizedBox(height: 12),
+        _CodeExample(
+          title: 'POST /api/notify → 400 Bad Request',
+          color: const Color(0xFFFF6B9D),
+          code: jsonEncoder.convert({
+            'success': false,
+            'error': 'Invalid notification request.',
+            'validationErrors': [
+              'Field "category" must be one of: flash_full, flash_edge, barrage.',
+            ],
+          }),
         ),
       ],
     );
