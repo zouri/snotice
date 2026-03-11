@@ -212,29 +212,11 @@ abstract class AppLocalizations {
   /// **'Send normal notifications or flash alerts'**
   String get httpApiEndpointNotifyDesc;
 
-  /// No description provided for @httpApiEndpointGetConfigDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Read current server configuration'**
-  String get httpApiEndpointGetConfigDesc;
-
-  /// No description provided for @httpApiEndpointUpdateConfigDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Update server config (port, IP whitelist, notification switch)'**
-  String get httpApiEndpointUpdateConfigDesc;
-
   /// No description provided for @httpApiNotifyParamsTitle.
   ///
   /// In en, this message translates to:
   /// **'POST /api/notify Parameters'**
   String get httpApiNotifyParamsTitle;
-
-  /// No description provided for @httpApiConfigParamsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'POST /api/config Parameters'**
-  String get httpApiConfigParamsTitle;
 
   /// No description provided for @httpApiParamName.
   ///
@@ -391,12 +373,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'POST /api/notify (flash flash_edge)'**
   String get httpApiExampleFlashEdge;
-
-  /// No description provided for @httpApiExampleConfigUpdate.
-  ///
-  /// In en, this message translates to:
-  /// **'POST /api/config (update config)'**
-  String get httpApiExampleConfigUpdate;
 
   /// No description provided for @httpApiResponseTitle.
   ///

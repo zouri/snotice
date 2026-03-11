@@ -74,9 +74,3 @@
   }
 }
 ```
-
-## Config Patch Flow
-
-1. GET `/api/config`
-2. Merge changed fields only
-3. POST merged object to `/api/config`

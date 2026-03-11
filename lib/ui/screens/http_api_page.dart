@@ -226,12 +226,6 @@ class _ApiEndpointsSection extends StatelessWidget {
         description: l10n.httpApiEndpointNotifyDesc,
         color: AppColors.primary,
       ),
-      _EndpointData(
-        method: 'GET',
-        path: '/api/config',
-        description: l10n.httpApiEndpointGetConfigDesc,
-        color: AppColors.info,
-      ),
     ];
 
     return Column(

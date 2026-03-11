@@ -93,8 +93,6 @@ Implemented with `shelf` and `shelf_router`:
 - `POST /api/notify` - Send notification or trigger flash/barrage
 - `POST /api/mcp` - MCP endpoint for AI agent integration
 - `GET /api/status` - Server status and uptime
-- `GET /api/config` - Get current configuration
-- `POST /api/config` - Update configuration
 
 **Notification Categories:**
 - `normal` - System notification (default)

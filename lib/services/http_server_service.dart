@@ -44,7 +44,6 @@ class HttpServerService {
       final router = Router()
         ..post('/api/notify', _handleNotify)
         ..get('/api/status', _handleStatus)
-        ..get('/api/config', _handleGetConfig)
         ..post('/api/mcp', _handleMcp)
         ..all('/<ignored|.*>', _handleNotFound);
 
@@ -138,11 +137,6 @@ class HttpServerService {
   Future<Response> _handleStatus(Request request) async {
     _logger.request('GET /api/status');
     return _jsonResponse(200, _buildStatusPayload());
-  }
-
-  Future<Response> _handleGetConfig(Request request) async {
-    _logger.request('GET /api/config');
-    return _jsonResponse(200, _config.toJson());
   }
 
   Future<Response> _handleMcp(Request request) async {

@@ -14,27 +14,6 @@ Success body fields:
 - `port` (int)
 - `uptime` (seconds)
 
-### `GET /api/config`
-
-Success body fields:
-
-- `port` (int)
-- `allowedIPs` (array<string>)
-- `autoStart` (bool)
-- `showNotifications` (bool)
-- `showBarrage` (bool)
-- `defaultBarrageColor` (string)
-- `defaultBarrageDuration` (int, > 0)
-- `defaultBarrageSpeed` (number, > 0)
-- `defaultBarrageFontSize` (number, > 0)
-- `defaultBarrageLane` (`top|middle|bottom`)
-
-### `POST /api/config`
-
-Request body is a JSON object with config fields.
-
-Important: server model performs full parse, so omitted fields can fall back to defaults. Prefer read-then-merge updates.
-
 ### `POST /api/notify`
 
 Request body key fields:

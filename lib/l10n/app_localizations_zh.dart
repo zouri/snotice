@@ -67,16 +67,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get httpApiEndpointNotifyDesc => '发送普通通知或闪屏提醒';
 
   @override
-  String get httpApiEndpointGetConfigDesc => '读取当前服务配置';
-
-  @override
-  String get httpApiEndpointUpdateConfigDesc => '更新服务配置（端口、IP 白名单、通知开关）';
-
-  @override
   String get httpApiNotifyParamsTitle => 'POST /api/notify 参数';
-
-  @override
-  String get httpApiConfigParamsTitle => 'POST /api/config 参数';
 
   @override
   String get httpApiParamName => '参数';
@@ -162,9 +153,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get httpApiExampleFlashEdge => 'POST /api/notify（闪屏 flash_edge）';
-
-  @override
-  String get httpApiExampleConfigUpdate => 'POST /api/config（更新配置）';
 
   @override
   String get httpApiResponseTitle => '响应示例';

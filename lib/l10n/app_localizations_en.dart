@@ -70,18 +70,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Send normal notifications or flash alerts';
 
   @override
-  String get httpApiEndpointGetConfigDesc =>
-      'Read current server configuration';
-
-  @override
-  String get httpApiEndpointUpdateConfigDesc =>
-      'Update server config (port, IP whitelist, notification switch)';
-
-  @override
   String get httpApiNotifyParamsTitle => 'POST /api/notify Parameters';
-
-  @override
-  String get httpApiConfigParamsTitle => 'POST /api/config Parameters';
 
   @override
   String get httpApiParamName => 'Parameter';
@@ -174,9 +163,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiExampleFlashEdge => 'POST /api/notify (flash flash_edge)';
-
-  @override
-  String get httpApiExampleConfigUpdate => 'POST /api/config (update config)';
 
   @override
   String get httpApiResponseTitle => 'Response Examples';

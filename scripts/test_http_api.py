@@ -111,28 +111,6 @@ def cmd_status(client: SNoticeApiClient, _args: argparse.Namespace) -> int:
     return 0 if 200 <= result.status < 300 else 1
 
 
-def cmd_config_get(client: SNoticeApiClient, _args: argparse.Namespace) -> int:
-    result = client.request("GET", "/api/config")
-    print_result("GET /api/config", result)
-    return 0 if 200 <= result.status < 300 else 1
-
-
-def cmd_config_set(client: SNoticeApiClient, args: argparse.Namespace) -> int:
-    try:
-        payload = json.loads(args.json)
-    except json.JSONDecodeError as err:
-        print(f"invalid --json: {err}", file=sys.stderr)
-        return 2
-
-    if not isinstance(payload, dict):
-        print("--json must be a JSON object", file=sys.stderr)
-        return 2
-
-    result = client.request("POST", "/api/config", payload)
-    print_result("POST /api/config", result)
-    return 0 if 200 <= result.status < 300 else 1
-
-
 def cmd_notify(client: SNoticeApiClient, args: argparse.Namespace) -> int:
     try:
         payload = build_notify_payload(args)
@@ -200,14 +178,6 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     subparsers.add_parser("status", help="Call GET /api/status")
-    subparsers.add_parser("config-get", help="Call GET /api/config")
-
-    config_set = subparsers.add_parser("config-set", help="Call POST /api/config")
-    config_set.add_argument(
-        "--json",
-        required=True,
-        help='JSON object string, e.g. \'{"port":8642,"allowedIPs":[],"autoStart":false}\'',
-    )
 
     notify = subparsers.add_parser("notify", help="Call POST /api/notify")
     notify.add_argument(
@@ -290,10 +260,6 @@ def main() -> int:
     try:
         if args.command == "status":
             return cmd_status(client, args)
-        if args.command == "config-get":
-            return cmd_config_get(client, args)
-        if args.command == "config-set":
-            return cmd_config_set(client, args)
         if args.command == "notify":
             return cmd_notify(client, args)
         if args.command == "smoke":
