@@ -149,7 +149,7 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiIntroBody.
   ///
   /// In en, this message translates to:
-  /// **'SNotice exposes local HTTP APIs for system notifications and flash alerts. The server listens on localhost and the port can be changed in Settings.'**
+  /// **'SNotice exposes local HTTP APIs for system notifications, flash alerts, and barrage overlays. The server listens on localhost and the port can be changed in Settings.'**
   String get httpApiIntroBody;
 
   /// No description provided for @httpApiBaseUrlLabel.
@@ -209,8 +209,38 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiEndpointNotifyDesc.
   ///
   /// In en, this message translates to:
-  /// **'Send normal notifications or flash alerts'**
+  /// **'Send normal notifications, flash alerts, or barrage overlays'**
   String get httpApiEndpointNotifyDesc;
+
+  /// No description provided for @httpApiMcpSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MCP Guide'**
+  String get httpApiMcpSectionTitle;
+
+  /// No description provided for @httpApiMcpEndpointTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MCP Endpoint'**
+  String get httpApiMcpEndpointTitle;
+
+  /// No description provided for @httpApiMcpToolsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in Tools'**
+  String get httpApiMcpToolsTitle;
+
+  /// No description provided for @httpApiMcpExampleListTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MCP tools/list Example'**
+  String get httpApiMcpExampleListTitle;
+
+  /// No description provided for @httpApiMcpExampleCallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MCP tools/call Example (status)'**
+  String get httpApiMcpExampleCallTitle;
 
   /// No description provided for @httpApiNotifyParamsTitle.
   ///
@@ -269,7 +299,7 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiParamBodyDesc.
   ///
   /// In en, this message translates to:
-  /// **'Notification body. Required for normal notifications; optional when category=flash_full or flash_edge.'**
+  /// **'Notification body. Required for normal notifications; optional when category=flash_full, flash_edge, or barrage.'**
   String get httpApiParamBodyDesc;
 
   /// No description provided for @httpApiParamPriorityDesc.
@@ -281,7 +311,7 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiParamCategoryDesc.
   ///
   /// In en, this message translates to:
-  /// **'Notification category. Allowed: flash_full / flash_edge.'**
+  /// **'Notification category. Allowed: flash_full / flash_edge / barrage.'**
   String get httpApiParamCategoryDesc;
 
   /// No description provided for @httpApiParamFlashColorDesc.
@@ -313,6 +343,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edge glow repeat count. Only valid when category=flash_edge; must be > 0.'**
   String get httpApiParamEdgeRepeatDesc;
+
+  /// No description provided for @httpApiParamBarrageRepeatDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Barrage repeat count. Only valid when category=barrage; range 1~8.'**
+  String get httpApiParamBarrageRepeatDesc;
 
   /// No description provided for @httpApiParamPayloadDesc.
   ///
@@ -353,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiEnumCategory.
   ///
   /// In en, this message translates to:
-  /// **'flash_full: full-screen flash; flash_edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat).'**
+  /// **'flash_full: full-screen flash; flash_edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat); barrage: scrolling overlay (can combine barrageRepeat).'**
   String get httpApiEnumCategory;
 
   /// No description provided for @httpApiEnumPriority.
@@ -407,7 +443,7 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiNotesBodyOptional.
   ///
   /// In en, this message translates to:
-  /// **'Only flash_full / flash_edge notifications allow empty body; normal notifications must include body.'**
+  /// **'Only flash_full / flash_edge / barrage notifications allow empty body; normal notifications must include body.'**
   String get httpApiNotesBodyOptional;
 
   /// No description provided for @httpApiNotesEdgeOnly.

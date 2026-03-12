@@ -34,7 +34,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiIntroBody =>
-      'SNotice exposes local HTTP APIs for system notifications and flash alerts. The server listens on localhost and the port can be changed in Settings.';
+      'SNotice exposes local HTTP APIs for system notifications, flash alerts, and barrage overlays. The server listens on localhost and the port can be changed in Settings.';
 
   @override
   String get httpApiBaseUrlLabel => 'Base URL';
@@ -67,7 +67,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiEndpointNotifyDesc =>
-      'Send normal notifications or flash alerts';
+      'Send normal notifications, flash alerts, or barrage overlays';
+
+  @override
+  String get httpApiMcpSectionTitle => 'MCP Guide';
+
+  @override
+  String get httpApiMcpEndpointTitle => 'MCP Endpoint';
+
+  @override
+  String get httpApiMcpToolsTitle => 'Built-in Tools';
+
+  @override
+  String get httpApiMcpExampleListTitle => 'MCP tools/list Example';
+
+  @override
+  String get httpApiMcpExampleCallTitle => 'MCP tools/call Example (status)';
 
   @override
   String get httpApiNotifyParamsTitle => 'POST /api/notify Parameters';
@@ -98,7 +113,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiParamBodyDesc =>
-      'Notification body. Required for normal notifications; optional when category=flash_full or flash_edge.';
+      'Notification body. Required for normal notifications; optional when category=flash_full, flash_edge, or barrage.';
 
   @override
   String get httpApiParamPriorityDesc =>
@@ -106,7 +121,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiParamCategoryDesc =>
-      'Notification category. Allowed: flash_full / flash_edge.';
+      'Notification category. Allowed: flash_full / flash_edge / barrage.';
 
   @override
   String get httpApiParamFlashColorDesc =>
@@ -127,6 +142,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get httpApiParamEdgeRepeatDesc =>
       'Edge glow repeat count. Only valid when category=flash_edge; must be > 0.';
+
+  @override
+  String get httpApiParamBarrageRepeatDesc =>
+      'Barrage repeat count. Only valid when category=barrage; range 1~8.';
 
   @override
   String get httpApiParamPayloadDesc =>
@@ -152,7 +171,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiEnumCategory =>
-      'flash_full: full-screen flash; flash_edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat).';
+      'flash_full: full-screen flash; flash_edge: edge glow (can combine edgeWidth/edgeOpacity/edgeRepeat); barrage: scrolling overlay (can combine barrageRepeat).';
 
   @override
   String get httpApiEnumPriority =>
@@ -183,7 +202,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiNotesBodyOptional =>
-      'Only flash_full / flash_edge notifications allow empty body; normal notifications must include body.';
+      'Only flash_full / flash_edge / barrage notifications allow empty body; normal notifications must include body.';
 
   @override
   String get httpApiNotesEdgeOnly =>

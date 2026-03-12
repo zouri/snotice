@@ -21,6 +21,7 @@ class HttpApiPage extends StatelessWidget {
     });
 
     final baseUrl = 'http://localhost:$port';
+    final statusUrl = '$baseUrl/api/status';
     final notifyUrl = '$baseUrl/api/notify';
 
     return Container(
@@ -39,7 +40,12 @@ class HttpApiPage extends StatelessWidget {
                 const SizedBox(height: ShellDimensions.sectionGap),
                 _ApiEndpointsSection(),
                 const SizedBox(height: ShellDimensions.sectionGap),
-                _CodeExamplesSection(notifyUrl: notifyUrl),
+                _McpSection(baseUrl: baseUrl),
+                const SizedBox(height: ShellDimensions.sectionGap),
+                _CodeExamplesSection(
+                  statusUrl: statusUrl,
+                  notifyUrl: notifyUrl,
+                ),
                 const SizedBox(height: ShellDimensions.sectionGap),
                 _ParametersGrid(),
                 const SizedBox(height: ShellDimensions.sectionGap),
@@ -378,9 +384,67 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _CodeExamplesSection extends StatelessWidget {
-  const _CodeExamplesSection({required this.notifyUrl});
+class _McpSection extends StatelessWidget {
+  const _McpSection({required this.baseUrl});
 
+  final String baseUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final mcpUrl = '$baseUrl/api/mcp';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionHeader(title: l10n.httpApiMcpSectionTitle),
+        const SizedBox(height: 12),
+        _CodeBlock(
+          title: l10n.httpApiMcpEndpointTitle,
+          code: 'POST $mcpUrl',
+        ),
+        const SizedBox(height: 10),
+        _CodeBlock(
+          title: l10n.httpApiMcpToolsTitle,
+          code: '''snotice_send_notification
+snotice_get_status
+snotice_get_config
+snotice_update_config''',
+        ),
+        const SizedBox(height: 10),
+        _CodeBlock(
+          title: l10n.httpApiMcpExampleListTitle,
+          code: '''curl -X POST $mcpUrl \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' ''',
+        ),
+        const SizedBox(height: 10),
+        _CodeBlock(
+          title: l10n.httpApiMcpExampleCallTitle,
+          code: '''curl -X POST $mcpUrl \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "jsonrpc":"2.0",
+    "id":2,
+    "method":"tools/call",
+    "params":{
+      "name":"snotice_get_status",
+      "arguments":{}
+    }
+  }' ''',
+        ),
+      ],
+    );
+  }
+}
+
+class _CodeExamplesSection extends StatelessWidget {
+  const _CodeExamplesSection({
+    required this.statusUrl,
+    required this.notifyUrl,
+  });
+
+  final String statusUrl;
   final String notifyUrl;
 
   @override
@@ -394,7 +458,7 @@ class _CodeExamplesSection extends StatelessWidget {
         const SizedBox(height: 12),
         _CodeBlock(
           title: 'GET /api/status',
-          code: 'curl http://localhost:8642/api/status',
+          code: 'curl $statusUrl',
         ),
         const SizedBox(height: 10),
         _CodeBlock(
@@ -512,16 +576,58 @@ class _ParametersGrid extends StatelessWidget {
             l10n.httpApiParamBodyDesc,
           ),
           _ParamData(
+            'priority',
+            'string',
+            l10n.httpApiRequiredNo,
+            l10n.httpApiParamPriorityDesc,
+          ),
+          _ParamData(
             'category',
             'string',
             l10n.httpApiRequiredNo,
-            'flash_full / flash_edge / barrage',
+            l10n.httpApiParamCategoryDesc,
+          ),
+          _ParamData(
+            'flashColor',
+            'string',
+            l10n.httpApiRequiredNo,
+            l10n.httpApiParamFlashColorDesc,
+          ),
+          _ParamData(
+            'flashDuration',
+            'int',
+            l10n.httpApiRequiredNo,
+            l10n.httpApiParamFlashDurationDesc,
+          ),
+          _ParamData(
+            'edgeWidth',
+            'double',
+            l10n.httpApiRequiredNo,
+            l10n.httpApiParamEdgeWidthDesc,
+          ),
+          _ParamData(
+            'edgeOpacity',
+            'double',
+            l10n.httpApiRequiredNo,
+            l10n.httpApiParamEdgeOpacityDesc,
+          ),
+          _ParamData(
+            'edgeRepeat',
+            'int',
+            l10n.httpApiRequiredNo,
+            l10n.httpApiParamEdgeRepeatDesc,
           ),
           _ParamData(
             'barrageRepeat',
             'int',
             l10n.httpApiRequiredNo,
-            'Barrage repeat count (1-8)',
+            l10n.httpApiParamBarrageRepeatDesc,
+          ),
+          _ParamData(
+            'payload',
+            'object',
+            l10n.httpApiRequiredNo,
+            l10n.httpApiParamPayloadDesc,
           ),
         ]),
       ],

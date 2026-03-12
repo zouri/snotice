@@ -48,7 +48,8 @@
   "barrageDuration": 6000,
   "barrageSpeed": 160,
   "barrageFontSize": 30,
-  "barrageLane": "top"
+  "barrageLane": "top",
+  "barrageRepeat": 2
 }
 ```
 

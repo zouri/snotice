@@ -119,8 +119,12 @@ python3 skills/snotice-agent/scripts/snotice_call.py notify \
   --barrage-duration 6000 \
   --barrage-speed 160 \
   --barrage-font-size 30 \
-  --barrage-lane top
+  --barrage-lane top \
+  --barrage-repeat 2
 ```
+
+`config-get` is implemented through MCP (`/api/mcp`) and does not rely on a
+standalone `/api/config` HTTP endpoint.
 
 ## Notes
 
@@ -129,6 +133,7 @@ python3 skills/snotice-agent/scripts/snotice_call.py notify \
 - `edgeWidth/edgeOpacity/edgeRepeat` only work with `category=flash_edge`.
 - `barrageColor/barrageDuration/barrageSpeed/barrageFontSize/barrageLane`
   only work with `category=barrage`.
+- `barrageRepeat` only works with `category=barrage` and must be in `1..8`.
 - For `category=barrage`, if barrage fields are omitted, the server fills
   them from config defaults (`defaultBarrage*`).
 - If `showBarrage=false`, barrage calls are rejected with HTTP `403`.

@@ -81,6 +81,7 @@ def build_parser() -> argparse.ArgumentParser:
     notify.add_argument("--barrage-speed", type=float, default=0)
     notify.add_argument("--barrage-font-size", type=float, default=0)
     notify.add_argument("--barrage-lane", default="")
+    notify.add_argument("--barrage-repeat", type=int, default=0)
 
     return parser
 
@@ -95,7 +96,27 @@ def main() -> int:
         return 0 if 200 <= status < 300 else 1
 
     if args.command == "config-get":
-        status, body, raw = call_api(base_url, args.timeout, "GET", "/api/config")
+        request_payload = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "snotice_get_config", "arguments": {}},
+        }
+        status, body, raw = call_api(
+            base_url,
+            args.timeout,
+            "POST",
+            "/api/mcp",
+            request_payload,
+        )
+        if isinstance(body, dict):
+            result = body.get("result")
+            if isinstance(result, dict):
+                structured = result.get("structuredContent")
+                if isinstance(structured, dict):
+                    maybe_body = structured.get("body")
+                    if isinstance(maybe_body, dict):
+                        body = maybe_body
         print_result(status, body, raw)
         return 0 if 200 <= status < 300 else 1
 
@@ -127,6 +148,8 @@ def main() -> int:
         payload["barrageFontSize"] = args.barrage_font_size
     if args.barrage_lane:
         payload["barrageLane"] = args.barrage_lane
+    if args.barrage_repeat > 0:
+        payload["barrageRepeat"] = args.barrage_repeat
 
     status, body, raw = call_api(base_url, args.timeout, "POST", "/api/notify", payload)
     print_result(status, body, raw)

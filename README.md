@@ -112,9 +112,6 @@ python3 scripts/test_http_api.py --help
 # Check server status
 python3 scripts/test_http_api.py status
 
-# Get current config
-python3 scripts/test_http_api.py config-get
-
 # Send a normal notification
 python3 scripts/test_http_api.py notify --mode normal
 
@@ -137,6 +134,14 @@ Supported `notify --mode` values:
 - `flash_full`
 - `flash_edge`
 - `barrage`
+
+Request notes:
+
+- `body` is required for normal notifications, and optional for `flash_full`, `flash_edge`, and `barrage`.
+- `edgeWidth` / `edgeOpacity` / `edgeRepeat` are valid only when `category=flash_edge`.
+- `barrageColor` / `barrageDuration` / `barrageSpeed` / `barrageFontSize` /
+  `barrageLane` / `barrageRepeat` are valid only when `category=barrage`.
+- `barrageRepeat` range is `1..8`.
 
 ## AI Agent Integration
 
@@ -180,6 +185,7 @@ Quick command examples:
 
 ```bash
 python3 skills/snotice-agent/scripts/snotice_call.py status
+python3 skills/snotice-agent/scripts/snotice_call.py config-get
 python3 skills/snotice-agent/scripts/snotice_call.py notify --title "Build Done" --body "Release package finished"
 ```
 

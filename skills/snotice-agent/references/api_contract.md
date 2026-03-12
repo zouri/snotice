@@ -35,6 +35,7 @@ Request body key fields:
   - `barrageSpeed` (>0)
   - `barrageFontSize` (>0)
   - `barrageLane` (`top|middle|bottom`)
+  - `barrageRepeat` (1~8)
 
 Server-side defaults:
 
@@ -42,6 +43,15 @@ Server-side defaults:
   config (`defaultBarrageColor/defaultBarrageDuration/defaultBarrageSpeed/defaultBarrageFontSize/defaultBarrageLane`).
 
 Compatibility aliases are not supported. Use canonical field names only.
+
+### `POST /api/mcp`
+
+MCP JSON-RPC endpoint that exposes:
+
+- `snotice_send_notification`
+- `snotice_get_status`
+- `snotice_get_config`
+- `snotice_update_config`
 
 ## Common Error Cases
 

@@ -34,7 +34,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get httpApiIntroBody =>
-      'SNotice 提供本地 HTTP 接口用于触发系统通知和闪屏提醒。所有接口默认监听在本机端口，可由设置页调整。';
+      'SNotice 提供本地 HTTP 接口用于触发系统通知、闪屏提醒和弹幕覆盖提醒。所有接口默认监听在本机端口，可由设置页调整。';
 
   @override
   String get httpApiBaseUrlLabel => 'Base URL';
@@ -64,7 +64,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get httpApiEndpointStatusDesc => '读取服务状态，返回运行状态、端口、运行时长（秒）';
 
   @override
-  String get httpApiEndpointNotifyDesc => '发送普通通知或闪屏提醒';
+  String get httpApiEndpointNotifyDesc => '发送普通通知、闪屏提醒或弹幕覆盖提醒';
+
+  @override
+  String get httpApiMcpSectionTitle => 'MCP 使用说明';
+
+  @override
+  String get httpApiMcpEndpointTitle => 'MCP Endpoint';
+
+  @override
+  String get httpApiMcpToolsTitle => '内置工具';
+
+  @override
+  String get httpApiMcpExampleListTitle => 'MCP tools/list 示例';
+
+  @override
+  String get httpApiMcpExampleCallTitle => 'MCP tools/call 示例（读取状态）';
 
   @override
   String get httpApiNotifyParamsTitle => 'POST /api/notify 参数';
@@ -95,14 +110,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get httpApiParamBodyDesc =>
-      '通知内容。普通通知必填；当 category=flash_full 或 flash_edge 时可为空。';
+      '通知内容。普通通知必填；当 category=flash_full / flash_edge / barrage 时可为空。';
 
   @override
   String get httpApiParamPriorityDesc =>
       '通知优先级。可选: low / normal / high。默认: normal。';
 
   @override
-  String get httpApiParamCategoryDesc => '通知类别。可选: flash_full / flash_edge。';
+  String get httpApiParamCategoryDesc =>
+      '通知类别。可选: flash_full / flash_edge / barrage。';
 
   @override
   String get httpApiParamFlashColorDesc => '闪屏颜色。支持 #RRGGBB 或颜色名。默认: #FF0000。';
@@ -121,6 +137,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get httpApiParamEdgeRepeatDesc =>
       '边缘发光重复次数，仅 category=flash_edge 时有效，必须 > 0。';
+
+  @override
+  String get httpApiParamBarrageRepeatDesc =>
+      '弹幕重复条数，仅 category=barrage 时有效，范围 1~8。';
 
   @override
   String get httpApiParamPayloadDesc => '透传字段，会随本地通知 payload 一起下发（可选）。';
@@ -143,7 +163,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get httpApiEnumCategory =>
-      'flash_full: 全屏闪烁；flash_edge: 边缘发光（可结合 edgeWidth/edgeOpacity/edgeRepeat）。';
+      'flash_full: 全屏闪烁；flash_edge: 边缘发光（可结合 edgeWidth/edgeOpacity/edgeRepeat）；barrage: 弹幕覆盖提醒（可结合 barrageRepeat）。';
 
   @override
   String get httpApiEnumPriority => 'low/normal/high: 影响普通通知优先级，默认 normal。';
@@ -171,7 +191,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get httpApiNotesBodyOptional =>
-      '仅 flash_full / flash_edge 通知允许 body 为空；普通通知必须提供 body。';
+      '仅 flash_full / flash_edge / barrage 通知允许 body 为空；普通通知必须提供 body。';
 
   @override
   String get httpApiNotesEdgeOnly =>
