@@ -337,8 +337,10 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
   int _repeatCount = 1;
   double _itemHeight = 48;
   double _rowSpacing = 60;
+  double _devicePixelRatio = 1.0;
   final math.Random _random = math.Random();
   List<_BarrageItemLayout> _barrageItems = <_BarrageItemLayout>[];
+  List<Widget> _barrageBubbles = <Widget>[];
 
   @override
   void initState() {
@@ -350,8 +352,8 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
       fontWeight: FontWeight.w700,
       height: 1.2,
       shadows: const [
-        Shadow(color: Color(0xD9000000), blurRadius: 14, offset: Offset(0, 2)),
-        Shadow(color: Color(0xB2000000), blurRadius: 5, offset: Offset(0, 0)),
+        Shadow(color: Color(0x80000000), blurRadius: 8, offset: Offset(0, 1)),
+        Shadow(color: Color(0x4D000000), blurRadius: 3, offset: Offset(0, 0)),
       ],
     );
     _controller = AnimationController(vsync: this);
@@ -376,9 +378,10 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
     final media = MediaQuery.of(context);
     final screenWidth = media.size.width;
     final screenHeight = media.size.height;
+    _devicePixelRatio = media.devicePixelRatio;
     _textWidth = _measureTextWidth(widget.text, _textStyle);
     final textHeight = _measureTextHeight(widget.text, _textStyle);
-    _itemHeight = textHeight + 16;
+    _itemHeight = textHeight;
     _rowSpacing = _resolveRowSpacing(_itemHeight);
     _repeatCount = widget.repeat <= 0
         ? 1
@@ -397,6 +400,13 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
         speedFactor: _randomBetween(0.82, 1.2),
       );
     });
+    _barrageBubbles = List<Widget>.generate(
+      _repeatCount,
+      (index) => RepaintBoundary(
+        key: ValueKey<String>('barrage-bubble-$index'),
+        child: _BarrageBubble(text: widget.text, textStyle: _textStyle),
+      ),
+    );
 
     final farthestStartX = _startX + screenWidth * 0.35;
     final farthestEndX = _endX - screenWidth * 0.2;
@@ -537,28 +547,12 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
                       1 -
                       math.pow(1 - baseProgress, item.speedFactor).toDouble();
                   final x = startX + (endX - startX) * easedProgress;
+                  final alignedX = _alignToPixel(x, _devicePixelRatio);
+                  final alignedTop = _alignToPixel(rowTop, _devicePixelRatio);
                   return Positioned(
-                    left: x,
-                    top: rowTop,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: const Color(0x24000000),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0x33FFFFFF)),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: Text(
-                          widget.text,
-                          style: _textStyle,
-                          maxLines: 1,
-                          overflow: TextOverflow.fade,
-                        ),
-                      ),
-                    ),
+                    left: alignedX,
+                    top: alignedTop,
+                    child: _barrageBubbles[index],
                   );
                 });
                 return Stack(children: barrageItems);
@@ -574,6 +568,11 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  double _alignToPixel(double value, double devicePixelRatio) {
+    assert(devicePixelRatio > 0, 'devicePixelRatio must be positive');
+    return (value * devicePixelRatio).roundToDouble() / devicePixelRatio;
   }
 }
 
@@ -591,4 +590,26 @@ class _BarrageItemLayout {
   final double endExtra;
   final double initialProgress;
   final double speedFactor;
+}
+
+class _BarrageBubble extends StatelessWidget {
+  const _BarrageBubble({required this.text, required this.textStyle});
+
+  final String text;
+  final TextStyle textStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0x24000000),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0x33FFFFFF)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Text(text, style: textStyle, maxLines: 1),
+      ),
+    );
+  }
 }
