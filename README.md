@@ -64,7 +64,7 @@ curl -X POST http://localhost:8642/api/notify \
     "body": "Screen flash",
     "category": "flash_full",
     "flashColor": "gray",
-    "flashDuration": 800
+    "flashDuration": 100
   }'
 ```
 
