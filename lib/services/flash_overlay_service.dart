@@ -44,7 +44,20 @@ class FlashOverlayService {
         'Creating flash overlay: effect=$effect, color=$color, duration=$duration',
       );
 
-      final shouldUseNativeFlash = Platform.isMacOS;
+      final normalizedEffect = effect.trim().toLowerCase();
+      final shouldUseNativeFlash =
+          Platform.isMacOS ||
+          (Platform.isWindows &&
+              (normalizedEffect == 'full' ||
+                  normalizedEffect == 'barrage' ||
+                  normalizedEffect == 'edge' ||
+                  normalizedEffect == 'sweep' ||
+                  normalizedEffect == 'pulse' ||
+                  normalizedEffect == 'dual' ||
+                  normalizedEffect == 'dash' ||
+                  normalizedEffect == 'corner' ||
+                  normalizedEffect == 'rainbow' ||
+                  normalizedEffect.startsWith('edge_')));
       if (shouldUseNativeFlash) {
         final payload = <String, dynamic>{
           'color': color,
@@ -60,9 +73,21 @@ class FlashOverlayService {
         if (barrageLane != null) payload['lane'] = barrageLane;
         if (barrageRepeat != null) payload['repeat'] = barrageRepeat;
 
-        await _flashChannel.invokeMethod('triggerFlash', payload);
-        _logger.info('Flash overlay created successfully');
-        return;
+        try {
+          final handled = await _flashChannel.invokeMethod<bool>(
+            'triggerFlash',
+            payload,
+          );
+          if (handled ?? true) {
+            _logger.info('Flash overlay created successfully');
+            return;
+          }
+          _logger.warning('Native flash not handled, fallback to Flutter overlay');
+        } catch (e) {
+          _logger.warning(
+            'Native flash unavailable, fallback to Flutter overlay: $e',
+          );
+        }
       }
 
       // 创建参数（JSON字符串）
