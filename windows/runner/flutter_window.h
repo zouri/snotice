@@ -133,6 +133,8 @@ class FlutterWindow : public Win32Window {
   int edge_cycle_duration_ms_ = 500;
   BYTE edge_min_alpha_ = 30;
   BYTE edge_max_alpha_ = 220;
+  // Guard for timeBeginPeriod(1) so we always pair it with timeEndPeriod(1).
+  bool high_resolution_timer_enabled_ = false;
   std::mt19937 random_engine_;
   bool flash_overlay_class_registered_ = false;
   bool edge_overlay_class_registered_ = false;

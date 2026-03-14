@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <mmsystem.h>
 
 #include <flutter/standard_method_codec.h>
 
@@ -55,14 +56,27 @@ struct BarrageOverlayState {
   std::wstring text = L"SNotice";
   COLORREF text_color = RGB(255, 255, 255);
   HFONT font = nullptr;
+  int text_length = 0;
   int text_width = 0;
   int text_height = 0;
   int bubble_padding_x = 16;
   int bubble_padding_y = 8;
+  int bubble_radius = 14;
   double start_x = 0.0;
   double end_x = 0.0;
   int total_duration_ms = 6000;
   DWORD start_tick = 0;
+  int draw_y_offset = 0;
+  int track_top = 0;
+  int track_bottom = 0;
+  HBRUSH clear_brush = nullptr;
+  HBRUSH bubble_brush = nullptr;
+  HPEN bubble_pen = nullptr;
+  HDC buffer_dc = nullptr;
+  HBITMAP buffer_bitmap = nullptr;
+  HBITMAP buffer_old_bitmap = nullptr;
+  int buffer_width = 0;
+  int buffer_height = 0;
   std::vector<BarrageItemLayout> items;
 };
 
@@ -400,6 +414,8 @@ void FlutterWindow::TickNativeAnimation() {
           overlay.hwnd == nullptr || !IsWindow(overlay.hwnd)) {
         continue;
       }
+      // Barrage now renders in a narrow strip window, so a full invalidation is
+      // cheap and avoids stale regions.
       InvalidateRect(overlay.hwnd, nullptr, FALSE);
     }
   }
@@ -422,17 +438,34 @@ void FlutterWindow::ClearFlashOverlayWindows() {
 
 void FlutterWindow::CancelTimers() {
   if (GetHandle() == nullptr) {
+    if (high_resolution_timer_enabled_) {
+      timeEndPeriod(1);
+      high_resolution_timer_enabled_ = false;
+    }
     return;
   }
   KillTimer(GetHandle(), kFlashOverlayCloseTimerId);
   KillTimer(GetHandle(), kFlashOverlayAnimationTimerId);
+  if (high_resolution_timer_enabled_) {
+    timeEndPeriod(1);
+    high_resolution_timer_enabled_ = false;
+  }
 }
 
 void FlutterWindow::StartAnimationTimer() {
   if (GetHandle() == nullptr) {
     return;
   }
-  SetTimer(GetHandle(), kFlashOverlayAnimationTimerId, 16, nullptr);
+  // Improve WM_TIMER cadence for smoother native overlay movement.
+  if (!high_resolution_timer_enabled_ && timeBeginPeriod(1) == TIMERR_NOERROR) {
+    high_resolution_timer_enabled_ = true;
+  }
+
+  // Barrage benefits from a slightly tighter tick than edge flash.
+  const UINT timer_interval_ms =
+      native_overlay_mode_ == NativeOverlayMode::kBarrage ? 12 : 16;
+  SetTimer(GetHandle(), kFlashOverlayAnimationTimerId, timer_interval_ms,
+           nullptr);
 }
 
 void FlutterWindow::EnsureFlashOverlayClassRegistered() {
@@ -577,11 +610,16 @@ void FlutterWindow::CreateBarrageOverlayForMonitor(const RECT& bounds,
 
   auto* state = new BarrageOverlayState();
   state->text = text;
+  state->text_length = static_cast<int>(state->text.size());
   state->text_color = color;
   state->start_tick = native_overlay_start_tick_;
+  state->clear_brush = CreateSolidBrush(kTransparentColorKey);
+  state->bubble_brush = CreateSolidBrush(RGB(24, 24, 24));
+  state->bubble_pen = CreatePen(PS_SOLID, 1, RGB(186, 186, 186));
+  // ClearType can shimmer on color-keyed layered windows; use grayscale AA.
   state->font = CreateFontW(-font_size, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
                             DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
-                            CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY,
+                            CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
                             DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
 
   HDC dc = GetDC(overlay);
@@ -641,6 +679,50 @@ void FlutterWindow::CreateBarrageOverlayForMonitor(const RECT& bounds,
   }
   std::shuffle(state->items.begin(), state->items.end(), random_engine_);
 
+  double min_track_top = static_cast<double>(height);
+  double max_track_bottom = 0.0;
+  for (const auto& item : state->items) {
+    min_track_top =
+        std::min(min_track_top, item.row_top - state->bubble_padding_y);
+    max_track_bottom = std::max(max_track_bottom,
+                                item.row_top + state->text_height +
+                                    state->bubble_padding_y * 2.0);
+  }
+  const int track_margin = 8;
+  const int raw_track_top =
+      static_cast<int>(std::floor(min_track_top)) - track_margin;
+  const int raw_track_bottom =
+      static_cast<int>(std::ceil(max_track_bottom)) + track_margin;
+  const int max_track_top = std::max(0, height - 1);
+  const int track_top_abs = std::clamp(raw_track_top, 0, max_track_top);
+  const int track_bottom_abs =
+      std::clamp(raw_track_bottom, track_top_abs + 1, height);
+  const int track_height = std::max(1, track_bottom_abs - track_top_abs);
+  // Convert from monitor-space rows to strip-local coordinates.
+  state->draw_y_offset = track_top_abs;
+  state->track_top = 0;
+  state->track_bottom = track_height;
+  state->buffer_width = width;
+  state->buffer_height = track_height;
+
+  HDC overlay_dc = GetDC(overlay);
+  // Draw into an off-screen bitmap, then blit once to reduce visible flicker.
+  if (overlay_dc != nullptr && state->buffer_width > 0 && state->buffer_height > 0) {
+    state->buffer_dc = CreateCompatibleDC(overlay_dc);
+    if (state->buffer_dc != nullptr) {
+      state->buffer_bitmap = CreateCompatibleBitmap(
+          overlay_dc, state->buffer_width, state->buffer_height);
+      if (state->buffer_bitmap != nullptr) {
+        state->buffer_old_bitmap = reinterpret_cast<HBITMAP>(
+            SelectObject(state->buffer_dc, state->buffer_bitmap));
+      } else {
+        DeleteDC(state->buffer_dc);
+        state->buffer_dc = nullptr;
+      }
+    }
+    ReleaseDC(overlay, overlay_dc);
+  }
+
   const double farthest_start_x = state->start_x + width * 0.35;
   const double farthest_end_x = state->end_x - width * 0.2;
   const double travel_distance = farthest_start_x - farthest_end_x;
@@ -654,8 +736,9 @@ void FlutterWindow::CreateBarrageOverlayForMonitor(const RECT& bounds,
   SetWindowLongPtr(overlay, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(state));
 
   SetLayeredWindowAttributes(overlay, kTransparentColorKey, 255, LWA_COLORKEY);
-  SetWindowPos(overlay, HWND_TOPMOST, bounds.left, bounds.top, width, height,
-               SWP_SHOWWINDOW | SWP_NOACTIVATE);
+  // Only occupy the barrage track, not the full monitor, to reduce composition.
+  SetWindowPos(overlay, HWND_TOPMOST, bounds.left, bounds.top + track_top_abs,
+               width, track_height, SWP_SHOWWINDOW | SWP_NOACTIVATE);
   UpdateWindow(overlay);
 
   flash_overlay_windows_.push_back({overlay, OverlayWindowKind::kBarrage});
@@ -843,12 +926,31 @@ LRESULT CALLBACK FlutterWindow::BarrageOverlayWndProc(HWND hwnd,
       PAINTSTRUCT paint = {};
       HDC dc = BeginPaint(hwnd, &paint);
       if (state != nullptr) {
-        RECT client_rect;
-        GetClientRect(hwnd, &client_rect);
+        HDC render_dc = dc;
+        // Items keep monitor-space Y; convert to this strip window's local Y.
+        int y_offset = state->draw_y_offset;
+        bool use_back_buffer = false;
+        if (state->buffer_dc != nullptr && state->buffer_bitmap != nullptr &&
+            state->buffer_width > 0 && state->buffer_height > 0) {
+          use_back_buffer = true;
+          render_dc = state->buffer_dc;
+        }
 
-        HBRUSH clear_brush = CreateSolidBrush(kTransparentColorKey);
-        FillRect(dc, &client_rect, clear_brush);
-        DeleteObject(clear_brush);
+        HBRUSH clear_brush = state->clear_brush;
+        bool owns_clear_brush = false;
+        if (clear_brush == nullptr) {
+          clear_brush = CreateSolidBrush(kTransparentColorKey);
+          owns_clear_brush = true;
+        }
+        if (use_back_buffer) {
+          RECT buffer_rect = {0, 0, state->buffer_width, state->buffer_height};
+          FillRect(render_dc, &buffer_rect, clear_brush);
+        } else {
+          FillRect(render_dc, &paint.rcPaint, clear_brush);
+        }
+        if (owns_clear_brush) {
+          DeleteObject(clear_brush);
+        }
 
         const DWORD elapsed = GetTickCount() - state->start_tick;
         const double progress = state->total_duration_ms <= 0
@@ -858,16 +960,29 @@ LRESULT CALLBACK FlutterWindow::BarrageOverlayWndProc(HWND hwnd,
                                               state->total_duration_ms,
                                           0.0, 1.0);
 
-        SetBkMode(dc, TRANSPARENT);
+        SetBkMode(render_dc, TRANSPARENT);
+        SetTextAlign(render_dc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
         HFONT old_font = nullptr;
         if (state->font != nullptr) {
-          old_font = reinterpret_cast<HFONT>(SelectObject(dc, state->font));
+          old_font =
+              reinterpret_cast<HFONT>(SelectObject(render_dc, state->font));
         }
 
-        HBRUSH bubble_brush = CreateSolidBrush(RGB(24, 24, 24));
-        HPEN bubble_pen = CreatePen(PS_SOLID, 1, RGB(186, 186, 186));
-        HGDIOBJ old_brush = SelectObject(dc, bubble_brush);
-        HGDIOBJ old_pen = SelectObject(dc, bubble_pen);
+        HBRUSH bubble_brush = state->bubble_brush;
+        HPEN bubble_pen = state->bubble_pen;
+        bool owns_bubble_brush = false;
+        bool owns_bubble_pen = false;
+        if (bubble_brush == nullptr) {
+          bubble_brush = CreateSolidBrush(RGB(24, 24, 24));
+          owns_bubble_brush = true;
+        }
+        if (bubble_pen == nullptr) {
+          bubble_pen = CreatePen(PS_SOLID, 1, RGB(186, 186, 186));
+          owns_bubble_pen = true;
+        }
+        HGDIOBJ old_brush = SelectObject(render_dc, bubble_brush);
+        HGDIOBJ old_pen = SelectObject(render_dc, bubble_pen);
+        const int text_length = std::max(0, state->text_length);
 
         for (const auto& item : state->items) {
           const double start_x = state->start_x + item.spawn_offset_x;
@@ -878,42 +993,48 @@ LRESULT CALLBACK FlutterWindow::BarrageOverlayWndProc(HWND hwnd,
               1.0 - std::pow(1.0 - base_progress, item.speed_factor);
           const double x = start_x + (end_x - start_x) * eased_progress;
           const double y = item.row_top;
+          const int x_px = static_cast<int>(std::round(x));
+          const int y_px = static_cast<int>(std::round(y)) - y_offset;
 
           const int bubble_left =
-              static_cast<int>(std::round(x - state->bubble_padding_x));
+              x_px - state->bubble_padding_x;
           const int bubble_top =
-              static_cast<int>(std::round(y - state->bubble_padding_y));
+              y_px - state->bubble_padding_y;
           const int bubble_right = bubble_left + state->text_width +
                                    state->bubble_padding_x * 2;
           const int bubble_bottom = bubble_top + state->text_height +
                                     state->bubble_padding_y * 2;
 
-          RoundRect(dc, bubble_left, bubble_top, bubble_right, bubble_bottom, 14,
-                    14);
+          RoundRect(render_dc, bubble_left, bubble_top, bubble_right,
+                    bubble_bottom,
+                    state->bubble_radius, state->bubble_radius);
 
-          RECT text_rect = {static_cast<int>(std::round(x)),
-                            static_cast<int>(std::round(y)),
-                            static_cast<int>(std::round(x)) + state->text_width,
-                            static_cast<int>(std::round(y)) + state->text_height};
+          SetTextColor(render_dc, RGB(0, 0, 0));
+          TextOutW(render_dc, x_px + 1, y_px + 1, state->text.c_str(),
+                   text_length);
 
-          RECT shadow_rect = text_rect;
-          OffsetRect(&shadow_rect, 1, 1);
-          SetTextColor(dc, RGB(0, 0, 0));
-          DrawTextW(dc, state->text.c_str(), -1, &shadow_rect,
-                    DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
-
-          SetTextColor(dc, state->text_color);
-          DrawTextW(dc, state->text.c_str(), -1, &text_rect,
-                    DT_LEFT | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
+          SetTextColor(render_dc, state->text_color);
+          TextOutW(render_dc, x_px, y_px, state->text.c_str(), text_length);
         }
 
-        SelectObject(dc, old_pen);
-        SelectObject(dc, old_brush);
-        DeleteObject(bubble_pen);
-        DeleteObject(bubble_brush);
+        if (use_back_buffer) {
+          // Single blit to present the prepared frame and avoid incremental draw
+          // artifacts.
+          BitBlt(dc, 0, 0, state->buffer_width, state->buffer_height, render_dc,
+                 0, 0, SRCCOPY);
+        }
+
+        SelectObject(render_dc, old_pen);
+        SelectObject(render_dc, old_brush);
+        if (owns_bubble_pen) {
+          DeleteObject(bubble_pen);
+        }
+        if (owns_bubble_brush) {
+          DeleteObject(bubble_brush);
+        }
 
         if (old_font != nullptr) {
-          SelectObject(dc, old_font);
+          SelectObject(render_dc, old_font);
         }
       }
       EndPaint(hwnd, &paint);
@@ -923,6 +1044,30 @@ LRESULT CALLBACK FlutterWindow::BarrageOverlayWndProc(HWND hwnd,
       auto* state = reinterpret_cast<BarrageOverlayState*>(
           GetWindowLongPtr(hwnd, GWLP_USERDATA));
       if (state != nullptr) {
+        if (state->buffer_dc != nullptr) {
+          if (state->buffer_old_bitmap != nullptr) {
+            SelectObject(state->buffer_dc, state->buffer_old_bitmap);
+            state->buffer_old_bitmap = nullptr;
+          }
+          if (state->buffer_bitmap != nullptr) {
+            DeleteObject(state->buffer_bitmap);
+            state->buffer_bitmap = nullptr;
+          }
+          DeleteDC(state->buffer_dc);
+          state->buffer_dc = nullptr;
+        }
+        if (state->clear_brush != nullptr) {
+          DeleteObject(state->clear_brush);
+          state->clear_brush = nullptr;
+        }
+        if (state->bubble_pen != nullptr) {
+          DeleteObject(state->bubble_pen);
+          state->bubble_pen = nullptr;
+        }
+        if (state->bubble_brush != nullptr) {
+          DeleteObject(state->bubble_brush);
+          state->bubble_brush = nullptr;
+        }
         if (state->font != nullptr) {
           DeleteObject(state->font);
           state->font = nullptr;
