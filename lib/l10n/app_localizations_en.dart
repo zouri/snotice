@@ -159,10 +159,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Allowed IP list. Supports exact IP and CIDR. Empty list means allow all.';
 
   @override
-  String get httpApiParamAutoStartDesc =>
-      'Server auto-start flag. Current product policy forces this to true.';
-
-  @override
   String get httpApiParamShowNotificationsDesc =>
       'Whether system notifications are enabled.';
 
@@ -277,10 +273,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serverPortInvalid => 'Please enter a valid port (1-65535)';
 
   @override
-  String get serverAutoStart => 'Auto Start';
+  String get autoLaunchOnLogin => 'Launch at Startup';
 
   @override
-  String get serverAutoStartDesc => 'Start server automatically on app launch';
+  String get autoLaunchOnLoginDesc =>
+      'Start SNotice automatically after system login';
+
+  @override
+  String get autoLaunchOnLoginUpdateFailed =>
+      'Failed to update launch-at-startup setting';
 
   @override
   String get allowedIPs => 'Allowed IPs';

@@ -6,6 +6,7 @@ import '../../models/app_config.dart';
 import '../../providers/config_provider.dart';
 import '../../providers/server_provider.dart';
 import '../../services/config_service.dart';
+import '../../services/startup_service.dart';
 import '../widgets/common/page_header.dart';
 import '../widgets/main/shell_dimensions.dart';
 import '../widgets/settings/allowed_ips_card.dart';
@@ -34,12 +35,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late AppConfig _draftConfig;
   late String _barrageLane;
+  late final bool _startupSupported;
 
   @override
   void initState() {
     super.initState();
     final config = context.read<ConfigProvider>().config;
     _draftConfig = config;
+    _startupSupported = context.read<StartupService>().isSupported;
     _barrageLane = config.defaultBarrageLane;
     _portController.text = config.port.toString();
     _barrageColorController.text = config.defaultBarrageColor;
@@ -74,6 +77,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final configProvider = context.read<ConfigProvider>();
     final serverProvider = context.read<ServerProvider>();
     final configService = context.read<ConfigService>();
+    final startupService = context.read<StartupService>();
+    final currentConfig = configProvider.config;
     final l10n = AppLocalizations.of(context)!;
     final barrageColor = _barrageColorController.text.trim();
     final barrageDuration = int.tryParse(
@@ -108,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final newConfig = _draftConfig.copyWith(
       port: port,
-      autoStart: true,
+      autoLaunchOnLogin: _draftConfig.autoLaunchOnLogin,
       defaultBarrageColor: barrageColor,
       defaultBarrageDuration: barrageDuration,
       defaultBarrageSpeed: barrageSpeed,
@@ -116,6 +121,37 @@ class _HomeScreenState extends State<HomeScreen> {
       defaultBarrageLane: _barrageLane,
       defaultBarrageRepeat: barrageRepeat,
     );
+
+    final autoLaunchOnLoginChanged =
+        newConfig.autoLaunchOnLogin != currentConfig.autoLaunchOnLogin;
+    if (autoLaunchOnLoginChanged && _startupSupported) {
+      try {
+        await startupService.setAutoLaunchOnLogin(newConfig.autoLaunchOnLogin);
+      } catch (_) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.autoLaunchOnLoginUpdateFailed)),
+        );
+        return;
+      }
+    }
+
+    final configApplied = await serverProvider.applyConfig(
+      newConfig,
+      rollbackConfig: currentConfig,
+    );
+    if (!configApplied) {
+      if (!mounted) {
+        return;
+      }
+      final message = serverProvider.lastError ?? l10n.settingsSaveFailed;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+      return;
+    }
 
     try {
       await configService.saveConfig(newConfig);
@@ -132,7 +168,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _draftConfig = newConfig;
     configProvider.updateConfig(newConfig);
-    serverProvider.updateConfig(newConfig);
 
     if (!mounted) {
       return;
@@ -208,10 +243,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     isRunning: serverProvider.isRunning,
                     port: currentPort,
                     error: serverProvider.lastError,
-                    onToggle: () async {
-                      if (serverProvider.isRunning) {
-                        await serverProvider.stop();
-                      } else {
+                    onStart: () async {
+                      if (!serverProvider.isRunning) {
                         await serverProvider.start();
                       }
                     },
@@ -221,7 +254,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
-                        ServerSettingsCard(portController: _portController),
+                        ServerSettingsCard(
+                          portController: _portController,
+                          autoLaunchOnLogin: _draftConfig.autoLaunchOnLogin,
+                          startupSupported: _startupSupported,
+                          onAutoLaunchOnLoginChanged: (value) {
+                            setState(() {
+                              _draftConfig = _draftConfig.copyWith(
+                                autoLaunchOnLogin: value,
+                              );
+                            });
+                          },
+                        ),
                         const SizedBox(height: ShellDimensions.sectionGap),
                         AllowedIpsCard(
                           ipController: _ipController,

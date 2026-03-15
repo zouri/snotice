@@ -153,9 +153,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '允许访问的 IP 列表，支持精确 IP 和 CIDR。为空表示允许所有 IP。';
 
   @override
-  String get httpApiParamAutoStartDesc => '服务自动启动开关。当前产品策略会强制保持 true。';
-
-  @override
   String get httpApiParamShowNotificationsDesc => '是否显示系统通知。';
 
   @override
@@ -266,10 +263,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get serverPortInvalid => '请输入有效端口 (1-65535)';
 
   @override
-  String get serverAutoStart => '自动启动';
+  String get autoLaunchOnLogin => '开机启动应用';
 
   @override
-  String get serverAutoStartDesc => '应用启动时自动启动服务器';
+  String get autoLaunchOnLoginDesc => '系统登录后自动启动 SNotice';
+
+  @override
+  String get autoLaunchOnLoginUpdateFailed => '更新开机启动设置失败';
 
   @override
   String get allowedIPs => '允许的 IP';

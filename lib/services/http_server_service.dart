@@ -407,7 +407,7 @@ class HttpServerService {
               'type': 'array',
               'items': {'type': 'string'},
             },
-            'autoStart': {'type': 'boolean'},
+            'autoLaunchOnLogin': {'type': 'boolean'},
             'showNotifications': {'type': 'boolean'},
             'showBarrage': {'type': 'boolean'},
             'defaultBarrageColor': {'type': 'string'},

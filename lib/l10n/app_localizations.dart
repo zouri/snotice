@@ -368,12 +368,6 @@ abstract class AppLocalizations {
   /// **'Allowed IP list. Supports exact IP and CIDR. Empty list means allow all.'**
   String get httpApiParamAllowedIPsDesc;
 
-  /// No description provided for @httpApiParamAutoStartDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Server auto-start flag. Current product policy forces this to true.'**
-  String get httpApiParamAutoStartDesc;
-
   /// No description provided for @httpApiParamShowNotificationsDesc.
   ///
   /// In en, this message translates to:
@@ -584,17 +578,23 @@ abstract class AppLocalizations {
   /// **'Please enter a valid port (1-65535)'**
   String get serverPortInvalid;
 
-  /// No description provided for @serverAutoStart.
+  /// No description provided for @autoLaunchOnLogin.
   ///
   /// In en, this message translates to:
-  /// **'Auto Start'**
-  String get serverAutoStart;
+  /// **'Launch at Startup'**
+  String get autoLaunchOnLogin;
 
-  /// No description provided for @serverAutoStartDesc.
+  /// No description provided for @autoLaunchOnLoginDesc.
   ///
   /// In en, this message translates to:
-  /// **'Start server automatically on app launch'**
-  String get serverAutoStartDesc;
+  /// **'Start SNotice automatically after system login'**
+  String get autoLaunchOnLoginDesc;
+
+  /// No description provided for @autoLaunchOnLoginUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update launch-at-startup setting'**
+  String get autoLaunchOnLoginUpdateFailed;
 
   /// No description provided for @allowedIPs.
   ///

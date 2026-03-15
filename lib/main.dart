@@ -19,6 +19,7 @@ import 'services/flash_overlay_service.dart';
 import 'services/http_server_service.dart';
 import 'services/logger_service.dart';
 import 'services/notification_service.dart';
+import 'services/startup_service.dart';
 import 'services/tray_service.dart';
 import 'providers/theme_provider.dart';
 import 'theme/theme.dart';
@@ -97,6 +98,13 @@ Future<void> _startMainApp() async {
   final configService = ConfigService(loggerService);
   final config = await configService.loadConfig();
   loggerService.info('Config loaded: ${config.toJson()}');
+  final startupService = StartupService(loggerService);
+
+  try {
+    await startupService.setAutoLaunchOnLogin(config.autoLaunchOnLogin);
+  } catch (_) {
+    loggerService.warning('Auto-launch-on-login setting sync failed.');
+  }
 
   // 创建 FlashOverlayService
   final flashOverlayService = FlashOverlayService(loggerService);
@@ -122,10 +130,8 @@ Future<void> _startMainApp() async {
 
   late final TrayService trayService;
   trayService = TrayService(
-    onStartStop: () async {
-      if (serverProvider.isRunning) {
-        await serverProvider.stop();
-      } else {
+    onStartService: () async {
+      if (!serverProvider.isRunning) {
         await serverProvider.start();
       }
     },
@@ -155,19 +161,18 @@ Future<void> _startMainApp() async {
         ChangeNotifierProvider.value(value: localeProvider),
         ChangeNotifierProvider.value(value: loggerService),
         Provider.value(value: notificationService),
+        Provider.value(value: startupService),
         Provider.value(value: configService),
       ],
       child: const SNoticeApp(),
     ),
   );
 
-  if (config.autoStart) {
-    await serverProvider.start();
-    if (!serverProvider.isRunning && serverProvider.lastError != null) {
-      loggerService.warning(
-        'Server auto-start failed: ${serverProvider.lastError}',
-      );
-    }
+  await serverProvider.start();
+  if (!serverProvider.isRunning && serverProvider.lastError != null) {
+    loggerService.warning(
+      'Server auto-start failed: ${serverProvider.lastError}',
+    );
   }
 }
 

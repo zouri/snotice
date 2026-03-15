@@ -39,6 +39,47 @@ class ServerProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> applyConfig(
+    AppConfig nextConfig, {
+    AppConfig? rollbackConfig,
+  }) async {
+    _lastError = null;
+
+    final wasRunning = _httpServerService.isRunning;
+    final oldPort = _httpServerService.port;
+    final portChanged = oldPort != nextConfig.port;
+
+    if (!wasRunning || !portChanged) {
+      _httpServerService.updateConfig(nextConfig);
+      notifyListeners();
+      return true;
+    }
+
+    try {
+      await _httpServerService.stop();
+      _httpServerService.updateConfig(nextConfig);
+      await _httpServerService.start();
+      notifyListeners();
+      return true;
+    } on SocketException catch (e) {
+      _lastError = _formatSocketError(e);
+    } catch (e) {
+      _lastError = '应用服务配置失败：$e';
+    }
+
+    if (rollbackConfig != null) {
+      try {
+        _httpServerService.updateConfig(rollbackConfig);
+        await _httpServerService.start();
+      } catch (_) {
+        // Keep the original apply error for user-facing feedback.
+      }
+    }
+
+    notifyListeners();
+    return false;
+  }
+
   void updateConfig(AppConfig config) {
     _httpServerService.updateConfig(config);
   }

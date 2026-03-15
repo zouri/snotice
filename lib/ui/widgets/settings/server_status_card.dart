@@ -8,14 +8,14 @@ class ServerStatusCard extends StatelessWidget {
     required this.isRunning,
     required this.port,
     required this.error,
-    required this.onToggle,
+    required this.onStart,
     super.key,
   });
 
   final bool isRunning;
   final int port;
   final String? error;
-  final Future<void> Function() onToggle;
+  final Future<void> Function() onStart;
 
   @override
   Widget build(BuildContext context) {
@@ -48,21 +48,22 @@ class ServerStatusCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                FilledButton.tonal(
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(0, ShellDimensions.buttonHeight),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  onPressed: onToggle,
-                  child: Text(
-                    isRunning ? l10n.trayStopService : l10n.trayStartService,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontSize: ShellDimensions.buttonTextSize,
-                      fontWeight: FontWeight.w700,
+                if (!isRunning)
+                  FilledButton.tonal(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, ShellDimensions.buttonHeight),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    onPressed: onStart,
+                    child: Text(
+                      l10n.trayStartService,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: ShellDimensions.buttonTextSize,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 6),

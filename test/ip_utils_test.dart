@@ -125,4 +125,13 @@ void main() {
       expect(config.showBarrage, false);
     });
   });
+
+  group('AppConfig auto-launch-on-login', () {
+    test('parses and serializes autoLaunchOnLogin', () {
+      final config = AppConfig.fromJson({'autoLaunchOnLogin': 'true'});
+
+      expect(config.autoLaunchOnLogin, true);
+      expect(config.toJson()['autoLaunchOnLogin'], true);
+    });
+  });
 }

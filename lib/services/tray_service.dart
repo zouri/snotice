@@ -9,7 +9,7 @@ import '../providers/locale_provider.dart';
 typedef TrayActionCallback = FutureOr<void> Function();
 
 class TrayService {
-  final TrayActionCallback? onStartStop;
+  final TrayActionCallback? onStartService;
   final TrayActionCallback? onShowWindow;
   final TrayActionCallback? onExit;
 
@@ -18,7 +18,7 @@ class TrayService {
   bool _trayReady = false;
   LocaleProvider? _localeProvider;
 
-  TrayService({this.onStartStop, this.onShowWindow, this.onExit});
+  TrayService({this.onStartService, this.onShowWindow, this.onExit});
 
   /// Set the locale provider for localized strings
   void setLocaleProvider(LocaleProvider provider) {
@@ -90,10 +90,6 @@ class TrayService {
   Future<void> _buildMenu() async {
     try {
       final menu = Menu();
-      final actionLabel = _isServerRunning
-          ? _l10n('Stop Service', '停止服务')
-          : _l10n('Start Service', '启动服务');
-
       // Build menu items list
       final menuItems = <MenuItemBase>[];
 
@@ -107,17 +103,16 @@ class TrayService {
 
       menuItems.add(MenuSeparator());
 
-      // Service control
-      if (onStartStop != null) {
+      // Service control: stopping is not exposed to users.
+      if (!_isServerRunning && onStartService != null) {
         menuItems.add(
           MenuItemLabel(
-            label: actionLabel,
-            onClicked: (_) => _runAction(onStartStop),
+            label: _l10n('Start Service', '启动服务'),
+            onClicked: (_) => _runAction(onStartService),
           ),
         );
+        menuItems.add(MenuSeparator());
       }
-
-      menuItems.add(MenuSeparator());
 
       // Exit
       menuItems.add(

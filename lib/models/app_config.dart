@@ -6,7 +6,7 @@ class AppConfig {
 
   final int port;
   final List<String> allowedIPs;
-  final bool autoStart;
+  final bool autoLaunchOnLogin;
   final bool showNotifications;
   final bool showBarrage;
   final String defaultBarrageColor;
@@ -19,7 +19,7 @@ class AppConfig {
   AppConfig({
     this.port = 8642,
     List<String>? allowedIPs,
-    bool autoStart = true,
+    this.autoLaunchOnLogin = false,
     this.showNotifications = true,
     this.showBarrage = true,
     String defaultBarrageColor = '#FFD84D',
@@ -28,8 +28,7 @@ class AppConfig {
     double defaultBarrageFontSize = 28,
     String defaultBarrageLane = 'top',
     int defaultBarrageRepeat = 1,
-  }) : autoStart = _normalizeAutoStart(autoStart),
-       allowedIPs = List.unmodifiable(
+  }) : allowedIPs = List.unmodifiable(
          _normalizeAllowedIPs(allowedIPs ?? AppConstants.defaultAllowedIPs),
        ),
        defaultBarrageColor = _normalizeBarrageColor(defaultBarrageColor),
@@ -56,7 +55,7 @@ class AppConfig {
       allowedIPs:
           rawAllowedIPs?.whereType<String>().map((ip) => ip.trim()).toList() ??
           AppConstants.defaultAllowedIPs,
-      autoStart: _parseBool(json['autoStart']) ?? true,
+      autoLaunchOnLogin: _parseBool(json['autoLaunchOnLogin']) ?? false,
       showNotifications: _parseBool(json['showNotifications']) ?? true,
       showBarrage: _parseBool(json['showBarrage']) ?? true,
       defaultBarrageColor:
@@ -74,7 +73,7 @@ class AppConfig {
     return {
       'port': port,
       'allowedIPs': allowedIPs,
-      'autoStart': autoStart,
+      'autoLaunchOnLogin': autoLaunchOnLogin,
       'showNotifications': showNotifications,
       'showBarrage': showBarrage,
       'defaultBarrageColor': defaultBarrageColor,
@@ -105,7 +104,7 @@ class AppConfig {
   AppConfig copyWith({
     int? port,
     List<String>? allowedIPs,
-    bool? autoStart,
+    bool? autoLaunchOnLogin,
     bool? showNotifications,
     bool? showBarrage,
     String? defaultBarrageColor,
@@ -118,7 +117,7 @@ class AppConfig {
     return AppConfig(
       port: port ?? this.port,
       allowedIPs: allowedIPs ?? this.allowedIPs,
-      autoStart: autoStart ?? this.autoStart,
+      autoLaunchOnLogin: autoLaunchOnLogin ?? this.autoLaunchOnLogin,
       showNotifications: showNotifications ?? this.showNotifications,
       showBarrage: showBarrage ?? this.showBarrage,
       defaultBarrageColor: defaultBarrageColor ?? this.defaultBarrageColor,
@@ -145,11 +144,6 @@ class AppConfig {
     }
 
     return normalized;
-  }
-
-  static bool _normalizeAutoStart(bool _) {
-    // Server auto-start is mandatory for current product policy.
-    return true;
   }
 
   static String _normalizeBarrageColor(String source) {
