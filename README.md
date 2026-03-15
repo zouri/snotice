@@ -193,10 +193,9 @@ python3 skills/snotice-agent/scripts/snotice_call.py notify --title "Build Done"
 
 For detailed documentation, see the [docs](./docs) directory:
 
+- [Docs Index](./docs/README.md) - documentation entry and maintenance guide
+- [Architecture](./docs/architecture.md) - runtime architecture and module flows
 - [AI Agent Integration](./docs/agent_integration.md) - MCP and skill setup
-- [Enhancement Notes](./docs/enhance/README.md) - UI and architecture enhancements
-- [UX Improvements](./docs/enhance/UX_IMPROVEMENTS.md) - UX implementation details
-- [Project Status](./docs/enhance/PROJECT_STATUS.md) - Current status snapshot
 
 ## Technology Stack
 
