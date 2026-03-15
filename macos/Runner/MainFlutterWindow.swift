@@ -1,6 +1,7 @@
 import Cocoa
 import CoreGraphics
 import FlutterMacOS
+import ServiceManagement
 import desktop_multi_window
 import flutter_local_notifications
 import screen_retriever_macos
@@ -72,6 +73,7 @@ class MainFlutterWindow: NSWindow {
     self.setFrame(windowFrame, display: true)
 
     registerMacOSPlugins(registry: flutterViewController)
+    registerStartupChannel(controller: flutterViewController)
     registerFlashChannel(controller: flutterViewController)
 
     super.awakeFromNib()
@@ -88,6 +90,83 @@ class MainFlutterWindow: NSWindow {
       with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
     SystemTrayPlugin.register(with: registry.registrar(forPlugin: "SystemTrayPlugin"))
     WindowManagerPlugin.register(with: registry.registrar(forPlugin: "WindowManagerPlugin"))
+  }
+
+  private func registerStartupChannel(controller: FlutterViewController) {
+    let channel = FlutterMethodChannel(
+      name: "snotice/startup",
+      binaryMessenger: controller.engine.binaryMessenger
+    )
+
+    channel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "isEnabled":
+        if #available(macOS 13.0, *) {
+          result(SMAppService.mainApp.status == .enabled)
+        } else {
+          result(
+            FlutterError(
+              code: "unsupported",
+              message: "Auto-launch on login requires macOS 13.0 or later.",
+              details: nil
+            )
+          )
+        }
+      case "setEnabled":
+        guard
+          let arguments = call.arguments as? [String: Any],
+          let enabled = arguments["enabled"] as? Bool
+        else {
+          result(
+            FlutterError(
+              code: "bad_args",
+              message: "Missing required boolean argument: enabled",
+              details: nil
+            )
+          )
+          return
+        }
+
+        if #available(macOS 13.0, *) {
+          do {
+            if enabled {
+              try SMAppService.mainApp.register()
+              if SMAppService.mainApp.status == .requiresApproval {
+                result(
+                  FlutterError(
+                    code: "requires_approval",
+                    message: "Please enable SNotice in System Settings > General > Login Items.",
+                    details: nil
+                  )
+                )
+                return
+              }
+            } else {
+              try SMAppService.mainApp.unregister()
+            }
+            result(nil)
+          } catch {
+            result(
+              FlutterError(
+                code: "startup_toggle_failed",
+                message: "Failed to update login item status.",
+                details: "\(error)"
+              )
+            )
+          }
+        } else {
+          result(
+            FlutterError(
+              code: "unsupported",
+              message: "Auto-launch on login requires macOS 13.0 or later.",
+              details: nil
+            )
+          )
+        }
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
 
   private func registerFlashChannel(controller: FlutterViewController) {
