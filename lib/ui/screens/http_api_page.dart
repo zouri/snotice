@@ -34,7 +34,12 @@ class HttpApiPage extends StatelessWidget {
           ),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.all(ShellDimensions.pagePadding),
+              padding: const EdgeInsets.fromLTRB(
+                ShellDimensions.pagePadding,
+                0,
+                ShellDimensions.pagePadding,
+                ShellDimensions.pagePadding,
+              ),
               children: [
                 _HeroCard(baseUrl: baseUrl),
                 const SizedBox(height: ShellDimensions.sectionGap),
@@ -399,10 +404,7 @@ class _McpSection extends StatelessWidget {
       children: [
         _SectionHeader(title: l10n.httpApiMcpSectionTitle),
         const SizedBox(height: 12),
-        _CodeBlock(
-          title: l10n.httpApiMcpEndpointTitle,
-          code: 'POST $mcpUrl',
-        ),
+        _CodeBlock(title: l10n.httpApiMcpEndpointTitle, code: 'POST $mcpUrl'),
         const SizedBox(height: 10),
         _CodeBlock(
           title: l10n.httpApiMcpToolsTitle,
@@ -456,10 +458,7 @@ class _CodeExamplesSection extends StatelessWidget {
       children: [
         _SectionHeader(title: l10n.httpApiExamples),
         const SizedBox(height: 12),
-        _CodeBlock(
-          title: 'GET /api/status',
-          code: 'curl $statusUrl',
-        ),
+        _CodeBlock(title: 'GET /api/status', code: 'curl $statusUrl'),
         const SizedBox(height: 10),
         _CodeBlock(
           title: l10n.httpApiNotifyNormal,

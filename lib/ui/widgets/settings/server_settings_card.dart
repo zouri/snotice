@@ -4,22 +4,15 @@ import '../../../l10n/app_localizations.dart';
 import '../main/shell_dimensions.dart';
 
 class ServerSettingsCard extends StatelessWidget {
-  const ServerSettingsCard({
-    required this.portController,
-    required this.autoLaunchOnLogin,
-    required this.startupSupported,
-    required this.onAutoLaunchOnLoginChanged,
-    super.key,
-  });
+  const ServerSettingsCard({required this.portController, super.key});
 
   final TextEditingController portController;
-  final bool autoLaunchOnLogin;
-  final bool startupSupported;
-  final ValueChanged<bool> onAutoLaunchOnLoginChanged;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
+    final portSettingsTitle = isZh ? '${l10n.serverPort}设置' : 'Port Settings';
 
     return Card(
       child: Padding(
@@ -28,7 +21,7 @@ class ServerSettingsCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.serverSettings,
+              portSettingsTitle,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontSize: ShellDimensions.cardTitleSize,
                 fontWeight: FontWeight.w700,
@@ -61,26 +54,6 @@ class ServerSettingsCard extends StatelessWidget {
                 }
                 return null;
               },
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                l10n.autoLaunchOnLogin,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontSize: ShellDimensions.bodySize,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              subtitle: Text(
-                l10n.autoLaunchOnLoginDesc,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: ShellDimensions.metaSize,
-                ),
-              ),
-              value: autoLaunchOnLogin,
-              onChanged: startupSupported ? onAutoLaunchOnLoginChanged : null,
             ),
           ],
         ),

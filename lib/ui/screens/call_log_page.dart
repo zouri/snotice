@@ -185,11 +185,11 @@ class _CallLogPageState extends State<CallLogPage> {
                   _isPaused
                       ? Icons.play_arrow_rounded
                       : Icons.pause_circle_outline,
-                  size: 26,
+                  size: 22,
                   color: colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 4),
               SizedBox(
                 height: ShellDimensions.buttonHeight,
                 child: ElevatedButton(
@@ -200,7 +200,7 @@ class _CallLogPageState extends State<CallLogPage> {
                       fontSize: ShellDimensions.buttonTextSize,
                       fontWeight: FontWeight.w700,
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         ShellDimensions.radiusSm,
@@ -217,17 +217,19 @@ class _CallLogPageState extends State<CallLogPage> {
         Padding(
           padding: const EdgeInsets.fromLTRB(
             ShellDimensions.pagePadding,
-            ShellDimensions.pagePadding,
+            0,
             ShellDimensions.pagePadding,
             ShellDimensions.sectionGap,
           ),
           child: Row(
             children: [
               SizedBox(
-                width: 156,
+                width: 148,
                 child: DropdownButtonFormField<String>(
                   initialValue: _selectedLevel,
+                  isExpanded: true,
                   decoration: InputDecoration(
+                    isDense: true,
                     filled: true,
                     fillColor: colorScheme.surface,
                     border: OutlineInputBorder(
@@ -252,6 +254,7 @@ class _CallLogPageState extends State<CallLogPage> {
                       value: level,
                       child: Text(
                         level,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontSize: ShellDimensions.metaSize,
                           fontWeight: FontWeight.w600,
@@ -270,11 +273,12 @@ class _CallLogPageState extends State<CallLogPage> {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: TextField(
                   controller: _keywordController,
                   decoration: InputDecoration(
+                    isDense: true,
                     hintText: l10n.callLogsFilterHint,
                     filled: true,
                     fillColor: colorScheme.surface,
@@ -291,7 +295,7 @@ class _CallLogPageState extends State<CallLogPage> {
                       borderSide: BorderSide(color: colorScheme.outlineVariant),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
+                      horizontal: 10,
                       vertical: ShellDimensions.inputVerticalPadding,
                     ),
                     suffixIcon: _keyword.isEmpty
@@ -345,7 +349,7 @@ class _CallLogPageState extends State<CallLogPage> {
                         final levelColor = _colorForLogType(entry.type);
 
                         return Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                          padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -362,7 +366,7 @@ class _CallLogPageState extends State<CallLogPage> {
                                           fontWeight: FontWeight.w600,
                                         ),
                                   ),
-                                  const SizedBox(width: 10),
+                                  const SizedBox(width: 8),
                                   Text(
                                     entry.type.code,
                                     style: Theme.of(context)
@@ -378,7 +382,7 @@ class _CallLogPageState extends State<CallLogPage> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 3),
                               SelectableText(
                                 entry.message,
                                 style: Theme.of(context).textTheme.bodyLarge
@@ -386,12 +390,12 @@ class _CallLogPageState extends State<CallLogPage> {
                                       fontSize: ShellDimensions.logMessageSize,
                                       color: colorScheme.onSurface,
                                       fontWeight: FontWeight.w600,
-                                      height: 1.35,
+                                      height: 1.28,
                                     ),
                               ),
                               if (entry.data != null &&
                                   entry.data!.isNotEmpty) ...[
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 3),
                                 SelectableText(
                                   entry.data.toString(),
                                   style: Theme.of(context).textTheme.bodySmall
@@ -399,6 +403,7 @@ class _CallLogPageState extends State<CallLogPage> {
                                         fontSize: ShellDimensions.codeSize,
                                         color: colorScheme.onSurfaceVariant,
                                         fontFamily: 'monospace',
+                                        height: 1.3,
                                       ),
                                 ),
                               ],

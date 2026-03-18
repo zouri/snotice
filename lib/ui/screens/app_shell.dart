@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../providers/server_provider.dart';
+import '../../theme/app_animation.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
 import '../widgets/main/shell_dimensions.dart';
 import 'call_log_page.dart';
 import 'home_screen.dart';
@@ -28,6 +31,7 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       backgroundColor: colorScheme.surface,
       body: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(6, 0, 6, 6),
         child: Row(
           children: [
             _SideNav(
@@ -46,9 +50,10 @@ class _AppShellState extends State<AppShell> {
               serverRunningLabel: l10n.trayServiceRunning,
               serverStoppedLabel: l10n.trayServiceNotRunning,
             ),
+            Container(width: 1, color: colorScheme.outlineVariant),
             Expanded(
-              child: DecoratedBox(
-                decoration: BoxDecoration(color: colorScheme.surface),
+              child: ColoredBox(
+                color: colorScheme.surface,
                 child: IndexedStack(
                   index: _currentTab.index,
                   children: const [CallLogPage(), HttpApiPage(), HomeScreen()],
@@ -83,93 +88,82 @@ class _SideNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
-    final sidebarBackground = Color.alphaBlend(
-      colorScheme.primary.withValues(
-        alpha: colorScheme.brightness == Brightness.dark ? 0.14 : 0.06,
-      ),
-      colorScheme.surface,
-    );
+    final dividerColor = colorScheme.outlineVariant;
 
-    return Container(
+    return SizedBox(
       width: ShellDimensions.sidebarWidth,
-      decoration: BoxDecoration(
-        color: sidebarBackground,
-        border: Border(
-          right: BorderSide(color: colorScheme.outlineVariant, width: 1),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          ShellDimensions.sidebarHorizontalPadding,
+          ShellDimensions.sidebarTopPadding,
+          ShellDimensions.sidebarHorizontalPadding,
+          ShellDimensions.sidebarBottomPadding,
         ),
-      ),
-      padding: const EdgeInsets.fromLTRB(
-        ShellDimensions.sidebarHorizontalPadding,
-        ShellDimensions.sidebarTopPadding,
-        ShellDimensions.sidebarHorizontalPadding,
-        ShellDimensions.sidebarBottomPadding,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const _SideNavBrand(),
-          const SizedBox(height: 6),
-          Divider(color: colorScheme.outlineVariant, height: 1),
-          const SizedBox(height: ShellDimensions.sectionGap),
-          _SideNavItem(
-            label: callLogsLabel,
-            active: selectedTab == _ShellTab.callLogs,
-            icon: Icons.list_alt_rounded,
-            iconColor: const Color(0xFFEE5A24),
-            onTap: () => onSelect(_ShellTab.callLogs),
-          ),
-          const SizedBox(height: ShellDimensions.sectionGap),
-          _SideNavItem(
-            label: httpApiLabel,
-            active: selectedTab == _ShellTab.httpApi,
-            icon: Icons.terminal_rounded,
-            iconColor: const Color(0xFF2F7CF6),
-            onTap: () => onSelect(_ShellTab.httpApi),
-          ),
-          const SizedBox(height: ShellDimensions.sectionGap),
-          _SideNavItem(
-            label: settingsLabel,
-            active: selectedTab == _ShellTab.settings,
-            icon: Icons.settings_rounded,
-            iconColor: const Color(0xFF4C6E93),
-            onTap: () => onSelect(_ShellTab.settings),
-          ),
-          const Spacer(),
-          Divider(color: colorScheme.outlineVariant, height: 1),
-          const SizedBox(height: 10),
-          Consumer<ServerProvider>(
-            builder: (context, serverProvider, _) {
-              final isRunning = serverProvider.isRunning;
-              final indicatorColor = isRunning
-                  ? const Color(0xFF10B981)
-                  : const Color(0xFFEF4444);
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const _SideNavBrand(),
+            const SizedBox(height: 8),
+            Divider(color: dividerColor, height: 1),
+            const SizedBox(height: 8),
+            _SideNavItem(
+              label: callLogsLabel,
+              active: selectedTab == _ShellTab.callLogs,
+              icon: Icons.view_list_rounded,
+              onTap: () => onSelect(_ShellTab.callLogs),
+            ),
+            const SizedBox(height: 6),
+            _SideNavItem(
+              label: httpApiLabel,
+              active: selectedTab == _ShellTab.httpApi,
+              icon: Icons.code_rounded,
+              onTap: () => onSelect(_ShellTab.httpApi),
+            ),
+            const SizedBox(height: 6),
+            _SideNavItem(
+              label: settingsLabel,
+              active: selectedTab == _ShellTab.settings,
+              icon: Icons.settings_rounded,
+              onTap: () => onSelect(_ShellTab.settings),
+            ),
+            const Spacer(),
+            Divider(color: dividerColor, height: 1),
+            const SizedBox(height: 8),
+            Consumer<ServerProvider>(
+              builder: (context, serverProvider, _) {
+                final isRunning = serverProvider.isRunning;
+                final indicatorColor = isRunning
+                    ? AppColors.success
+                    : AppColors.error;
 
-              return Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: indicatorColor,
-                      shape: BoxShape.circle,
+                return Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: indicatorColor,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isRunning ? serverRunningLabel : serverStoppedLabel,
-                    style: textTheme.bodySmall?.copyWith(
-                      fontSize: ShellDimensions.metaSize,
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        isRunning ? serverRunningLabel : serverStoppedLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.labelMd.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -180,26 +174,23 @@ class _SideNavItem extends StatelessWidget {
     required this.label,
     required this.active,
     required this.icon,
-    required this.iconColor,
     required this.onTap,
   });
 
   final String label;
   final bool active;
   final IconData icon;
-  final Color iconColor;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final foregroundColor = active
-        ? colorScheme.onSurface
+        ? colorScheme.primary
         : colorScheme.onSurfaceVariant;
     final selectedBackground = Color.alphaBlend(
       colorScheme.primary.withValues(
-        alpha: colorScheme.brightness == Brightness.dark ? 0.28 : 0.16,
+        alpha: colorScheme.brightness == Brightness.dark ? 0.22 : 0.12,
       ),
       colorScheme.surface,
     );
@@ -209,37 +200,39 @@ class _SideNavItem extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(ShellDimensions.navItemRadius),
         onTap: onTap,
-        child: Ink(
+        child: AnimatedContainer(
+          duration: AppAnimation.fast,
+          curve: AppAnimation.easeOut,
           height: ShellDimensions.navItemHeight,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(ShellDimensions.navItemRadius),
             color: active ? selectedBackground : Colors.transparent,
+            border: Border.all(
+              color: active
+                  ? colorScheme.primary.withValues(alpha: 0.45)
+                  : Colors.transparent,
+              width: 1,
+            ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Row(
             children: [
-              Container(
-                width: ShellDimensions.navIconContainer,
-                height: ShellDimensions.navIconContainer,
-                decoration: BoxDecoration(
-                  color: iconColor,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: ShellDimensions.navIconSize,
-                ),
+              Icon(
+                icon,
+                color: foregroundColor,
+                size: ShellDimensions.navIconSize,
               ),
-              const SizedBox(width: 14),
-              Text(
-                label,
-                style: textTheme.titleMedium?.copyWith(
-                  fontSize: ShellDimensions.navLabelSize,
-                  height: 1.2,
-                  color: foregroundColor,
-                  fontWeight: FontWeight.w700,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodyMd.copyWith(
+                    fontSize: ShellDimensions.navLabelSize,
+                    color: foregroundColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -255,36 +248,25 @@ class _SideNavBrand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return SizedBox(
-      height: 50,
+      height: 34,
       child: Row(
         children: [
-          Image.asset(
-            'assets/icons/tray_icon.png',
-            width: 34,
-            height: 34,
-            fit: BoxFit.contain,
-            filterQuality: FilterQuality.high,
-            errorBuilder: (context, error, stackTrace) {
-              return Icon(
-                Icons.notifications_active_rounded,
-                color: Theme.of(context).colorScheme.onSurface,
-                size: 30,
-              );
-            },
+          Icon(
+            Icons.notifications_active_outlined,
+            color: colorScheme.primary,
+            size: 18,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Expanded(
             child: Text(
               'SNotice',
               overflow: TextOverflow.ellipsis,
-              style: textTheme.titleLarge?.copyWith(
+              style: AppTextStyles.headlineMd.copyWith(
                 fontSize: ShellDimensions.brandLabelSize,
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.1,
+                color: colorScheme.onSurface,
               ),
             ),
           ),

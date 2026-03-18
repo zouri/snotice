@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../theme/app_text_styles.dart';
 import '../main/shell_dimensions.dart';
 
 class PageHeader extends StatelessWidget {
@@ -11,32 +12,40 @@ class PageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
-    return Container(
+    return SizedBox(
       height: ShellDimensions.headerHeight,
-      padding: const EdgeInsets.symmetric(
-        horizontal: ShellDimensions.headerHorizontalPadding,
-      ),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          ShellDimensions.pagePadding,
+          0,
+          ShellDimensions.pagePadding,
+          0,
         ),
-      ),
-      child: Row(
-        children: [
-          Text(
-            title,
-            style: textTheme.headlineSmall?.copyWith(
-              fontSize: ShellDimensions.pageTitleSize,
-              height: 1.2,
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w700,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.headlineLg.copyWith(
+                  fontSize: ShellDimensions.pageTitleSize,
+                  color: colorScheme.onSurface,
+                ),
+              ),
             ),
-          ),
-          if (trailing != null) ...[const Spacer(), trailing!],
-        ],
+            if (trailing != null) ...[
+              const SizedBox(width: 8),
+              DefaultTextStyle(
+                style: AppTextStyles.bodySm.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                child: trailing!,
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

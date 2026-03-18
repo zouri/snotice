@@ -10,6 +10,7 @@ import '../../services/startup_service.dart';
 import '../widgets/common/page_header.dart';
 import '../widgets/main/shell_dimensions.dart';
 import '../widgets/settings/allowed_ips_card.dart';
+import '../widgets/settings/auto_launch_settings_card.dart';
 import '../widgets/settings/language_settings_card.dart';
 import '../widgets/settings/notification_settings_card.dart';
 import '../widgets/settings/server_settings_card.dart';
@@ -225,9 +226,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     final serverProvider = context.watch<ServerProvider>();
-    final currentPort = context.select<ConfigProvider, int>((provider) {
-      return provider.config.port;
-    });
 
     return Container(
       color: colorScheme.surface,
@@ -239,23 +237,24 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth >= 1180;
                 final leftColumnChildren = <Widget>[
-                  ServerStatusCard(
-                    isRunning: serverProvider.isRunning,
-                    port: currentPort,
-                    error: serverProvider.lastError,
-                    onStart: () async {
-                      if (!serverProvider.isRunning) {
-                        await serverProvider.start();
-                      }
-                    },
-                  ),
-                  const SizedBox(height: ShellDimensions.sectionGap),
+                  if (!serverProvider.isRunning ||
+                      serverProvider.lastError != null) ...[
+                    ServerStatusCard(
+                      isRunning: serverProvider.isRunning,
+                      error: serverProvider.lastError,
+                      onStart: () async {
+                        if (!serverProvider.isRunning) {
+                          await serverProvider.start();
+                        }
+                      },
+                    ),
+                    const SizedBox(height: ShellDimensions.sectionGap),
+                  ],
                   Form(
                     key: _formKey,
                     child: Column(
                       children: [
-                        ServerSettingsCard(
-                          portController: _portController,
+                        AutoLaunchSettingsCard(
                           autoLaunchOnLogin: _draftConfig.autoLaunchOnLogin,
                           startupSupported: _startupSupported,
                           onAutoLaunchOnLoginChanged: (value) {
@@ -266,6 +265,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             });
                           },
                         ),
+                        const SizedBox(height: ShellDimensions.sectionGap),
+                        ServerSettingsCard(portController: _portController),
                         const SizedBox(height: ShellDimensions.sectionGap),
                         AllowedIpsCard(
                           ipController: _ipController,
@@ -338,7 +339,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 if (!isWide) {
                   return ListView(
-                    padding: const EdgeInsets.all(ShellDimensions.pagePadding),
+                    padding: const EdgeInsets.fromLTRB(
+                      ShellDimensions.pagePadding,
+                      0,
+                      ShellDimensions.pagePadding,
+                      ShellDimensions.pagePadding,
+                    ),
                     children: [
                       ...leftColumnChildren,
                       const SizedBox(height: ShellDimensions.sectionGap),
@@ -348,7 +354,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
 
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(ShellDimensions.pagePadding),
+                  padding: const EdgeInsets.fromLTRB(
+                    ShellDimensions.pagePadding,
+                    0,
+                    ShellDimensions.pagePadding,
+                    ShellDimensions.pagePadding,
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
