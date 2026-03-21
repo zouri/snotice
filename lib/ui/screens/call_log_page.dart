@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/log_entry.dart';
 import '../../services/logger_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
 import '../widgets/common/page_header.dart';
 import '../widgets/main/shell_dimensions.dart';
 
@@ -88,10 +89,7 @@ class _CallLogPageState extends State<CallLogPage> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        return;
-      }
-      if (!_scrollController.hasClients) {
+      if (!mounted || !_scrollController.hasClients) {
         return;
       }
       _scrollController.jumpTo(0);
@@ -100,14 +98,12 @@ class _CallLogPageState extends State<CallLogPage> {
 
   void _clearLogs() {
     _logger.clear();
-    if (!_isPaused) {
-      return;
+    if (_isPaused) {
+      setState(() {
+        _visibleLogs = const [];
+        _visibleLogCount = 0;
+      });
     }
-
-    setState(() {
-      _visibleLogs = const [];
-      _visibleLogCount = 0;
-    });
   }
 
   void _togglePause() {
@@ -168,254 +164,186 @@ class _CallLogPageState extends State<CallLogPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final filteredLogs = _filterLogs(_visibleLogs);
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final brightness = Theme.of(context).brightness;
+    final filteredLogs = _filterLogs(_visibleLogs);
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
 
-    return Column(
-      children: [
-        PageHeader(
-          title: l10n.navCallLogs,
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                onPressed: _togglePause,
-                icon: Icon(
-                  _isPaused
-                      ? Icons.play_arrow_rounded
-                      : Icons.pause_circle_outline,
-                  size: 22,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(width: 4),
-              SizedBox(
-                height: ShellDimensions.buttonHeight,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    textStyle: textTheme.titleSmall?.copyWith(
-                      fontSize: ShellDimensions.buttonTextSize,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        ShellDimensions.radiusSm,
-                      ),
-                    ),
-                  ),
-                  onPressed: _clearLogs,
-                  child: Text(l10n.clear),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            ShellDimensions.pagePadding,
-            0,
-            ShellDimensions.pagePadding,
-            ShellDimensions.sectionGap,
-          ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 148,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _selectedLevel,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    filled: true,
-                    fillColor: colorScheme.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        ShellDimensions.radiusSm,
-                      ),
-                      borderSide: BorderSide(color: colorScheme.outlineVariant),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        ShellDimensions.radiusSm,
-                      ),
-                      borderSide: BorderSide(color: colorScheme.outlineVariant),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: ShellDimensions.inputVerticalPadding,
-                    ),
-                  ),
-                  items: _levels.map((level) {
-                    return DropdownMenuItem<String>(
-                      value: level,
-                      child: Text(
-                        level,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontSize: ShellDimensions.metaSize,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value == null || value == _selectedLevel) {
-                      return;
-                    }
-
-                    setState(() {
-                      _selectedLevel = value;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextField(
-                  controller: _keywordController,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    hintText: l10n.callLogsFilterHint,
-                    filled: true,
-                    fillColor: colorScheme.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        ShellDimensions.radiusSm,
-                      ),
-                      borderSide: BorderSide(color: colorScheme.outlineVariant),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        ShellDimensions.radiusSm,
-                      ),
-                      borderSide: BorderSide(color: colorScheme.outlineVariant),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: ShellDimensions.inputVerticalPadding,
-                    ),
-                    suffixIcon: _keyword.isEmpty
-                        ? const Icon(Icons.search_rounded)
-                        : IconButton(
-                            tooltip: l10n.clear,
-                            onPressed: () {
-                              _keywordController.clear();
-                            },
-                            icon: const Icon(Icons.close_rounded),
-                          ),
+    return ColoredBox(
+      color: AppColors.workspaceBackgroundFor(brightness),
+      child: Column(
+        children: [
+          PageHeader(
+            title: l10n.navCallLogs,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: ShellDimensions.buttonHeight,
+                  child: OutlinedButton(
+                    onPressed: _togglePause,
+                    child: Text(_isPaused ? (isZh ? '恢复' : 'Resume') : (isZh ? '暂停' : 'Pause')),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: ShellDimensions.buttonHeight,
+                  child: FilledButton(
+                    onPressed: _clearLogs,
+                    child: Text(l10n.clear),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        Expanded(
-          child: Container(
-            margin: const EdgeInsets.fromLTRB(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
               ShellDimensions.pagePadding,
               0,
               ShellDimensions.pagePadding,
-              ShellDimensions.pagePadding,
+              ShellDimensions.sectionGap,
             ),
-            decoration: BoxDecoration(
-              color: colorScheme.surface,
-              borderRadius: BorderRadius.circular(ShellDimensions.radiusMd),
-              border: Border.all(color: colorScheme.outlineVariant),
-            ),
-            child: filteredLogs.isEmpty
-                ? Center(
-                    child: Text(
-                      l10n.callLogsEmpty,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 156,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _selectedLevel,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: OutlineInputBorder(),
                     ),
-                  )
-                : Scrollbar(
-                    controller: _scrollController,
-                    thumbVisibility: true,
-                    child: ListView.separated(
-                      controller: _scrollController,
-                      primary: false,
-                      itemCount: filteredLogs.length,
-                      separatorBuilder: (context, index) =>
-                          Divider(color: colorScheme.outlineVariant, height: 1),
-                      itemBuilder: (context, index) {
-                        final entry = filteredLogs[index];
-                        final levelColor = _colorForLogType(entry.type);
-
-                        return Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    _timestampFormat.format(entry.timestamp),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          fontSize: ShellDimensions.metaSize,
-                                          color: colorScheme.onSurfaceVariant,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    entry.type.code,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelLarge
-                                        ?.copyWith(
-                                          fontSize:
-                                              ShellDimensions.logLevelSize,
-                                          color: levelColor,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.15,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 3),
-                              SelectableText(
-                                entry.message,
-                                style: Theme.of(context).textTheme.bodyLarge
-                                    ?.copyWith(
-                                      fontSize: ShellDimensions.logMessageSize,
-                                      color: colorScheme.onSurface,
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.28,
-                                    ),
-                              ),
-                              if (entry.data != null &&
-                                  entry.data!.isNotEmpty) ...[
-                                const SizedBox(height: 3),
-                                SelectableText(
-                                  entry.data.toString(),
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        fontSize: ShellDimensions.codeSize,
-                                        color: colorScheme.onSurfaceVariant,
-                                        fontFamily: 'monospace',
-                                        height: 1.3,
-                                      ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        );
-                      },
+                    items: _levels.map((level) {
+                      return DropdownMenuItem<String>(
+                        value: level,
+                        child: Text(
+                          level,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.labelMd,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value == null || value == _selectedLevel) {
+                        return;
+                      }
+                      setState(() {
+                        _selectedLevel = value;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _keywordController,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: l10n.callLogsFilterHint,
+                      border: const OutlineInputBorder(),
+                      suffixIcon: _keyword.isEmpty
+                          ? const Icon(Icons.search_rounded, size: 18)
+                          : IconButton(
+                              tooltip: l10n.clear,
+                              onPressed: _keywordController.clear,
+                              icon: const Icon(Icons.close_rounded, size: 18),
+                            ),
                     ),
                   ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+          Expanded(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(
+                ShellDimensions.pagePadding,
+                0,
+                ShellDimensions.pagePadding,
+                ShellDimensions.pagePadding,
+              ),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(ShellDimensions.radiusMd),
+                border: Border.all(color: colorScheme.outlineVariant),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: filteredLogs.isEmpty
+                  ? Center(
+                      child: Text(
+                        l10n.callLogsEmpty,
+                        style: AppTextStyles.bodyMd.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  : Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      child: ListView.separated(
+                        controller: _scrollController,
+                        itemCount: filteredLogs.length,
+                        separatorBuilder: (context, index) {
+                          return Divider(
+                            color: colorScheme.outlineVariant,
+                            height: 1,
+                          );
+                        },
+                        itemBuilder: (context, index) {
+                          final entry = filteredLogs[index];
+                          final levelColor = _colorForLogType(entry.type);
+
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      _timestampFormat.format(entry.timestamp),
+                                      style: AppTextStyles.labelSm.copyWith(
+                                        color: levelColor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      entry.type.code,
+                                      style: AppTextStyles.labelSm.copyWith(
+                                        color: levelColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                SelectableText(
+                                  entry.message,
+                                  style: AppTextStyles.bodyMd.copyWith(
+                                    color: colorScheme.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (entry.data != null &&
+                                    entry.data!.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  SelectableText(
+                                    entry.data.toString(),
+                                    style: AppTextStyles.codeSm.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

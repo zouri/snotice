@@ -78,6 +78,27 @@ Future<_HttpResult> _postPath({
   }
 }
 
+Future<_HttpResult> _getPath({required int port, required String path}) async {
+  final client = HttpClient();
+  try {
+    final request = await client.get(
+      InternetAddress.loopbackIPv4.host,
+      port,
+      path,
+    );
+
+    final response = await request.close();
+    final responseBody = await utf8.decoder.bind(response).join();
+
+    return _HttpResult(
+      statusCode: response.statusCode,
+      body: jsonDecode(responseBody) as Map<String, dynamic>,
+    );
+  } finally {
+    client.close(force: true);
+  }
+}
+
 void main() {
   group('HttpServerService /api/notify validation', () {
     late LoggerService logger;
@@ -93,7 +114,7 @@ void main() {
       serverService = HttpServerService(
         notificationService: notificationService,
         logger: logger,
-        config: AppConfig(port: port, allowedIPs: const ['127.0.0.1']),
+        config: AppConfig(port: port),
       );
 
       await serverService.start();
@@ -168,6 +189,52 @@ void main() {
     );
 
     test(
+      'applies configured flash defaults when payload omits fields',
+      () async {
+        serverService.updateConfig(
+          AppConfig(
+            port: port,
+            defaultFlashColor: '#12ABCD',
+            defaultFlashDuration: 900,
+            defaultFlashEdgeWidth: 16,
+            defaultFlashEdgeOpacity: 0.75,
+            defaultFlashEdgeRepeat: 4,
+          ),
+        );
+
+        final result = await _postNotify(
+          port: port,
+          body: '{"title":"Flash","category":"flash_edge"}',
+        );
+
+        expect(result.statusCode, 200);
+        expect(notificationService.callCount, 1);
+        final request = notificationService.lastRequest!;
+        expect(request.flashColor, '#12ABCD');
+        expect(request.flashDuration, 900);
+        expect(request.edgeWidth, 16);
+        expect(request.edgeOpacity, 0.75);
+        expect(request.edgeRepeat, 4);
+      },
+    );
+
+    test('returns 403 when flash is disabled in config', () async {
+      serverService.updateConfig(AppConfig(port: port, showFlash: false));
+
+      final result = await _postNotify(
+        port: port,
+        body: '{"title":"Flash","category":"flash_full"}',
+      );
+
+      expect(result.statusCode, 403);
+      expect(
+        result.body['error'],
+        'Flash notifications are disabled in current config.',
+      );
+      expect(notificationService.callCount, 0);
+    });
+
+    test(
       'accepts barrage request with empty body and forwards to service',
       () async {
         final result = await _postNotify(
@@ -189,7 +256,6 @@ void main() {
         serverService.updateConfig(
           AppConfig(
             port: port,
-            allowedIPs: const ['127.0.0.1'],
             defaultBarrageColor: '#00FFAA',
             defaultBarrageDuration: 7777,
             defaultBarrageSpeed: 210,
@@ -217,13 +283,7 @@ void main() {
     );
 
     test('returns 403 when barrage is disabled in config', () async {
-      serverService.updateConfig(
-        AppConfig(
-          port: port,
-          allowedIPs: const ['127.0.0.1'],
-          showBarrage: false,
-        ),
-      );
+      serverService.updateConfig(AppConfig(port: port, showBarrage: false));
 
       final result = await _postNotify(
         port: port,
@@ -236,6 +296,13 @@ void main() {
         'Barrage notifications are disabled in current config.',
       );
       expect(notificationService.callCount, 0);
+    });
+
+    test('returns 404 for removed GET /api/status endpoint', () async {
+      final result = await _getPath(port: port, path: '/api/status');
+
+      expect(result.statusCode, 404);
+      expect(result.body['success'], false);
     });
   });
 
@@ -253,7 +320,7 @@ void main() {
       serverService = HttpServerService(
         notificationService: notificationService,
         logger: logger,
-        config: AppConfig(port: port, allowedIPs: const ['127.0.0.1']),
+        config: AppConfig(port: port),
       );
 
       await serverService.start();

@@ -1,14 +1,17 @@
-import '../config/constants.dart';
-import '../utils/ip_utils.dart';
-
 class AppConfig {
   static const int maxBarrageRepeat = 8;
 
   final int port;
-  final List<String> allowedIPs;
   final bool autoLaunchOnLogin;
   final bool showNotifications;
+  final bool showFlash;
   final bool showBarrage;
+  final bool showSound;
+  final String defaultFlashColor;
+  final int defaultFlashDuration;
+  final double defaultFlashEdgeWidth;
+  final double defaultFlashEdgeOpacity;
+  final int defaultFlashEdgeRepeat;
   final String defaultBarrageColor;
   final int defaultBarrageDuration;
   final double defaultBarrageSpeed;
@@ -18,20 +21,46 @@ class AppConfig {
 
   AppConfig({
     this.port = 8642,
-    List<String>? allowedIPs,
     this.autoLaunchOnLogin = false,
     this.showNotifications = true,
+    this.showFlash = true,
     this.showBarrage = true,
+    this.showSound = true,
+    String defaultFlashColor = '#FF0000',
+    int defaultFlashDuration = 500,
+    double defaultFlashEdgeWidth = 12,
+    double defaultFlashEdgeOpacity = 0.92,
+    int defaultFlashEdgeRepeat = 2,
     String defaultBarrageColor = '#FFD84D',
     int defaultBarrageDuration = 6000,
     double defaultBarrageSpeed = 120,
     double defaultBarrageFontSize = 28,
     String defaultBarrageLane = 'top',
     int defaultBarrageRepeat = 1,
-  }) : allowedIPs = List.unmodifiable(
-         _normalizeAllowedIPs(allowedIPs ?? AppConstants.defaultAllowedIPs),
+  }) : defaultFlashColor = _normalizeColor(
+         defaultFlashColor,
+         fallback: '#FF0000',
        ),
-       defaultBarrageColor = _normalizeBarrageColor(defaultBarrageColor),
+       defaultFlashDuration = _normalizePositiveInt(
+         defaultFlashDuration,
+         fallback: 500,
+       ),
+       defaultFlashEdgeWidth = _normalizePositiveDouble(
+         defaultFlashEdgeWidth,
+         fallback: 12,
+       ),
+       defaultFlashEdgeOpacity = _normalizeOpacity(
+         defaultFlashEdgeOpacity,
+         fallback: 0.92,
+       ),
+       defaultFlashEdgeRepeat = _normalizePositiveInt(
+         defaultFlashEdgeRepeat,
+         fallback: 2,
+       ),
+       defaultBarrageColor = _normalizeColor(
+         defaultBarrageColor,
+         fallback: '#FFD84D',
+       ),
        defaultBarrageDuration = _normalizePositiveInt(
          defaultBarrageDuration,
          fallback: 6000,
@@ -48,16 +77,19 @@ class AppConfig {
        defaultBarrageRepeat = _normalizeBarrageRepeat(defaultBarrageRepeat);
 
   factory AppConfig.fromJson(Map<String, dynamic> json) {
-    final rawAllowedIPs = json['allowedIPs'] as List<dynamic>?;
-
     return AppConfig(
       port: _parseInt(json['port']) ?? 8642,
-      allowedIPs:
-          rawAllowedIPs?.whereType<String>().map((ip) => ip.trim()).toList() ??
-          AppConstants.defaultAllowedIPs,
       autoLaunchOnLogin: _parseBool(json['autoLaunchOnLogin']) ?? false,
       showNotifications: _parseBool(json['showNotifications']) ?? true,
+      showFlash: _parseBool(json['showFlash']) ?? true,
       showBarrage: _parseBool(json['showBarrage']) ?? true,
+      showSound: _parseBool(json['showSound']) ?? true,
+      defaultFlashColor: _parseString(json['defaultFlashColor']) ?? '#FF0000',
+      defaultFlashDuration: _parseInt(json['defaultFlashDuration']) ?? 500,
+      defaultFlashEdgeWidth: _parseDouble(json['defaultFlashEdgeWidth']) ?? 12,
+      defaultFlashEdgeOpacity:
+          _parseDouble(json['defaultFlashEdgeOpacity']) ?? 0.92,
+      defaultFlashEdgeRepeat: _parseInt(json['defaultFlashEdgeRepeat']) ?? 2,
       defaultBarrageColor:
           _parseString(json['defaultBarrageColor']) ?? '#FFD84D',
       defaultBarrageDuration: _parseInt(json['defaultBarrageDuration']) ?? 6000,
@@ -72,10 +104,16 @@ class AppConfig {
   Map<String, dynamic> toJson() {
     return {
       'port': port,
-      'allowedIPs': allowedIPs,
       'autoLaunchOnLogin': autoLaunchOnLogin,
       'showNotifications': showNotifications,
+      'showFlash': showFlash,
       'showBarrage': showBarrage,
+      'showSound': showSound,
+      'defaultFlashColor': defaultFlashColor,
+      'defaultFlashDuration': defaultFlashDuration,
+      'defaultFlashEdgeWidth': defaultFlashEdgeWidth,
+      'defaultFlashEdgeOpacity': defaultFlashEdgeOpacity,
+      'defaultFlashEdgeRepeat': defaultFlashEdgeRepeat,
       'defaultBarrageColor': defaultBarrageColor,
       'defaultBarrageDuration': defaultBarrageDuration,
       'defaultBarrageSpeed': defaultBarrageSpeed,
@@ -85,28 +123,18 @@ class AppConfig {
     };
   }
 
-  bool isIPAllowed(String ip) {
-    if (allowedIPs.isEmpty) return true;
-
-    for (final allowedIP in allowedIPs) {
-      if (IPUtils.isCIDRFormat(allowedIP)) {
-        if (IPUtils.isIPInCIDR(ip, allowedIP)) {
-          return true;
-        }
-      } else if (allowedIP == ip) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   AppConfig copyWith({
     int? port,
-    List<String>? allowedIPs,
     bool? autoLaunchOnLogin,
     bool? showNotifications,
+    bool? showFlash,
     bool? showBarrage,
+    bool? showSound,
+    String? defaultFlashColor,
+    int? defaultFlashDuration,
+    double? defaultFlashEdgeWidth,
+    double? defaultFlashEdgeOpacity,
+    int? defaultFlashEdgeRepeat,
     String? defaultBarrageColor,
     int? defaultBarrageDuration,
     double? defaultBarrageSpeed,
@@ -116,10 +144,19 @@ class AppConfig {
   }) {
     return AppConfig(
       port: port ?? this.port,
-      allowedIPs: allowedIPs ?? this.allowedIPs,
       autoLaunchOnLogin: autoLaunchOnLogin ?? this.autoLaunchOnLogin,
       showNotifications: showNotifications ?? this.showNotifications,
+      showFlash: showFlash ?? this.showFlash,
       showBarrage: showBarrage ?? this.showBarrage,
+      showSound: showSound ?? this.showSound,
+      defaultFlashColor: defaultFlashColor ?? this.defaultFlashColor,
+      defaultFlashDuration: defaultFlashDuration ?? this.defaultFlashDuration,
+      defaultFlashEdgeWidth:
+          defaultFlashEdgeWidth ?? this.defaultFlashEdgeWidth,
+      defaultFlashEdgeOpacity:
+          defaultFlashEdgeOpacity ?? this.defaultFlashEdgeOpacity,
+      defaultFlashEdgeRepeat:
+          defaultFlashEdgeRepeat ?? this.defaultFlashEdgeRepeat,
       defaultBarrageColor: defaultBarrageColor ?? this.defaultBarrageColor,
       defaultBarrageDuration:
           defaultBarrageDuration ?? this.defaultBarrageDuration,
@@ -131,24 +168,9 @@ class AppConfig {
     );
   }
 
-  static List<String> _normalizeAllowedIPs(List<String> source) {
-    final normalized = <String>[];
-    final seen = <String>{};
-
-    for (final value in source) {
-      final ip = value.trim();
-      if (ip.isEmpty || !seen.add(ip)) {
-        continue;
-      }
-      normalized.add(ip);
-    }
-
-    return normalized;
-  }
-
-  static String _normalizeBarrageColor(String source) {
+  static String _normalizeColor(String source, {required String fallback}) {
     final normalized = source.trim();
-    return normalized.isEmpty ? '#FFD84D' : normalized;
+    return normalized.isEmpty ? fallback : normalized;
   }
 
   static int _normalizePositiveInt(int value, {required int fallback}) {
@@ -160,6 +182,10 @@ class AppConfig {
     required double fallback,
   }) {
     return value > 0 ? value : fallback;
+  }
+
+  static double _normalizeOpacity(double value, {required double fallback}) {
+    return value >= 0 && value <= 1 ? value : fallback;
   }
 
   static String _normalizeBarrageLane(String source) {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/locale_provider.dart';
+import '../../../theme/app_text_styles.dart';
 import '../main/shell_dimensions.dart';
 
 class LanguageSettingsCard extends StatelessWidget {
@@ -13,6 +14,8 @@ class LanguageSettingsCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final localeProvider = context.watch<LocaleProvider>();
     final currentLocale = localeProvider.locale;
+    final colorScheme = Theme.of(context).colorScheme;
+    final isZh = Localizations.localeOf(context).languageCode == 'zh';
 
     return Card(
       child: Padding(
@@ -22,12 +25,19 @@ class LanguageSettingsCard extends StatelessWidget {
           children: [
             Text(
               l10n.language,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              style: AppTextStyles.cardTitle.copyWith(
                 fontSize: ShellDimensions.cardTitleSize,
-                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
+            Text(
+              isZh ? '切换界面展示语言' : 'Switch the UI language',
+              style: AppTextStyles.bodySm.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 10),
             DropdownButtonFormField<Locale?>(
               initialValue: currentLocale,
               decoration: const InputDecoration(border: OutlineInputBorder()),

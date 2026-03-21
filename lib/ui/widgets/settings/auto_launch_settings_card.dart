@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../l10n/app_localizations.dart';
+import '../../../theme/app_text_styles.dart';
 import '../main/shell_dimensions.dart';
 
 class AutoLaunchSettingsCard extends StatelessWidget {
@@ -23,14 +24,27 @@ class AutoLaunchSettingsCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(ShellDimensions.cardPadding),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Text(
-                l10n.autoLaunchOnLogin,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontSize: ShellDimensions.bodySize,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.autoLaunchOnLogin,
+                    style: AppTextStyles.bodyMd.copyWith(
+                      fontSize: ShellDimensions.bodySize,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n.autoLaunchOnLoginDesc,
+                    style: AppTextStyles.bodySm.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
             Switch(

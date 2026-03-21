@@ -43,13 +43,11 @@ class HttpServerService {
     try {
       final router = Router()
         ..post('/api/notify', _handleNotify)
-        ..get('/api/status', _handleStatus)
         ..post('/api/mcp', _handleMcp)
         ..all('/<ignored|.*>', _handleNotFound);
 
       final handler = Pipeline()
           .addMiddleware(_corsMiddleware())
-          .addMiddleware(_ipWhitelistMiddleware())
           .addHandler(router.call);
 
       _server = await shelf_io.serve(
@@ -80,6 +78,7 @@ class HttpServerService {
 
   void updateConfig(AppConfig config) {
     _config = config;
+    _notificationService.updateConfig(config);
   }
 
   Middleware _corsMiddleware() {
@@ -94,23 +93,6 @@ class HttpServerService {
             ...response.headers,
           },
         );
-      };
-    };
-  }
-
-  Middleware _ipWhitelistMiddleware() {
-    return (Handler innerHandler) {
-      return (Request request) async {
-        final connectionInfo =
-            request.context['shelf.io.connection_info'] as HttpConnectionInfo?;
-        final ip = connectionInfo?.remoteAddress.address ?? 'unknown';
-
-        if (!_config.isIPAllowed(ip)) {
-          _logger.warning('Request from unauthorized IP: $ip');
-          return ResponseUtil.unauthorized('IP not allowed');
-        }
-
-        return innerHandler(request);
       };
     };
   }
@@ -132,11 +114,6 @@ class HttpServerService {
     } on FormatException {
       return ResponseUtil.badRequest('Request body must be valid JSON.');
     }
-  }
-
-  Future<Response> _handleStatus(Request request) async {
-    _logger.request('GET /api/status');
-    return _jsonResponse(200, _buildStatusPayload());
   }
 
   Future<Response> _handleMcp(Request request) async {
@@ -403,13 +380,20 @@ class HttpServerService {
           'type': 'object',
           'properties': {
             'port': {'type': 'integer', 'minimum': 1, 'maximum': 65535},
-            'allowedIPs': {
-              'type': 'array',
-              'items': {'type': 'string'},
-            },
             'autoLaunchOnLogin': {'type': 'boolean'},
             'showNotifications': {'type': 'boolean'},
+            'showFlash': {'type': 'boolean'},
             'showBarrage': {'type': 'boolean'},
+            'showSound': {'type': 'boolean'},
+            'defaultFlashColor': {'type': 'string'},
+            'defaultFlashDuration': {'type': 'integer', 'minimum': 1},
+            'defaultFlashEdgeWidth': {'type': 'number', 'exclusiveMinimum': 0},
+            'defaultFlashEdgeOpacity': {
+              'type': 'number',
+              'minimum': 0,
+              'maximum': 1,
+            },
+            'defaultFlashEdgeRepeat': {'type': 'integer', 'minimum': 1},
             'defaultBarrageColor': {'type': 'string'},
             'defaultBarrageDuration': {'type': 'integer', 'minimum': 1},
             'defaultBarrageSpeed': {'type': 'number', 'exclusiveMinimum': 0},
@@ -436,6 +420,7 @@ class HttpServerService {
   }) async {
     try {
       final normalizedPayload = Map<String, dynamic>.from(json);
+      _applyFlashDefaults(normalizedPayload);
       _applyBarrageDefaults(normalizedPayload);
       final notificationRequest = NotificationRequest.fromJson(
         normalizedPayload,
@@ -448,6 +433,13 @@ class HttpServerService {
           'success': false,
           'error': 'Invalid notification request.',
           'validationErrors': validationErrors,
+        });
+      }
+
+      if (notificationRequest.isFlash && !_config.showFlash) {
+        return _ServiceCallResult(403, {
+          'success': false,
+          'error': 'Flash notifications are disabled in current config.',
         });
       }
 
@@ -493,6 +485,24 @@ class HttpServerService {
     );
     payload.putIfAbsent('barrageLane', () => _config.defaultBarrageLane);
     payload.putIfAbsent('barrageRepeat', () => _config.defaultBarrageRepeat);
+  }
+
+  void _applyFlashDefaults(Map<String, dynamic> payload) {
+    final rawCategory = payload['category'];
+    final category = rawCategory?.toString().trim().toLowerCase();
+    if (category != NotificationCategory.flashFull.value &&
+        category != NotificationCategory.flashEdge.value) {
+      return;
+    }
+
+    payload.putIfAbsent('flashColor', () => _config.defaultFlashColor);
+    payload.putIfAbsent('flashDuration', () => _config.defaultFlashDuration);
+
+    if (category == NotificationCategory.flashEdge.value) {
+      payload.putIfAbsent('edgeWidth', () => _config.defaultFlashEdgeWidth);
+      payload.putIfAbsent('edgeOpacity', () => _config.defaultFlashEdgeOpacity);
+      payload.putIfAbsent('edgeRepeat', () => _config.defaultFlashEdgeRepeat);
+    }
   }
 
   _ServiceCallResult _processConfigPayload(

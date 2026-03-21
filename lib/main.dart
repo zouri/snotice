@@ -112,6 +112,7 @@ Future<void> _startMainApp() async {
   final notificationService = NotificationService(
     loggerService,
     flashOverlayService,
+    config,
   );
   await notificationService.initialize();
 

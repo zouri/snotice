@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../l10n/app_localizations.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../theme/app_text_styles.dart';
 import '../main/shell_dimensions.dart';
 
 class ThemeSettingsCard extends StatelessWidget {
@@ -46,16 +47,15 @@ class ThemeSettingsCard extends StatelessWidget {
             children: [
               Text(
                 l10n.themeTitle,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                style: AppTextStyles.cardTitle.copyWith(
                   fontSize: ShellDimensions.cardTitleSize,
-                  fontWeight: FontWeight.w700,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 3),
               Text(
                 l10n.themeSubtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  fontSize: ShellDimensions.bodySmallSize,
+                style: AppTextStyles.bodySm.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),

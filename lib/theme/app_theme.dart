@@ -28,13 +28,13 @@ class AppTheme {
     required TextTheme textTheme,
     required bool isDark,
   }) {
-    final borderColor = colorScheme.outlineVariant;
-    final cardColor = isDark
-        ? AppColors.surfaceContainerDark
-        : AppColors.surfaceContainer;
-    final inputFill = isDark
-        ? AppColors.surfaceContainerHighDark
-        : AppColors.surfaceContainer;
+    final borderColor = AppColors.borderSoftFor(brightness);
+    final cardColor = AppColors.surfaceContainerFor(brightness);
+    final inputFill = AppColors.surfaceContainerHighFor(brightness);
+    final hintColor = AppColors.textHintFor(brightness);
+    final switchTrackColor = isDark
+        ? AppColors.primaryContainerDark
+        : AppColors.primaryContainer;
 
     return ThemeData(
       useMaterial3: true,
@@ -89,7 +89,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: colorScheme.error, width: 1.2),
         ),
-        hintStyle: AppTextStyles.bodyMd.copyWith(color: AppColors.textHint),
+        hintStyle: AppTextStyles.bodyMd.copyWith(color: hintColor),
         labelStyle: AppTextStyles.bodyMd.copyWith(
           color: colorScheme.onSurfaceVariant,
         ),
@@ -150,7 +150,7 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: inputFill,
         selectedColor: colorScheme.primaryContainer,
-        disabledColor: AppColors.surfaceContainerHigh,
+        disabledColor: inputFill,
         labelStyle: AppTextStyles.labelMd.copyWith(
           color: colorScheme.onSurface,
         ),
@@ -222,9 +222,7 @@ class AppTheme {
       ),
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: isDark
-              ? AppColors.surfaceContainerHighDark
-              : AppColors.textPrimary,
+          color: isDark ? AppColors.panelBackgroundDark : AppColors.textPrimary,
           borderRadius: BorderRadius.circular(6),
         ),
         textStyle: AppTextStyles.captionMd.copyWith(
@@ -266,11 +264,9 @@ class AppTheme {
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return colorScheme.primaryContainer;
+            return switchTrackColor;
           }
-          return isDark
-              ? AppColors.surfaceContainerHighDark
-              : AppColors.surfaceContainerHigh;
+          return inputFill;
         }),
       ),
     );
@@ -339,7 +335,7 @@ class AppTheme {
       onSurface: AppColors.textPrimary,
       onSurfaceVariant: AppColors.textSecondary,
       outline: AppColors.border,
-      outlineVariant: AppColors.divider,
+      outlineVariant: AppColors.borderSoft,
       scrim: AppColors.scrim,
       inversePrimary: AppColors.primaryLight,
       surfaceTint: Colors.transparent,
@@ -354,18 +350,18 @@ class AppTheme {
 
     return base.copyWith(
       primary: AppColors.primaryLight,
-      onPrimary: const Color(0xFF172554),
-      primaryContainer: AppColors.primaryDark,
+      onPrimary: const Color(0xFF0B1020),
+      primaryContainer: AppColors.primaryContainerDark,
       onPrimaryContainer: AppColors.textPrimaryDark,
-      secondary: const Color(0xFF93C5FD),
-      onSecondary: const Color(0xFF082F49),
-      secondaryContainer: const Color(0xFF1E3A8A),
+      secondary: AppColors.primaryLight,
+      onSecondary: const Color(0xFF0B1020),
+      secondaryContainer: AppColors.primaryDark,
       onSecondaryContainer: AppColors.textPrimaryDark,
-      tertiary: const Color(0xFF6EE7B7),
+      tertiary: AppColors.successDark,
       onTertiary: const Color(0xFF064E3B),
       tertiaryContainer: const Color(0xFF065F46),
       onTertiaryContainer: Colors.white,
-      error: const Color(0xFFF87171),
+      error: AppColors.errorDark,
       onError: const Color(0xFF7F1D1D),
       errorContainer: const Color(0xFF7F1D1D),
       onErrorContainer: const Color(0xFFFEE2E2),
@@ -373,7 +369,7 @@ class AppTheme {
       onSurface: AppColors.textPrimaryDark,
       onSurfaceVariant: AppColors.textSecondaryDark,
       outline: AppColors.borderDarkTheme,
-      outlineVariant: AppColors.dividerDark,
+      outlineVariant: AppColors.borderSoftDark,
       scrim: AppColors.scrim,
       inversePrimary: AppColors.primary,
       surfaceTint: Colors.transparent,

@@ -34,7 +34,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiIntroBody =>
-      'SNotice exposes local HTTP APIs for system notifications, flash alerts, and barrage overlays. The server listens on localhost and the port can be changed in Settings.';
+      'SNotice exposes HTTP APIs for system notifications, flash alerts, and barrage overlays. The server listens on the configured port, and you can change that port in Settings.';
 
   @override
   String get httpApiBaseUrlLabel => 'Base URL';
@@ -47,7 +47,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiAuthValue =>
-      'No authentication currently; use IP whitelist for access control';
+      'No authentication currently. Any reachable IP can call this API.';
 
   @override
   String get httpApiEndpointListTitle => 'Endpoint List';
@@ -312,16 +312,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationSettings => 'Notification Settings';
 
   @override
+  String get notificationModesDesc =>
+      'Choose which reminder channels stay active.';
+
+  @override
+  String get notificationDefaultsTitle => 'Reminder Defaults';
+
+  @override
+  String get notificationDefaultsDesc =>
+      'Configure flash and barrage defaults used when requests omit optional fields.';
+
+  @override
   String get showNotifications => 'Show Notifications';
 
   @override
   String get showNotificationsDesc => 'Display system notifications';
 
   @override
+  String get showFlash => 'Enable Flash';
+
+  @override
+  String get showFlashDesc => 'Allow flash overlay reminders';
+
+  @override
   String get showBarrage => 'Enable Barrage';
 
   @override
   String get showBarrageDesc => 'Allow scrolling barrage overlay reminders';
+
+  @override
+  String get showSound => 'Enable Sound';
+
+  @override
+  String get showSoundDesc => 'Play sound for system notifications';
+
+  @override
+  String get flashDefaultsTitle => 'Flash Defaults';
+
+  @override
+  String get flashColorLabel => 'Flash Color';
+
+  @override
+  String get flashDurationLabel => 'Flash Duration (ms)';
+
+  @override
+  String get flashEdgeWidthLabel => 'Edge Width';
+
+  @override
+  String get flashEdgeOpacityLabel => 'Edge Opacity';
+
+  @override
+  String get flashEdgeRepeatLabel => 'Edge Repeat';
+
+  @override
+  String get flashConfigInvalid => 'Please enter valid flash default settings.';
 
   @override
   String get barrageDefaultsTitle => 'Barrage Defaults';

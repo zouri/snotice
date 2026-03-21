@@ -34,7 +34,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get httpApiIntroBody =>
-      'SNotice 提供本地 HTTP 接口用于触发系统通知、闪屏提醒和弹幕覆盖提醒。所有接口默认监听在本机端口，可由设置页调整。';
+      'SNotice 提供 HTTP 接口用于触发系统通知、闪屏提醒和弹幕覆盖提醒。服务监听在当前配置端口，可在设置页调整。';
 
   @override
   String get httpApiBaseUrlLabel => 'Base URL';
@@ -46,7 +46,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get httpApiAuthLabel => '认证方式';
 
   @override
-  String get httpApiAuthValue => '当前无鉴权，建议结合 IP 白名单使用';
+  String get httpApiAuthValue => '当前无鉴权，任何可访问到该服务的 IP 都可以调用。';
 
   @override
   String get httpApiEndpointListTitle => '接口清单';
@@ -300,16 +300,58 @@ class AppLocalizationsZh extends AppLocalizations {
   String get notificationSettings => '通知设置';
 
   @override
+  String get notificationModesDesc => '选择需要保持启用的提醒方式';
+
+  @override
+  String get notificationDefaultsTitle => '提醒默认参数';
+
+  @override
+  String get notificationDefaultsDesc => '配置闪屏与弹幕在请求未传可选字段时使用的默认参数';
+
+  @override
   String get showNotifications => '显示通知';
 
   @override
   String get showNotificationsDesc => '显示系统通知';
 
   @override
+  String get showFlash => '启用闪屏提醒';
+
+  @override
+  String get showFlashDesc => '允许显示闪屏覆盖提醒';
+
+  @override
   String get showBarrage => '启用弹幕提醒';
 
   @override
   String get showBarrageDesc => '允许显示滚动弹幕覆盖提醒';
+
+  @override
+  String get showSound => '启用声音提醒';
+
+  @override
+  String get showSoundDesc => '为系统通知播放声音';
+
+  @override
+  String get flashDefaultsTitle => '闪屏默认参数';
+
+  @override
+  String get flashColorLabel => '闪屏颜色';
+
+  @override
+  String get flashDurationLabel => '闪屏时长（毫秒）';
+
+  @override
+  String get flashEdgeWidthLabel => '边缘宽度';
+
+  @override
+  String get flashEdgeOpacityLabel => '边缘透明度';
+
+  @override
+  String get flashEdgeRepeatLabel => '边缘重复次数';
+
+  @override
+  String get flashConfigInvalid => '请填写有效的闪屏默认参数';
 
   @override
   String get barrageDefaultsTitle => '弹幕默认参数';

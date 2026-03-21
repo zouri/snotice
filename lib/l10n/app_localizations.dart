@@ -149,7 +149,7 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiIntroBody.
   ///
   /// In en, this message translates to:
-  /// **'SNotice exposes local HTTP APIs for system notifications, flash alerts, and barrage overlays. The server listens on localhost and the port can be changed in Settings.'**
+  /// **'SNotice exposes HTTP APIs for system notifications, flash alerts, and barrage overlays. The server listens on the configured port, and you can change that port in Settings.'**
   String get httpApiIntroBody;
 
   /// No description provided for @httpApiBaseUrlLabel.
@@ -173,7 +173,7 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiAuthValue.
   ///
   /// In en, this message translates to:
-  /// **'No authentication currently; use IP whitelist for access control'**
+  /// **'No authentication currently. Any reachable IP can call this API.'**
   String get httpApiAuthValue;
 
   /// No description provided for @httpApiEndpointListTitle.
@@ -650,6 +650,24 @@ abstract class AppLocalizations {
   /// **'Notification Settings'**
   String get notificationSettings;
 
+  /// No description provided for @notificationModesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which reminder channels stay active.'**
+  String get notificationModesDesc;
+
+  /// No description provided for @notificationDefaultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder Defaults'**
+  String get notificationDefaultsTitle;
+
+  /// No description provided for @notificationDefaultsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure flash and barrage defaults used when requests omit optional fields.'**
+  String get notificationDefaultsDesc;
+
   /// No description provided for @showNotifications.
   ///
   /// In en, this message translates to:
@@ -662,6 +680,18 @@ abstract class AppLocalizations {
   /// **'Display system notifications'**
   String get showNotificationsDesc;
 
+  /// No description provided for @showFlash.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Flash'**
+  String get showFlash;
+
+  /// No description provided for @showFlashDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow flash overlay reminders'**
+  String get showFlashDesc;
+
   /// No description provided for @showBarrage.
   ///
   /// In en, this message translates to:
@@ -673,6 +703,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Allow scrolling barrage overlay reminders'**
   String get showBarrageDesc;
+
+  /// No description provided for @showSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Sound'**
+  String get showSound;
+
+  /// No description provided for @showSoundDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Play sound for system notifications'**
+  String get showSoundDesc;
+
+  /// No description provided for @flashDefaultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash Defaults'**
+  String get flashDefaultsTitle;
+
+  /// No description provided for @flashColorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash Color'**
+  String get flashColorLabel;
+
+  /// No description provided for @flashDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash Duration (ms)'**
+  String get flashDurationLabel;
+
+  /// No description provided for @flashEdgeWidthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge Width'**
+  String get flashEdgeWidthLabel;
+
+  /// No description provided for @flashEdgeOpacityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge Opacity'**
+  String get flashEdgeOpacityLabel;
+
+  /// No description provided for @flashEdgeRepeatLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Edge Repeat'**
+  String get flashEdgeRepeatLabel;
+
+  /// No description provided for @flashConfigInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter valid flash default settings.'**
+  String get flashConfigInvalid;
 
   /// No description provided for @barrageDefaultsTitle.
   ///

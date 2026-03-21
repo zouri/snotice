@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../config/constants.dart';
+import '../models/app_config.dart';
 import '../models/notification_request.dart';
 import 'logger_service.dart';
 import 'flash_overlay_service.dart';
@@ -7,10 +8,16 @@ import 'flash_overlay_service.dart';
 class NotificationService {
   final LoggerService _logger;
   final FlashOverlayService _flashService;
+  AppConfig _config;
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  NotificationService(this._logger, this._flashService);
+  NotificationService(this._logger, this._flashService, [AppConfig? config])
+    : _config = config ?? AppConfig();
+
+  void updateConfig(AppConfig config) {
+    _config = config;
+  }
 
   Future<void> initialize() async {
     const initializationSettingsDarwin = DarwinInitializationSettings(
@@ -36,10 +43,18 @@ class NotificationService {
   Future<void> showNotification(NotificationRequest request) async {
     // Overlay 提醒允许 body 为空，优先处理 flash/barrage 分支
     if (request.isFlash) {
+      if (!_config.showFlash) {
+        _logger.warning('Flash notifications are disabled in config');
+        return;
+      }
       await _handleFlashNotification(request);
       return;
     }
     if (request.isBarrage) {
+      if (!_config.showBarrage) {
+        _logger.warning('Barrage notifications are disabled in config');
+        return;
+      }
       await _handleBarrageNotification(request);
       return;
     }
@@ -51,10 +66,10 @@ class NotificationService {
 
     // 标准通知逻辑
     try {
-      const darwinDetails = DarwinNotificationDetails(
+      final darwinDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
-        presentSound: true,
+        presentSound: _config.showSound,
       );
 
       const linuxDetails = LinuxNotificationDetails();

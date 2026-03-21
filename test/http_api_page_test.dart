@@ -49,9 +49,7 @@ void main() {
       expect(find.text('Authentication'), findsOneWidget);
       expect(find.text('http://localhost:8642'), findsOneWidget);
       expect(
-        find.text(
-          'No authentication currently; use IP whitelist for access control',
-        ),
+        find.text('No authentication currently. Any reachable IP can call this API.'),
         findsOneWidget,
       );
       await _scrollUntilTextVisible(tester, 'Endpoint List');
@@ -74,7 +72,7 @@ void main() {
       expect(find.text('Base URL'), findsOneWidget);
       expect(find.text('认证方式'), findsOneWidget);
       expect(find.text('http://localhost:8642'), findsOneWidget);
-      expect(find.text('当前无鉴权，建议结合 IP 白名单使用'), findsOneWidget);
+      expect(find.text('当前无鉴权，任何可访问到该服务的 IP 都可以调用。'), findsOneWidget);
       await _scrollUntilTextVisible(tester, '接口清单');
       expect(find.text('接口清单'), findsOneWidget);
     });

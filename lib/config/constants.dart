@@ -4,7 +4,6 @@ class AppConstants {
   static const String appVersion = '0.1.0';
   static const String appPackageName = 'net.zouri.snotice';
 
-  static const List<String> defaultAllowedIPs = ['127.0.0.1', '::1'];
   static const int defaultMaxLogEntries = 1000;
 
   static const int notificationId = -1;
