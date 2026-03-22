@@ -49,11 +49,16 @@ void main() {
       expect(find.text('Authentication'), findsOneWidget);
       expect(find.text('http://localhost:8642'), findsOneWidget);
       expect(
-        find.text('No authentication currently. Any reachable IP can call this API.'),
+        find.text(
+          'No authentication currently. Any reachable IP can call this API.',
+        ),
         findsOneWidget,
       );
       await _scrollUntilTextVisible(tester, 'Endpoint List');
       expect(find.text('Endpoint List'), findsOneWidget);
+      await _scrollUntilTextVisible(tester, 'snotice_send_notification');
+      expect(find.text('snotice_send_notification'), findsOneWidget);
+      expect(find.text('snotice_get_status'), findsNothing);
     });
 
     testWidgets('renders Chinese labels', (tester) async {
@@ -75,6 +80,9 @@ void main() {
       expect(find.text('当前无鉴权，任何可访问到该服务的 IP 都可以调用。'), findsOneWidget);
       await _scrollUntilTextVisible(tester, '接口清单');
       expect(find.text('接口清单'), findsOneWidget);
+      await _scrollUntilTextVisible(tester, 'snotice_send_notification');
+      expect(find.text('snotice_send_notification'), findsOneWidget);
+      expect(find.text('snotice_get_status'), findsNothing);
     });
   });
 }

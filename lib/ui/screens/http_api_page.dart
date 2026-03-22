@@ -76,10 +76,7 @@ class HttpApiPage extends StatelessWidget {
                         const SizedBox(height: 12),
                         _CodeSurface(
                           title: l10n.httpApiMcpToolsTitle,
-                          code: '''snotice_send_notification
-snotice_get_status
-snotice_get_config
-snotice_update_config''',
+                          code: 'snotice_send_notification',
                         ),
                         const SizedBox(height: 12),
                         _CodeSurface(
@@ -87,6 +84,15 @@ snotice_update_config''',
                           code: '''curl -X POST $mcpUrl \\
   -H "Content-Type: application/json" \\
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' ''',
+                        ),
+                        const SizedBox(height: 12),
+                        _CodeSurface(
+                          title: isZh
+                              ? 'MCP tools/call 示例（发送通知）'
+                              : 'MCP tools/call Example (send notification)',
+                          code: '''curl -X POST $mcpUrl \\
+  -H "Content-Type: application/json" \\
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"snotice_send_notification","arguments":{"title":"Build Complete","body":"Deployment finished"}}}' ''',
                         ),
                       ],
                     ),
@@ -122,7 +128,9 @@ snotice_update_config''',
                       ),
                       _MiniRowData(
                         'type',
-                        isZh ? 'string，支持 flash / barrage' : 'string for flash / barrage',
+                        isZh
+                            ? 'string，支持 flash / barrage'
+                            : 'string for flash / barrage',
                       ),
                       _MiniRowData(
                         'duration',
@@ -220,9 +228,7 @@ class _PortBadge extends StatelessWidget {
       ),
       child: Text(
         'PORT $port',
-        style: AppTextStyles.labelMd.copyWith(
-          color: AppColors.primary,
-        ),
+        style: AppTextStyles.labelMd.copyWith(color: AppColors.primary),
       ),
     );
   }
@@ -318,9 +324,7 @@ class _MetaChip extends StatelessWidget {
           const SizedBox(height: 4),
           SelectableText(
             value,
-            style: AppTextStyles.codeSm.copyWith(
-              color: colorScheme.onSurface,
-            ),
+            style: AppTextStyles.codeSm.copyWith(color: colorScheme.onSurface),
           ),
         ],
       ),
@@ -444,9 +448,7 @@ class _InfoLine extends StatelessWidget {
         Expanded(
           child: SelectableText(
             value,
-            style: AppTextStyles.codeSm.copyWith(
-              color: colorScheme.onSurface,
-            ),
+            style: AppTextStyles.codeSm.copyWith(color: colorScheme.onSurface),
           ),
         ),
       ],
@@ -605,9 +607,7 @@ class _MiniRow extends StatelessWidget {
         children: [
           Text(
             row.label,
-            style: AppTextStyles.codeSm.copyWith(
-              color: AppColors.primary,
-            ),
+            style: AppTextStyles.codeSm.copyWith(color: AppColors.primary),
           ),
           const SizedBox(height: 4),
           Text(

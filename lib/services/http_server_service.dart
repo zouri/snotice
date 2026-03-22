@@ -20,7 +20,6 @@ class HttpServerService {
   final LoggerService _logger;
   final JsonEncoder _prettyJson = const JsonEncoder.withIndent('  ');
   HttpServer? _server;
-  DateTime? _startTime;
   AppConfig _config;
 
   HttpServerService({
@@ -56,7 +55,6 @@ class HttpServerService {
         _config.port,
       );
 
-      _startTime = DateTime.now();
       _logger.info('Server started on port ${_config.port}');
     } catch (e) {
       _logger.error('Failed to start server: $e');
@@ -72,7 +70,6 @@ class HttpServerService {
 
     await _server!.close();
     _server = null;
-    _startTime = null;
     _logger.info('Server stopped');
   }
 
@@ -260,55 +257,6 @@ class HttpServerService {
           _mcpToolResult('snotice_send_notification', notifyResult),
         );
 
-      case 'snotice_get_status':
-        if (arguments.isNotEmpty) {
-          return _mcpResult(
-            id,
-            _mcpToolErrorResult(
-              'Invalid arguments: snotice_get_status does not accept arguments.',
-            ),
-          );
-        }
-        final statusResult = _ServiceCallResult(200, _buildStatusPayload());
-        return _mcpResult(
-          id,
-          _mcpToolResult('snotice_get_status', statusResult),
-        );
-
-      case 'snotice_get_config':
-        if (arguments.isNotEmpty) {
-          return _mcpResult(
-            id,
-            _mcpToolErrorResult(
-              'Invalid arguments: snotice_get_config does not accept arguments.',
-            ),
-          );
-        }
-        final configResult = _ServiceCallResult(200, _config.toJson());
-        return _mcpResult(
-          id,
-          _mcpToolResult('snotice_get_config', configResult),
-        );
-
-      case 'snotice_update_config':
-        if (arguments.isEmpty) {
-          return _mcpResult(
-            id,
-            _mcpToolErrorResult(
-              'Invalid arguments: provide at least one config field to update.',
-            ),
-          );
-        }
-        final merged = _config.toJson()..addAll(arguments);
-        final configUpdateResult = _processConfigPayload(
-          merged,
-          requestLabel: 'MCP tools/call snotice_update_config',
-        );
-        return _mcpResult(
-          id,
-          _mcpToolResult('snotice_update_config', configUpdateResult),
-        );
-
       default:
         return _mcpError(id, -32601, 'Unknown tool: $name');
     }
@@ -351,63 +299,6 @@ class HttpServerService {
             'payload': {'type': 'object'},
           },
           'required': ['title'],
-          'additionalProperties': false,
-        },
-      },
-      {
-        'name': 'snotice_get_status',
-        'description': 'Read current SNotice server status.',
-        'inputSchema': {
-          'type': 'object',
-          'properties': {},
-          'additionalProperties': false,
-        },
-      },
-      {
-        'name': 'snotice_get_config',
-        'description': 'Read current SNotice configuration.',
-        'inputSchema': {
-          'type': 'object',
-          'properties': {},
-          'additionalProperties': false,
-        },
-      },
-      {
-        'name': 'snotice_update_config',
-        'description':
-            'Update SNotice configuration by merging provided fields into current config.',
-        'inputSchema': {
-          'type': 'object',
-          'properties': {
-            'port': {'type': 'integer', 'minimum': 1, 'maximum': 65535},
-            'autoLaunchOnLogin': {'type': 'boolean'},
-            'showNotifications': {'type': 'boolean'},
-            'showFlash': {'type': 'boolean'},
-            'showBarrage': {'type': 'boolean'},
-            'showSound': {'type': 'boolean'},
-            'defaultFlashColor': {'type': 'string'},
-            'defaultFlashDuration': {'type': 'integer', 'minimum': 1},
-            'defaultFlashEdgeWidth': {'type': 'number', 'exclusiveMinimum': 0},
-            'defaultFlashEdgeOpacity': {
-              'type': 'number',
-              'minimum': 0,
-              'maximum': 1,
-            },
-            'defaultFlashEdgeRepeat': {'type': 'integer', 'minimum': 1},
-            'defaultBarrageColor': {'type': 'string'},
-            'defaultBarrageDuration': {'type': 'integer', 'minimum': 1},
-            'defaultBarrageSpeed': {'type': 'number', 'exclusiveMinimum': 0},
-            'defaultBarrageFontSize': {'type': 'number', 'exclusiveMinimum': 0},
-            'defaultBarrageLane': {
-              'type': 'string',
-              'enum': ['top', 'middle', 'bottom'],
-            },
-            'defaultBarrageRepeat': {
-              'type': 'integer',
-              'minimum': 1,
-              'maximum': 8,
-            },
-          },
           'additionalProperties': false,
         },
       },
@@ -505,38 +396,6 @@ class HttpServerService {
     }
   }
 
-  _ServiceCallResult _processConfigPayload(
-    Map<String, dynamic> json, {
-    required String requestLabel,
-  }) {
-    try {
-      _logger.request(requestLabel, data: json);
-      _config = AppConfig.fromJson(json);
-
-      return _ServiceCallResult(200, {
-        'success': true,
-        'message': 'Config updated',
-        'config': _config.toJson(),
-      });
-    } catch (e) {
-      _logger.error('Error in $requestLabel: $e');
-      return _ServiceCallResult(400, {
-        'success': false,
-        'error': 'Invalid config data',
-      });
-    }
-  }
-
-  Map<String, dynamic> _buildStatusPayload() {
-    return {
-      'running': isRunning,
-      'port': _config.port,
-      'uptime': _startTime != null
-          ? DateTime.now().difference(_startTime!).inSeconds
-          : 0,
-    };
-  }
-
   Map<String, dynamic> _mcpResult(dynamic id, Map<String, dynamic> result) {
     return {'jsonrpc': '2.0', 'id': id, 'result': result};
   }
@@ -562,15 +421,6 @@ class HttpServerService {
       ],
       'structuredContent': {'status': result.statusCode, 'body': result.body},
       'isError': result.statusCode < 200 || result.statusCode >= 300,
-    };
-  }
-
-  Map<String, dynamic> _mcpToolErrorResult(String message) {
-    return {
-      'content': [
-        {'type': 'text', 'text': message},
-      ],
-      'isError': true,
     };
   }
 

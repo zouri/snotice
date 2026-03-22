@@ -12,30 +12,45 @@ class ServerSettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(ShellDimensions.cardPadding),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Text(
-                l10n.serverPort,
-                style: AppTextStyles.bodyMd.copyWith(
-                  fontSize: ShellDimensions.bodySize,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.serverSettings,
+                    style: AppTextStyles.bodyMd.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    l10n.httpApiParamPortDesc,
+                    style: AppTextStyles.bodySm.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 12),
-            SizedBox(
-              width: 132,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160),
               child: TextFormField(
                 controller: portController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   isDense: true,
+                  labelText: l10n.serverPort,
                   hintText: '8642',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 10,

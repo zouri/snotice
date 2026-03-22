@@ -5,6 +5,8 @@ import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'utils/color_value_utils.dart';
+
 void overlayMain(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
@@ -126,45 +128,6 @@ Future<void> _configureOverlayWindow({required String effect}) async {
   });
 }
 
-Color _parseColor(String colorString) {
-  final normalized = colorString.trim().toLowerCase();
-
-  if (normalized.startsWith('#')) {
-    return Color(int.parse(normalized.substring(1), radix: 16) + 0xFF000000);
-  }
-  if (normalized.startsWith('0x')) {
-    return Color(int.parse(normalized));
-  }
-
-  switch (normalized) {
-    case 'red':
-      return Colors.red;
-    case 'blue':
-      return Colors.blue;
-    case 'green':
-      return Colors.green;
-    case 'yellow':
-      return Colors.yellow;
-    case 'white':
-      return Colors.white;
-    case 'black':
-      return Colors.black;
-    case 'gray':
-    case 'grey':
-      return Colors.grey;
-    case 'orange':
-      return Colors.orange;
-    case 'purple':
-      return Colors.purple;
-    case 'pink':
-      return Colors.pink;
-    case 'cyan':
-      return Colors.cyan;
-    default:
-      return Colors.red;
-  }
-}
-
 class FlashOverlayApp extends StatelessWidget {
   const FlashOverlayApp({
     super.key,
@@ -207,7 +170,7 @@ class _FlashOverlayScreenState extends State<FlashOverlayScreen>
   @override
   void initState() {
     super.initState();
-    _flashColor = _parseColor(widget.color);
+    _flashColor = parseColorValue(widget.color);
 
     _controller = AnimationController(
       vsync: this,
@@ -345,7 +308,7 @@ class _BarrageOverlayScreenState extends State<BarrageOverlayScreen>
   @override
   void initState() {
     super.initState();
-    _textColor = _parseColor(widget.color);
+    _textColor = parseColorValue(widget.color);
     _textStyle = TextStyle(
       color: _textColor,
       fontSize: math.max(12, widget.fontSize),

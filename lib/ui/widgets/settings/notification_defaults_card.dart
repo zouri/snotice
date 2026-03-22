@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
+import '../../../utils/color_value_utils.dart';
 import '../main/shell_dimensions.dart';
 
 class NotificationDefaultsCard extends StatelessWidget {
@@ -65,9 +66,10 @@ class NotificationDefaultsCard extends StatelessWidget {
               backgroundColor: AppColors.warningLight.withValues(alpha: 0.45),
               borderColor: AppColors.warning.withValues(alpha: 0.14),
               children: [
-                _FieldInput(
+                _ColorPickerField(
                   controller: flashColorController,
                   label: l10n.flashColorLabel,
+                  fallbackColor: const Color(0xFFFF0000),
                 ),
                 _FieldInput(
                   controller: flashDurationController,
@@ -103,9 +105,10 @@ class NotificationDefaultsCard extends StatelessWidget {
               ),
               borderColor: colorScheme.primary.withValues(alpha: 0.14),
               children: [
-                _FieldInput(
+                _ColorPickerField(
                   controller: barrageColorController,
                   label: l10n.barrageColorLabel,
+                  fallbackColor: const Color(0xFFFFD84D),
                 ),
                 _FieldInput(
                   controller: barrageDurationController,
@@ -233,6 +236,312 @@ class _FieldInput extends StatelessWidget {
           decoration: const InputDecoration(
             isDense: true,
             border: OutlineInputBorder(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ColorPickerField extends StatelessWidget {
+  const _ColorPickerField({
+    required this.controller,
+    required this.label,
+    required this.fallbackColor,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final Color fallbackColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, _) {
+        final selectedColor = parseColorValue(
+          value.text,
+          fallback: fallbackColor,
+        );
+        final displayValue = value.text.trim().isEmpty
+            ? colorToHex(selectedColor)
+            : value.text.trim().toUpperCase();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: AppTextStyles.labelMd.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 6),
+            InkWell(
+              borderRadius: BorderRadius.circular(ShellDimensions.radiusMd),
+              onTap: () async {
+                final selected = await showDialog<String>(
+                  context: context,
+                  builder: (context) =>
+                      _ColorPickerDialog(initialColor: selectedColor),
+                );
+
+                if (selected != null) {
+                  controller.text = selected;
+                }
+              },
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  isDense: true,
+                  border: OutlineInputBorder(),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: selectedColor,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: colorScheme.outlineVariant),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        displayValue,
+                        style: AppTextStyles.bodyMd.copyWith(
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.color_lens_outlined,
+                      size: 18,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ColorPickerDialog extends StatefulWidget {
+  const _ColorPickerDialog({required this.initialColor});
+
+  final Color initialColor;
+
+  @override
+  State<_ColorPickerDialog> createState() => _ColorPickerDialogState();
+}
+
+class _ColorPickerDialogState extends State<_ColorPickerDialog> {
+  static const List<Color> _presetColors = [
+    Color(0xFFFF0000),
+    Color(0xFFFF6B00),
+    Color(0xFFFFD84D),
+    Color(0xFF22C55E),
+    Color(0xFF06B6D4),
+    Color(0xFF3B82F6),
+    Color(0xFF8B5CF6),
+    Color(0xFFEC4899),
+    Color(0xFFFFFFFF),
+    Color(0xFF111827),
+  ];
+
+  late Color _selectedColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedColor = widget.initialColor;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return AlertDialog(
+      title: Text(l10n.color),
+      content: SizedBox(
+        width: 360,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 72,
+                decoration: BoxDecoration(
+                  color: _selectedColor,
+                  borderRadius: BorderRadius.circular(ShellDimensions.radiusMd),
+                  border: Border.all(color: colorScheme.outlineVariant),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  colorToHex(_selectedColor),
+                  style: AppTextStyles.bodyMd.copyWith(
+                    color: _selectedColor.computeLuminance() > 0.5
+                        ? Colors.black
+                        : Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: _presetColors.map((color) {
+                  final selected =
+                      colorToHex(color) == colorToHex(_selectedColor);
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(999),
+                    onTap: () {
+                      setState(() {
+                        _selectedColor = color;
+                      });
+                    },
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: selected
+                              ? colorScheme.primary
+                              : colorScheme.outlineVariant,
+                          width: selected ? 2 : 1,
+                        ),
+                      ),
+                      child: selected
+                          ? Icon(
+                              Icons.check,
+                              size: 16,
+                              color: color.computeLuminance() > 0.5
+                                  ? Colors.black
+                                  : Colors.white,
+                            )
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              _ColorChannelSlider(
+                label: 'R',
+                value: _colorChannel(_selectedColor.r),
+                activeColor: Colors.red,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedColor = _selectedColor.withRed(value.round());
+                  });
+                },
+              ),
+              _ColorChannelSlider(
+                label: 'G',
+                value: _colorChannel(_selectedColor.g),
+                activeColor: Colors.green,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedColor = _selectedColor.withGreen(value.round());
+                  });
+                },
+              ),
+              _ColorChannelSlider(
+                label: 'B',
+                value: _colorChannel(_selectedColor.b),
+                activeColor: Colors.blue,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedColor = _selectedColor.withBlue(value.round());
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.close),
+        ),
+        FilledButton(
+          onPressed: () =>
+              Navigator.of(context).pop(colorToHex(_selectedColor)),
+          child: Text(l10n.ok),
+        ),
+      ],
+    );
+  }
+}
+
+double _colorChannel(double value) {
+  return (value * 255).round().clamp(0, 255).toDouble();
+}
+
+class _ColorChannelSlider extends StatelessWidget {
+  const _ColorChannelSlider({
+    required this.label,
+    required this.value,
+    required this.activeColor,
+    required this.onChanged,
+  });
+
+  final String label;
+  final double value;
+  final Color activeColor;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        SizedBox(
+          width: 20,
+          child: Text(
+            label,
+            style: AppTextStyles.labelMd.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        Expanded(
+          child: SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: activeColor,
+              thumbColor: activeColor,
+              overlayColor: activeColor.withValues(alpha: 0.16),
+            ),
+            child: Slider(
+              min: 0,
+              max: 255,
+              divisions: 255,
+              value: value,
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 36,
+          child: Text(
+            value.round().toString(),
+            textAlign: TextAlign.end,
+            style: AppTextStyles.bodySm.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
       ],

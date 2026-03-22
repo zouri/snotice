@@ -363,13 +363,11 @@ void main() {
 
       expect(result.statusCode, 200);
       final tools = result.body['result']['tools'] as List<dynamic>;
+      expect(tools, hasLength(1));
       final toolNames = tools
           .map((tool) => (tool as Map<String, dynamic>)['name'] as String)
           .toList();
-      expect(toolNames, contains('snotice_send_notification'));
-      expect(toolNames, contains('snotice_get_status'));
-      expect(toolNames, contains('snotice_get_config'));
-      expect(toolNames, contains('snotice_update_config'));
+      expect(toolNames, ['snotice_send_notification']);
     });
 
     test(
@@ -396,7 +394,7 @@ void main() {
       },
     );
 
-    test('tools/call returns error result for invalid args', () async {
+    test('tools/call rejects removed tools', () async {
       final result = await _postPath(
         port: port,
         path: '/api/mcp',
@@ -404,18 +402,16 @@ void main() {
           'jsonrpc': '2.0',
           'id': 4,
           'method': 'tools/call',
-          'params': {
-            'name': 'snotice_get_status',
-            'arguments': {'unexpected': true},
-          },
+          'params': {'name': 'snotice_get_status'},
         }),
       );
 
       expect(result.statusCode, 200);
-      expect(result.body['result']['isError'], true);
-      final content = result.body['result']['content'] as List<dynamic>;
-      final text = (content.first as Map<String, dynamic>)['text'] as String;
-      expect(text, contains('does not accept arguments'));
+      expect(result.body['error']['code'], -32601);
+      expect(
+        result.body['error']['message'],
+        'Unknown tool: snotice_get_status',
+      );
     });
   });
 }
