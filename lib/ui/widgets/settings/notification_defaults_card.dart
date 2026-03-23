@@ -401,8 +401,7 @@ class _ColorPickerDialogState extends State<_ColorPickerDialog> {
                 spacing: 10,
                 runSpacing: 10,
                 children: _presetColors.map((color) {
-                  final selected =
-                      colorToHex(color) == colorToHex(_selectedColor);
+                  final selected = color == _selectedColor;
                   return InkWell(
                     borderRadius: BorderRadius.circular(999),
                     onTap: () {
