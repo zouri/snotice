@@ -41,7 +41,7 @@ class NotificationService {
   }
 
   Future<void> showNotification(NotificationRequest request) async {
-    // Overlay 提醒允许 body 为空，优先处理 flash/barrage 分支
+    // Overlay 提醒允许 message 为空，优先处理 flash/barrage 分支
     if (request.isFlash) {
       if (!_config.showFlash) {
         _logger.warning('Flash notifications are disabled in config');
@@ -60,7 +60,7 @@ class NotificationService {
     }
 
     if (!request.isValid) {
-      _logger.error('Invalid notification request: title or body is empty');
+      _logger.error('Invalid notification request: title or message is empty');
       return;
     }
 
@@ -82,7 +82,7 @@ class NotificationService {
       await _notificationsPlugin.show(
         AppConstants.notificationId,
         request.title,
-        request.body,
+        request.message,
         notificationDetails,
         payload: request.payload?.toString(),
       );
@@ -105,7 +105,9 @@ class NotificationService {
       final fontSize = request.barrageFontSize ?? 28;
       final lane = request.barrageLane?.value ?? 'top';
       final repeat = request.barrageRepeat ?? 1;
-      final text = request.body.trim().isEmpty ? request.title : request.body;
+      final text = request.message.trim().isEmpty
+          ? request.title
+          : request.message;
 
       _logger.notification(
         'Barrage notification: ${request.title}',

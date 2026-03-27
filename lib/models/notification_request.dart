@@ -74,7 +74,7 @@ class NotificationRequest {
   static const int maxBarrageRepeat = 8;
 
   final String title;
-  final String body;
+  final String message;
   final String? icon;
   final NotificationPriority priority;
   final NotificationCategory? category;
@@ -96,7 +96,8 @@ class NotificationRequest {
 
   NotificationRequest({
     required this.title,
-    required this.body,
+    String? message,
+    String? body,
     this.icon,
     this.priority = NotificationPriority.normal,
     this.category,
@@ -115,7 +116,8 @@ class NotificationRequest {
     bool hasInvalidPriority = false,
     bool hasInvalidCategory = false,
     bool hasInvalidBarrageLane = false,
-  }) : payload = payload == null ? null : Map.unmodifiable(payload),
+  }) : message = message ?? body ?? '',
+       payload = payload == null ? null : Map.unmodifiable(payload),
        _hasInvalidPriority = hasInvalidPriority,
        _hasInvalidCategory = hasInvalidCategory,
        _hasInvalidBarrageLane = hasInvalidBarrageLane;
@@ -128,9 +130,11 @@ class NotificationRequest {
     final category = NotificationCategory.tryParse(rawCategory);
     final barrageLane = NotificationBarrageLane.tryParse(rawBarrageLane);
 
+    final message = _parseString(json['message']) ?? _parseString(json['body']);
+
     return NotificationRequest(
       title: _parseString(json['title']) ?? '',
-      body: _parseString(json['body']) ?? '',
+      message: message ?? '',
       icon: _parseString(json['icon']),
       priority: priority ?? NotificationPriority.normal,
       category: category,
@@ -201,7 +205,7 @@ class NotificationRequest {
   Map<String, dynamic> toJson() {
     return {
       'title': title,
-      'body': body,
+      'message': message,
       if (icon != null) 'icon': icon,
       'priority': priority.value,
       if (category != null) 'category': category!.value,
@@ -227,8 +231,8 @@ class NotificationRequest {
       errors.add('Field "title" is required.');
     }
 
-    if (!isFlash && !isBarrage && body.trim().isEmpty) {
-      errors.add('Field "body" is required for non-overlay notifications.');
+    if (!isFlash && !isBarrage && message.trim().isEmpty) {
+      errors.add('Field "message" is required for non-overlay notifications.');
     }
 
     if (_hasInvalidPriority) {
@@ -306,6 +310,7 @@ class NotificationRequest {
   }
 
   bool get isValid => validate().isEmpty;
+  String get body => message;
   bool get isFlash =>
       category == NotificationCategory.flashFull ||
       category == NotificationCategory.flashEdge;

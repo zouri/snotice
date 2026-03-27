@@ -70,7 +70,7 @@ def print_result(title: str, result: ApiResult) -> None:
 def build_notify_payload(args: argparse.Namespace) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "title": args.title,
-        "body": args.body,
+        "message": args.message,
         "priority": args.priority,
     }
 
@@ -135,7 +135,7 @@ def cmd_smoke(client: SNoticeApiClient, args: argparse.Namespace) -> int:
 
     normal_payload = {
         "title": "Smoke Test - Notification",
-        "body": "Normal notification from test_http_api.py",
+        "message": "Normal notification from test_http_api.py",
         "priority": "normal",
     }
     normal_result = client.request("POST", "/api/notify", normal_payload)
@@ -146,7 +146,7 @@ def cmd_smoke(client: SNoticeApiClient, args: argparse.Namespace) -> int:
     if args.include_edge:
         edge_payload = {
             "title": "Smoke Test - Edge",
-            "body": "Edge lighting from test_http_api.py",
+            "message": "Edge lighting from test_http_api.py",
             "category": "flash_edge",
             "flashColor": args.flash_color,
             "flashDuration": args.flash_duration,
@@ -192,7 +192,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Notification mode (default: normal)",
     )
     notify.add_argument("--title", default="Test Notification", help="Notification title")
-    notify.add_argument("--body", default="Sent from test_http_api.py", help="Notification body")
+    notify.add_argument(
+        "--message",
+        default="Sent from test_http_api.py",
+        help="Notification message",
+    )
+    notify.add_argument("--body", default="", help=argparse.SUPPRESS)
     notify.add_argument(
         "--priority",
         default="normal",

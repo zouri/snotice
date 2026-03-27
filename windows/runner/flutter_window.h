@@ -82,6 +82,14 @@ class FlutterWindow : public Win32Window {
                                       int font_size,
                                       const std::string& lane,
                                       int repeat_count);
+  void AppendBarrageItemsToOverlay(HWND overlay,
+                                   const std::wstring& text,
+                                   COLORREF color,
+                                   int duration_ms,
+                                   double speed,
+                                   int font_size,
+                                   const std::string& lane,
+                                   int repeat_count);
   static BOOL CALLBACK EnumDisplayMonitorsProc(HMONITOR monitor,
                                                 HDC hdc,
                                                 LPRECT rect,

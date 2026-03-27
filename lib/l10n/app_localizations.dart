@@ -299,7 +299,7 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiParamBodyDesc.
   ///
   /// In en, this message translates to:
-  /// **'Notification body. Required for normal notifications; optional when category=flash_full, flash_edge, or barrage.'**
+  /// **'Notification message. Required for normal notifications; optional when category=flash_full, flash_edge, or barrage.'**
   String get httpApiParamBodyDesc;
 
   /// No description provided for @httpApiParamPriorityDesc.
@@ -431,13 +431,13 @@ abstract class AppLocalizations {
   /// No description provided for @httpApiNotesAliases.
   ///
   /// In en, this message translates to:
-  /// **'Aliases are not supported. Only canonical field names are accepted.'**
+  /// **'Use canonical field name message. Legacy body is accepted only as a compatibility alias.'**
   String get httpApiNotesAliases;
 
   /// No description provided for @httpApiNotesBodyOptional.
   ///
   /// In en, this message translates to:
-  /// **'Only flash_full / flash_edge / barrage notifications allow empty body; normal notifications must include body.'**
+  /// **'Only flash_full / flash_edge / barrage notifications allow empty message; normal notifications must include message.'**
   String get httpApiNotesBodyOptional;
 
   /// No description provided for @httpApiNotesEdgeOnly.

@@ -114,7 +114,6 @@ sequenceDiagram
 - `snotice_send_notification`
 - `snotice_get_status`
 - `snotice_get_config`
-- `snotice_update_config`
 
 说明：MCP 与 REST 共用相同服务层能力，减少重复逻辑。
 

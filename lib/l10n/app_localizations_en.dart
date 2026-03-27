@@ -113,7 +113,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiParamBodyDesc =>
-      'Notification body. Required for normal notifications; optional when category=flash_full, flash_edge, or barrage.';
+      'Notification message. Required for normal notifications; optional when category=flash_full, flash_edge, or barrage.';
 
   @override
   String get httpApiParamPriorityDesc =>
@@ -194,11 +194,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get httpApiNotesAliases =>
-      'Aliases are not supported. Only canonical field names are accepted.';
+      'Use canonical field name message. Legacy body is accepted only as a compatibility alias.';
 
   @override
   String get httpApiNotesBodyOptional =>
-      'Only flash_full / flash_edge / barrage notifications allow empty body; normal notifications must include body.';
+      'Only flash_full / flash_edge / barrage notifications allow empty message; normal notifications must include message.';
 
   @override
   String get httpApiNotesEdgeOnly =>

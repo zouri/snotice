@@ -68,7 +68,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     notify = sub.add_parser("notify")
     notify.add_argument("--title", required=True)
-    notify.add_argument("--body", default="")
+    notify.add_argument("--message", default="")
+    notify.add_argument("--body", default="", help=argparse.SUPPRESS)
     notify.add_argument("--priority", default="normal")
     notify.add_argument("--category", default="")
     notify.add_argument("--flash-color", default="")
@@ -122,7 +123,7 @@ def main() -> int:
 
     payload: dict[str, Any] = {
         "title": args.title,
-        "body": args.body,
+        "message": args.message or args.body,
         "priority": args.priority,
     }
 

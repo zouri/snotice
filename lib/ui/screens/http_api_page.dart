@@ -92,7 +92,7 @@ class HttpApiPage extends StatelessWidget {
                               : 'MCP tools/call Example (send notification)',
                           code: '''curl -X POST $mcpUrl \\
   -H "Content-Type: application/json" \\
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"snotice_send_notification","arguments":{"title":"Build Complete","body":"Deployment finished"}}}' ''',
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"snotice_send_notification","arguments":{"title":"Build Complete","message":"Deployment finished"}}}' ''',
                         ),
                       ],
                     ),
@@ -123,8 +123,8 @@ class HttpApiPage extends StatelessWidget {
                         isZh ? 'string，必填' : 'string, required',
                       ),
                       _MiniRowData(
-                        'content',
-                        isZh ? 'string，支持正文内容' : 'string body content',
+                        'message',
+                        isZh ? 'string，通知正文内容' : 'string notification message',
                       ),
                       _MiniRowData(
                         'type',

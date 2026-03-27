@@ -45,14 +45,6 @@ struct EdgeOverlayState {
 };
 
 struct BarrageItemLayout {
-  double row_top = 0.0;
-  double spawn_offset_x = 0.0;
-  double end_extra = 0.0;
-  double initial_progress = 0.0;
-  double speed_factor = 1.0;
-};
-
-struct BarrageOverlayState {
   std::wstring text = L"SNotice";
   COLORREF text_color = RGB(255, 255, 255);
   HFONT font = nullptr;
@@ -62,13 +54,18 @@ struct BarrageOverlayState {
   int bubble_padding_x = 16;
   int bubble_padding_y = 8;
   int bubble_radius = 14;
+  DWORD start_tick = 0;
+  int duration_ms = 6000;
   double start_x = 0.0;
   double end_x = 0.0;
-  int total_duration_ms = 6000;
-  DWORD start_tick = 0;
-  int draw_y_offset = 0;
-  int track_top = 0;
-  int track_bottom = 0;
+  double row_top = 0.0;
+  double spawn_offset_x = 0.0;
+  double end_extra = 0.0;
+  double initial_progress = 0.0;
+  double speed_factor = 1.0;
+};
+
+struct BarrageOverlayState {
   HBRUSH clear_brush = nullptr;
   HBRUSH bubble_brush = nullptr;
   HPEN bubble_pen = nullptr;
@@ -334,19 +331,41 @@ bool FlutterWindow::TriggerNativeBarrage(const flutter::EncodableMap& args) {
       std::max(1, std::min(8, ParseIntArgument(args, "repeat", 1)));
   const COLORREF color = ParseColor(ParseStringArgument(args, "color", "#FFFFFF"));
 
-  ClearFlashOverlayWindows();
-  EnsureBarrageOverlayClassRegistered();
+  const std::wstring utf16_text = [&]() -> std::wstring {
+    std::wstring value = Utf16FromUtf8(text);
+    if (value.empty()) {
+      value = L"SNotice";
+    }
+    return value;
+  }();
 
+  const bool reuse_existing =
+      native_overlay_mode_ == NativeOverlayMode::kBarrage &&
+      !flash_overlay_windows_.empty();
+
+  EnsureBarrageOverlayClassRegistered();
+  if (reuse_existing) {
+    for (const auto& overlay : flash_overlay_windows_) {
+      if (overlay.kind != OverlayWindowKind::kBarrage ||
+          overlay.hwnd == nullptr || !IsWindow(overlay.hwnd)) {
+        continue;
+      }
+      AppendBarrageItemsToOverlay(overlay.hwnd, utf16_text, color, duration_ms,
+                                  speed, font_size, lane, repeat_count);
+    }
+    TickNativeAnimation();
+    StartAnimationTimer();
+    return true;
+  }
+
+  ClearFlashOverlayWindows();
   native_overlay_mode_ = NativeOverlayMode::kBarrage;
   native_overlay_start_tick_ = GetTickCount();
-  native_overlay_total_duration_ms_ = duration_ms;
+  native_overlay_total_duration_ms_ = 0;
 
   BarrageMonitorEnumContext context;
   context.window = this;
-  context.text = Utf16FromUtf8(text);
-  if (context.text.empty()) {
-    context.text = L"SNotice";
-  }
+  context.text = utf16_text;
   context.color = color;
   context.duration_ms = duration_ms;
   context.speed = speed;
@@ -359,7 +378,6 @@ bool FlutterWindow::TriggerNativeBarrage(const flutter::EncodableMap& args) {
   if (flash_overlay_windows_.empty()) {
     return false;
   }
-
   TickNativeAnimation();
   StartAnimationTimer();
   return true;
@@ -379,14 +397,14 @@ void FlutterWindow::TickNativeAnimation() {
     return;
   }
 
-  const DWORD elapsed = GetTickCount() - native_overlay_start_tick_;
-  if (elapsed >=
-      static_cast<DWORD>(std::max(1, native_overlay_total_duration_ms_))) {
-    ClearFlashOverlayWindows();
-    return;
-  }
-
   if (native_overlay_mode_ == NativeOverlayMode::kEdge) {
+    const DWORD elapsed = GetTickCount() - native_overlay_start_tick_;
+    if (elapsed >=
+        static_cast<DWORD>(std::max(1, native_overlay_total_duration_ms_))) {
+      ClearFlashOverlayWindows();
+      return;
+    }
+
     const int cycle = std::max(120, edge_cycle_duration_ms_);
     const double cycle_phase =
         static_cast<double>(elapsed % cycle) / static_cast<double>(cycle);
@@ -409,14 +427,38 @@ void FlutterWindow::TickNativeAnimation() {
   }
 
   if (native_overlay_mode_ == NativeOverlayMode::kBarrage) {
+    bool has_active_item = false;
+    const DWORD now = GetTickCount();
     for (const auto& overlay : flash_overlay_windows_) {
       if (overlay.kind != OverlayWindowKind::kBarrage ||
           overlay.hwnd == nullptr || !IsWindow(overlay.hwnd)) {
         continue;
       }
-      // Barrage now renders in a narrow strip window, so a full invalidation is
-      // cheap and avoids stale regions.
+      auto* state = reinterpret_cast<BarrageOverlayState*>(
+          GetWindowLongPtr(overlay.hwnd, GWLP_USERDATA));
+      if (state == nullptr) {
+        continue;
+      }
+      state->items.erase(
+          std::remove_if(
+              state->items.begin(), state->items.end(),
+              [now](BarrageItemLayout& item) {
+                const bool expired =
+                    now - item.start_tick >=
+                    static_cast<DWORD>(std::max(1, item.duration_ms));
+                if (expired && item.font != nullptr) {
+                  DeleteObject(item.font);
+                  item.font = nullptr;
+                }
+                return expired;
+              }),
+          state->items.end());
+      has_active_item = has_active_item || !state->items.empty();
+      // Barrage rendering is light enough for full invalidation each frame.
       InvalidateRect(overlay.hwnd, nullptr, FALSE);
+    }
+    if (!has_active_item) {
+      ClearFlashOverlayWindows();
     }
   }
 }
@@ -609,101 +651,16 @@ void FlutterWindow::CreateBarrageOverlayForMonitor(const RECT& bounds,
   }
 
   auto* state = new BarrageOverlayState();
-  state->text = text;
-  state->text_length = static_cast<int>(state->text.size());
-  state->text_color = color;
-  state->start_tick = native_overlay_start_tick_;
   state->clear_brush = CreateSolidBrush(kTransparentColorKey);
   state->bubble_brush = CreateSolidBrush(RGB(24, 24, 24));
   state->bubble_pen = CreatePen(PS_SOLID, 1, RGB(186, 186, 186));
-  // ClearType can shimmer on color-keyed layered windows; use grayscale AA.
-  state->font = CreateFontW(-font_size, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
-                            DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
-                            CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
-                            DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
 
-  HDC dc = GetDC(overlay);
-  HFONT old_font = nullptr;
-  if (state->font != nullptr) {
-    old_font = reinterpret_cast<HFONT>(SelectObject(dc, state->font));
-  }
-
-  SIZE text_size{};
-  if (!GetTextExtentPoint32W(dc, state->text.c_str(),
-                             static_cast<int>(state->text.size()),
-                             &text_size)) {
-    text_size.cx = 140;
-    text_size.cy = std::max(20, font_size);
-  }
-
-  if (old_font != nullptr) {
-    SelectObject(dc, old_font);
-  }
-  ReleaseDC(overlay, dc);
-
-  state->text_width = std::max(40, static_cast<int>(text_size.cx));
-  state->text_height = std::max(20, static_cast<int>(text_size.cy));
-  state->start_x = static_cast<double>(width) + 40.0;
-  state->end_x = -static_cast<double>(state->text_width) - 60.0;
-
-  const double lane_y = static_cast<double>(height) * LaneFactor(lane);
-  const double row_spacing = std::max(
-      36.0, std::min(120.0, static_cast<double>(state->text_height) + 12.0));
-  const auto clamp_top = [&](double top) -> double {
-    const double max_top =
-        std::max(0.0, static_cast<double>(height - state->text_height));
-    return ClampDouble(top, 0.0, max_top);
-  };
-
-  state->items.reserve(repeat_count);
-  for (int index = 0; index < repeat_count; ++index) {
-    const double raw_top = [&]() -> double {
-      if (lane == "bottom") {
-        return lane_y - index * row_spacing;
-      }
-      if (lane == "middle") {
-        return lane_y + MiddleSignedStep(index) * row_spacing;
-      }
-      return lane_y + index * row_spacing;
-    }();
-    const double jitter =
-        RandomBetween(random_engine_, -row_spacing * 0.35, row_spacing * 0.35);
-    BarrageItemLayout item;
-    item.row_top = clamp_top(raw_top + jitter);
-    item.spawn_offset_x =
-        RandomBetween(random_engine_, -width * 0.18, width * 0.35);
-    item.end_extra = RandomBetween(random_engine_, 0.0, width * 0.2);
-    item.initial_progress = RandomBetween(random_engine_, 0.06, 0.42);
-    item.speed_factor = RandomBetween(random_engine_, 0.82, 1.2);
-    state->items.push_back(item);
-  }
-  std::shuffle(state->items.begin(), state->items.end(), random_engine_);
-
-  double min_track_top = static_cast<double>(height);
-  double max_track_bottom = 0.0;
-  for (const auto& item : state->items) {
-    min_track_top =
-        std::min(min_track_top, item.row_top - state->bubble_padding_y);
-    max_track_bottom = std::max(max_track_bottom,
-                                item.row_top + state->text_height +
-                                    state->bubble_padding_y * 2.0);
-  }
-  const int track_margin = 8;
-  const int raw_track_top =
-      static_cast<int>(std::floor(min_track_top)) - track_margin;
-  const int raw_track_bottom =
-      static_cast<int>(std::ceil(max_track_bottom)) + track_margin;
-  const int max_track_top = std::max(0, height - 1);
-  const int track_top_abs = std::clamp(raw_track_top, 0, max_track_top);
-  const int track_bottom_abs =
-      std::clamp(raw_track_bottom, track_top_abs + 1, height);
-  const int track_height = std::max(1, track_bottom_abs - track_top_abs);
-  // Convert from monitor-space rows to strip-local coordinates.
-  state->draw_y_offset = track_top_abs;
-  state->track_top = 0;
-  state->track_bottom = track_height;
   state->buffer_width = width;
-  state->buffer_height = track_height;
+  state->buffer_height = height;
+
+  SetWindowLongPtr(overlay, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(state));
+  AppendBarrageItemsToOverlay(overlay, text, color, duration_ms, speed,
+                              font_size, lane, repeat_count);
 
   HDC overlay_dc = GetDC(overlay);
   // Draw into an off-screen bitmap, then blit once to reduce visible flicker.
@@ -723,25 +680,132 @@ void FlutterWindow::CreateBarrageOverlayForMonitor(const RECT& bounds,
     ReleaseDC(overlay, overlay_dc);
   }
 
-  const double farthest_start_x = state->start_x + width * 0.35;
-  const double farthest_end_x = state->end_x - width * 0.2;
-  const double travel_distance = farthest_start_x - farthest_end_x;
-  const double effective_speed = std::max(1.0, speed) * 0.82;
-  const int travel_ms =
-      static_cast<int>(std::round(travel_distance / effective_speed * 1000.0));
-  state->total_duration_ms = std::max(duration_ms, travel_ms);
-  native_overlay_total_duration_ms_ = std::max(
-      native_overlay_total_duration_ms_, state->total_duration_ms + 120);
-
-  SetWindowLongPtr(overlay, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(state));
-
   SetLayeredWindowAttributes(overlay, kTransparentColorKey, 255, LWA_COLORKEY);
-  // Only occupy the barrage track, not the full monitor, to reduce composition.
-  SetWindowPos(overlay, HWND_TOPMOST, bounds.left, bounds.top + track_top_abs,
-               width, track_height, SWP_SHOWWINDOW | SWP_NOACTIVATE);
+  SetWindowPos(overlay, HWND_TOPMOST, bounds.left, bounds.top, width, height,
+               SWP_SHOWWINDOW | SWP_NOACTIVATE);
   UpdateWindow(overlay);
 
   flash_overlay_windows_.push_back({overlay, OverlayWindowKind::kBarrage});
+}
+
+void FlutterWindow::AppendBarrageItemsToOverlay(HWND overlay,
+                                                const std::wstring& text,
+                                                COLORREF color,
+                                                int duration_ms,
+                                                double speed,
+                                                int font_size,
+                                                const std::string& lane,
+                                                int repeat_count) {
+  if (overlay == nullptr || !IsWindow(overlay)) {
+    return;
+  }
+  auto* state = reinterpret_cast<BarrageOverlayState*>(
+      GetWindowLongPtr(overlay, GWLP_USERDATA));
+  if (state == nullptr) {
+    return;
+  }
+
+  RECT rect{};
+  if (!GetClientRect(overlay, &rect)) {
+    return;
+  }
+  const int width = rect.right - rect.left;
+  const int height = rect.bottom - rect.top;
+  if (width <= 0 || height <= 0) {
+    return;
+  }
+
+  HFONT measure_font = CreateFontW(-font_size, 0, 0, 0, FW_BOLD, FALSE, FALSE,
+                                   FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                                   CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
+                                   DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
+  HDC dc = GetDC(overlay);
+  HFONT old_font = nullptr;
+  if (dc != nullptr && measure_font != nullptr) {
+    old_font = reinterpret_cast<HFONT>(SelectObject(dc, measure_font));
+  }
+
+  SIZE text_size{};
+  if (dc == nullptr || !GetTextExtentPoint32W(dc, text.c_str(),
+                                               static_cast<int>(text.size()),
+                                               &text_size)) {
+    text_size.cx = 140;
+    text_size.cy = std::max(20, font_size);
+  }
+
+  if (dc != nullptr && old_font != nullptr) {
+    SelectObject(dc, old_font);
+  }
+  if (dc != nullptr) {
+    ReleaseDC(overlay, dc);
+  }
+  if (measure_font != nullptr) {
+    DeleteObject(measure_font);
+  }
+
+  const int text_width = std::max(40, static_cast<int>(text_size.cx));
+  const int text_height = std::max(20, static_cast<int>(text_size.cy));
+  const double lane_y = static_cast<double>(height) * LaneFactor(lane);
+  const double row_spacing =
+      std::max(36.0, std::min(120.0, static_cast<double>(text_height) + 12.0));
+  const auto clamp_top = [&](double top) -> double {
+    const double max_top = std::max(0.0, static_cast<double>(height - text_height));
+    return ClampDouble(top, 0.0, max_top);
+  };
+
+  const DWORD now = GetTickCount();
+  state->items.reserve(state->items.size() + repeat_count);
+  for (int index = 0; index < repeat_count; ++index) {
+    const double raw_top = [&]() -> double {
+      if (lane == "bottom") {
+        return lane_y - index * row_spacing;
+      }
+      if (lane == "middle") {
+        return lane_y + MiddleSignedStep(index) * row_spacing;
+      }
+      return lane_y + index * row_spacing;
+    }();
+
+    const double jitter =
+        RandomBetween(random_engine_, -row_spacing * 0.35, row_spacing * 0.35);
+    const double spawn_offset_x =
+        RandomBetween(random_engine_, -width * 0.18, width * 0.35);
+    const double end_extra = RandomBetween(random_engine_, 0.0, width * 0.2);
+    const double initial_progress = RandomBetween(random_engine_, 0.06, 0.42);
+    const double speed_factor = RandomBetween(random_engine_, 0.82, 1.2);
+    const double start_x = static_cast<double>(width) + 40.0 + spawn_offset_x;
+    const double end_x = -static_cast<double>(text_width) - 60.0 - end_extra;
+    const double adjusted_speed = std::max(1.0, speed) * speed_factor * 0.82;
+    const double start_x_now = start_x + (end_x - start_x) * initial_progress;
+    const double remaining_distance = std::max(1.0, start_x_now - end_x);
+    const double remaining_travel_seconds = remaining_distance / adjusted_speed;
+    const double requested_seconds = std::max(0.6, duration_ms / 1000.0);
+    const double animation_seconds = std::max(
+        requested_seconds * (1.0 - initial_progress * 0.55),
+        remaining_travel_seconds);
+
+    BarrageItemLayout item;
+    item.text = text;
+    item.text_color = color;
+    item.font = CreateFontW(-font_size, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+                            DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+                            CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
+                            DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
+    item.text_length = static_cast<int>(text.size());
+    item.text_width = text_width;
+    item.text_height = text_height;
+    item.start_tick = now;
+    item.duration_ms = std::max(1, static_cast<int>(std::round(animation_seconds * 1000.0)));
+    item.start_x = start_x;
+    item.end_x = end_x;
+    item.row_top = clamp_top(raw_top + jitter);
+    item.spawn_offset_x = spawn_offset_x;
+    item.end_extra = end_extra;
+    item.initial_progress = initial_progress;
+    item.speed_factor = speed_factor;
+    state->items.push_back(item);
+  }
+  std::shuffle(state->items.begin(), state->items.end(), random_engine_);
 }
 
 BOOL CALLBACK FlutterWindow::EnumDisplayMonitorsProc(HMONITOR monitor,
@@ -927,8 +991,6 @@ LRESULT CALLBACK FlutterWindow::BarrageOverlayWndProc(HWND hwnd,
       HDC dc = BeginPaint(hwnd, &paint);
       if (state != nullptr) {
         HDC render_dc = dc;
-        // Items keep monitor-space Y; convert to this strip window's local Y.
-        int y_offset = state->draw_y_offset;
         bool use_back_buffer = false;
         if (state->buffer_dc != nullptr && state->buffer_bitmap != nullptr &&
             state->buffer_width > 0 && state->buffer_height > 0) {
@@ -952,21 +1014,10 @@ LRESULT CALLBACK FlutterWindow::BarrageOverlayWndProc(HWND hwnd,
           DeleteObject(clear_brush);
         }
 
-        const DWORD elapsed = GetTickCount() - state->start_tick;
-        const double progress = state->total_duration_ms <= 0
-                                    ? 1.0
-                                    : ClampDouble(
-                                          static_cast<double>(elapsed) /
-                                              state->total_duration_ms,
-                                          0.0, 1.0);
+        const DWORD now = GetTickCount();
 
         SetBkMode(render_dc, TRANSPARENT);
         SetTextAlign(render_dc, TA_LEFT | TA_TOP | TA_NOUPDATECP);
-        HFONT old_font = nullptr;
-        if (state->font != nullptr) {
-          old_font =
-              reinterpret_cast<HFONT>(SelectObject(render_dc, state->font));
-        }
 
         HBRUSH bubble_brush = state->bubble_brush;
         HPEN bubble_pen = state->bubble_pen;
@@ -982,39 +1033,49 @@ LRESULT CALLBACK FlutterWindow::BarrageOverlayWndProc(HWND hwnd,
         }
         HGDIOBJ old_brush = SelectObject(render_dc, bubble_brush);
         HGDIOBJ old_pen = SelectObject(render_dc, bubble_pen);
-        const int text_length = std::max(0, state->text_length);
 
         for (const auto& item : state->items) {
-          const double start_x = state->start_x + item.spawn_offset_x;
-          const double end_x = state->end_x - item.end_extra;
+          const double progress = item.duration_ms <= 0
+                                      ? 1.0
+                                      : ClampDouble(
+                                            static_cast<double>(
+                                                now - item.start_tick) /
+                                                item.duration_ms,
+                                            0.0, 1.0);
           const double base_progress =
               item.initial_progress + (1.0 - item.initial_progress) * progress;
           const double eased_progress =
               1.0 - std::pow(1.0 - base_progress, item.speed_factor);
-          const double x = start_x + (end_x - start_x) * eased_progress;
+          const double x =
+              item.start_x + (item.end_x - item.start_x) * eased_progress;
           const double y = item.row_top;
           const int x_px = static_cast<int>(std::round(x));
-          const int y_px = static_cast<int>(std::round(y)) - y_offset;
+          const int y_px = static_cast<int>(std::round(y));
 
-          const int bubble_left =
-              x_px - state->bubble_padding_x;
-          const int bubble_top =
-              y_px - state->bubble_padding_y;
-          const int bubble_right = bubble_left + state->text_width +
-                                   state->bubble_padding_x * 2;
-          const int bubble_bottom = bubble_top + state->text_height +
-                                    state->bubble_padding_y * 2;
+          const int bubble_left = x_px - item.bubble_padding_x;
+          const int bubble_top = y_px - item.bubble_padding_y;
+          const int bubble_right =
+              bubble_left + item.text_width + item.bubble_padding_x * 2;
+          const int bubble_bottom =
+              bubble_top + item.text_height + item.bubble_padding_y * 2;
 
-          RoundRect(render_dc, bubble_left, bubble_top, bubble_right,
-                    bubble_bottom,
-                    state->bubble_radius, state->bubble_radius);
+          RoundRect(render_dc, bubble_left, bubble_top, bubble_right, bubble_bottom,
+                    item.bubble_radius, item.bubble_radius);
 
+          HFONT old_font = nullptr;
+          if (item.font != nullptr) {
+            old_font = reinterpret_cast<HFONT>(SelectObject(render_dc, item.font));
+          }
           SetTextColor(render_dc, RGB(0, 0, 0));
-          TextOutW(render_dc, x_px + 1, y_px + 1, state->text.c_str(),
-                   text_length);
+          TextOutW(render_dc, x_px + 1, y_px + 1, item.text.c_str(),
+                   std::max(0, item.text_length));
 
-          SetTextColor(render_dc, state->text_color);
-          TextOutW(render_dc, x_px, y_px, state->text.c_str(), text_length);
+          SetTextColor(render_dc, item.text_color);
+          TextOutW(render_dc, x_px, y_px, item.text.c_str(),
+                   std::max(0, item.text_length));
+          if (old_font != nullptr) {
+            SelectObject(render_dc, old_font);
+          }
         }
 
         if (use_back_buffer) {
@@ -1031,10 +1092,6 @@ LRESULT CALLBACK FlutterWindow::BarrageOverlayWndProc(HWND hwnd,
         }
         if (owns_bubble_brush) {
           DeleteObject(bubble_brush);
-        }
-
-        if (old_font != nullptr) {
-          SelectObject(render_dc, old_font);
         }
       }
       EndPaint(hwnd, &paint);
@@ -1068,9 +1125,11 @@ LRESULT CALLBACK FlutterWindow::BarrageOverlayWndProc(HWND hwnd,
           DeleteObject(state->bubble_brush);
           state->bubble_brush = nullptr;
         }
-        if (state->font != nullptr) {
-          DeleteObject(state->font);
-          state->font = nullptr;
+        for (auto& item : state->items) {
+          if (item.font != nullptr) {
+            DeleteObject(item.font);
+            item.font = nullptr;
+          }
         }
         delete state;
       }

@@ -144,7 +144,7 @@ void main() {
     });
 
     test(
-      'returns validation errors for non-flash request with empty body',
+      'returns validation errors for non-flash request with empty message',
       () async {
         final result = await _postNotify(port: port, body: '{"title":"A"}');
 
@@ -152,7 +152,9 @@ void main() {
         expect(result.body['error'], 'Invalid notification request.');
         expect(
           result.body['validationErrors'],
-          contains('Field "body" is required for non-overlay notifications.'),
+          contains(
+            'Field "message" is required for non-overlay notifications.',
+          ),
         );
         expect(notificationService.callCount, 0);
       },
@@ -161,7 +163,7 @@ void main() {
     test('returns validation errors for invalid enum values', () async {
       final result = await _postNotify(
         port: port,
-        body: '{"title":"A","body":"B","priority":"urgent"}',
+        body: '{"title":"A","message":"B","priority":"urgent"}',
       );
 
       expect(result.statusCode, 400);
@@ -173,7 +175,7 @@ void main() {
     });
 
     test(
-      'accepts flash request with empty body and forwards to service',
+      'accepts flash request with empty message and forwards to service',
       () async {
         final result = await _postNotify(
           port: port,
@@ -235,7 +237,7 @@ void main() {
     });
 
     test(
-      'accepts barrage request with empty body and forwards to service',
+      'accepts barrage request with empty message and forwards to service',
       () async {
         final result = await _postNotify(
           port: port,
@@ -287,7 +289,7 @@ void main() {
 
       final result = await _postNotify(
         port: port,
-        body: '{"title":"Barrage","category":"barrage","body":"x"}',
+        body: '{"title":"Barrage","category":"barrage","message":"x"}',
       );
 
       expect(result.statusCode, 403);
@@ -298,11 +300,14 @@ void main() {
       expect(notificationService.callCount, 0);
     });
 
-    test('returns 404 for removed GET /api/status endpoint', () async {
+    test('returns server status for GET /api/status', () async {
       final result = await _getPath(port: port, path: '/api/status');
 
-      expect(result.statusCode, 404);
-      expect(result.body['success'], false);
+      expect(result.statusCode, 200);
+      expect(result.body['success'], true);
+      expect(result.body['running'], true);
+      expect(result.body['port'], port);
+      expect(result.body['uptimeSeconds'], isA<int>());
     });
   });
 
@@ -363,11 +368,15 @@ void main() {
 
       expect(result.statusCode, 200);
       final tools = result.body['result']['tools'] as List<dynamic>;
-      expect(tools, hasLength(1));
+      expect(tools, hasLength(3));
       final toolNames = tools
           .map((tool) => (tool as Map<String, dynamic>)['name'] as String)
           .toList();
-      expect(toolNames, ['snotice_send_notification']);
+      expect(toolNames, [
+        'snotice_send_notification',
+        'snotice_get_status',
+        'snotice_get_config',
+      ]);
     });
 
     test(
@@ -382,7 +391,7 @@ void main() {
             'method': 'tools/call',
             'params': {
               'name': 'snotice_send_notification',
-              'arguments': {'title': 'MCP', 'body': 'hello'},
+              'arguments': {'title': 'MCP', 'message': 'hello'},
             },
           }),
         );
@@ -394,7 +403,7 @@ void main() {
       },
     );
 
-    test('tools/call rejects removed tools', () async {
+    test('tools/call returns server status', () async {
       final result = await _postPath(
         port: port,
         path: '/api/mcp',
@@ -407,10 +416,32 @@ void main() {
       );
 
       expect(result.statusCode, 200);
-      expect(result.body['error']['code'], -32601);
+      expect(result.body['result']['isError'], false);
+      expect(result.body['result']['structuredContent']['status'], 200);
       expect(
-        result.body['error']['message'],
-        'Unknown tool: snotice_get_status',
+        result.body['result']['structuredContent']['body']['running'],
+        true,
+      );
+    });
+
+    test('tools/call returns current config', () async {
+      final result = await _postPath(
+        port: port,
+        path: '/api/mcp',
+        body: jsonEncode({
+          'jsonrpc': '2.0',
+          'id': 5,
+          'method': 'tools/call',
+          'params': {'name': 'snotice_get_config'},
+        }),
+      );
+
+      expect(result.statusCode, 200);
+      expect(result.body['result']['isError'], false);
+      expect(result.body['result']['structuredContent']['status'], 200);
+      expect(
+        result.body['result']['structuredContent']['body']['config']['port'],
+        port,
       );
     });
   });

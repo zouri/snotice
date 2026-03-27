@@ -12,14 +12,15 @@ Success body fields:
 
 - `running` (bool)
 - `port` (int)
-- `uptime` (seconds)
+- `uptimeSeconds` (seconds)
+- `startedAt` (ISO timestamp, only when server is running)
 
 ### `POST /api/notify`
 
 Request body key fields:
 
 - Required: `title`
-- Required for non-overlay notifications: `body`
+- Required for non-overlay notifications: `message`
 - Optional: `priority` (`low|normal|high`)
 - Optional overlay category:
   `category=flash_full` or `category=flash_edge` or `category=barrage`
@@ -44,6 +45,11 @@ Server-side defaults:
 
 Compatibility aliases are not supported. Use canonical field names only.
 
+Compatibility note:
+
+- Legacy field `body` is still accepted as an input alias, but new callers
+  should send `message`.
+
 ### `POST /api/mcp`
 
 MCP JSON-RPC endpoint that exposes:
@@ -51,7 +57,6 @@ MCP JSON-RPC endpoint that exposes:
 - `snotice_send_notification`
 - `snotice_get_status`
 - `snotice_get_config`
-- `snotice_update_config`
 
 ## Common Error Cases
 

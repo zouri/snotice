@@ -5,7 +5,7 @@
 ```json
 {
   "title": "Build Finished",
-  "body": "Desktop bundle completed",
+  "message": "Desktop bundle completed",
   "priority": "normal"
 }
 ```
@@ -15,7 +15,7 @@
 ```json
 {
   "title": "Alert",
-  "body": "Immediate attention",
+  "message": "Immediate attention",
   "category": "flash_full",
   "flashColor": "#FF0000",
   "flashDuration": 800
@@ -27,7 +27,7 @@
 ```json
 {
   "title": "Edge Alert",
-  "body": "Peripheral indicator",
+  "message": "Peripheral indicator",
   "category": "flash_edge",
   "flashColor": "#00D1FF",
   "flashDuration": 700,
@@ -42,7 +42,7 @@
 ```json
 {
   "title": "Barrage Alert",
-  "body": "Build completed",
+  "message": "Build completed",
   "category": "barrage",
   "barrageColor": "#FFD84D",
   "barrageDuration": 6000,
@@ -64,7 +64,7 @@
     "name": "snotice_send_notification",
     "arguments": {
       "title": "Barrage Alert",
-      "body": "Build completed",
+      "message": "Build completed",
       "category": "barrage",
       "barrageColor": "#FFD84D",
       "barrageDuration": 6000,

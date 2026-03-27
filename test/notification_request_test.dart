@@ -6,7 +6,7 @@ void main() {
     test('parses canonical fields', () {
       final request = NotificationRequest.fromJson({
         'title': 'Alert',
-        'body': 'Body',
+        'message': 'Body',
         'category': 'flash_edge',
         'flashColor': '#00FF00',
         'flashDuration': '700',
@@ -17,7 +17,7 @@ void main() {
       });
 
       expect(request.title, 'Alert');
-      expect(request.body, 'Body');
+      expect(request.message, 'Body');
       expect(request.category, NotificationCategory.flashEdge);
       expect(request.flashColor, '#00FF00');
       expect(request.flashDuration, 700);
@@ -30,7 +30,16 @@ void main() {
       expect(request.isValid, isTrue);
     });
 
-    test('does not parse legacy alias fields', () {
+    test('parses body as compatibility alias', () {
+      final request = NotificationRequest.fromJson({
+        'title': 'Alert',
+        'body': 'Body from alias',
+      });
+
+      expect(request.message, 'Body from alias');
+    });
+
+    test('does not parse unsupported legacy option aliases', () {
       final request = NotificationRequest.fromJson({
         'title': 'Alert',
         'message': 'Body from alias',
@@ -42,7 +51,6 @@ void main() {
         'repeat': 2,
       });
 
-      expect(request.body, isEmpty);
       expect(request.category, isNull);
       expect(request.flashColor, isNull);
       expect(request.flashDuration, isNull);
@@ -52,7 +60,10 @@ void main() {
     });
 
     test('uses defaults when optional fields are missing', () {
-      final request = NotificationRequest.fromJson({'title': 'T', 'body': 'B'});
+      final request = NotificationRequest.fromJson({
+        'title': 'T',
+        'message': 'B',
+      });
 
       expect(request.priority, NotificationPriority.normal);
       expect(request.category, isNull);
@@ -64,7 +75,7 @@ void main() {
     test('falls back to known defaults for unknown enum-like values', () {
       final request = NotificationRequest.fromJson({
         'title': 'T',
-        'body': 'B',
+        'message': 'B',
         'priority': 'urgent',
         'category': 'custom',
       });
@@ -86,7 +97,7 @@ void main() {
   });
 
   group('NotificationRequest.validate', () {
-    test('allows flash request with empty body', () {
+    test('allows flash request with empty message', () {
       final request = NotificationRequest.fromJson({
         'title': 'Flash only',
         'category': 'flash_full',
@@ -96,19 +107,19 @@ void main() {
       expect(request.validate(), isEmpty);
     });
 
-    test('requires body for non-overlay notifications', () {
+    test('requires message for non-overlay notifications', () {
       final request = NotificationRequest.fromJson({
-        'title': 'No body',
+        'title': 'No message',
         'category': 'notice',
       });
 
       expect(
         request.validate(),
-        contains('Field "body" is required for non-overlay notifications.'),
+        contains('Field "message" is required for non-overlay notifications.'),
       );
     });
 
-    test('allows barrage request with empty body', () {
+    test('allows barrage request with empty message', () {
       final request = NotificationRequest.fromJson({
         'title': 'Barrage only',
         'category': 'barrage',
@@ -145,7 +156,7 @@ void main() {
     test('requires flash_edge category when edge-only fields are provided', () {
       final request = NotificationRequest.fromJson({
         'title': 'T',
-        'body': 'B',
+        'message': 'B',
         'edgeWidth': 8,
       });
 
@@ -162,7 +173,7 @@ void main() {
     test('payload map is unmodifiable', () {
       final request = NotificationRequest(
         title: 'T',
-        body: 'B',
+        message: 'B',
         payload: {'a': 1},
       );
 
@@ -172,11 +183,11 @@ void main() {
 
   group('NotificationRequest.toJson', () {
     test('always includes priority and excludes null optionals', () {
-      final request = NotificationRequest(title: 'Title', body: 'Body');
+      final request = NotificationRequest(title: 'Title', message: 'Body');
 
       final json = request.toJson();
       expect(json['title'], 'Title');
-      expect(json['body'], 'Body');
+      expect(json['message'], 'Body');
       expect(json['priority'], 'normal');
       expect(json.containsKey('category'), isFalse);
       expect(json.containsKey('payload'), isFalse);

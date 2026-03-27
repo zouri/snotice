@@ -110,7 +110,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get httpApiParamBodyDesc =>
-      '通知内容。普通通知必填；当 category=flash_full / flash_edge / barrage 时可为空。';
+      '通知消息内容。普通通知必填；当 category=flash_full / flash_edge / barrage 时可为空。';
 
   @override
   String get httpApiParamPriorityDesc =>
@@ -184,11 +184,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get httpApiNotesTitle => '注意事项';
 
   @override
-  String get httpApiNotesAliases => '不支持别名字段，只接受标准字段名。';
+  String get httpApiNotesAliases => '请使用标准字段名 message。旧字段 body 仅作为兼容别名保留。';
 
   @override
   String get httpApiNotesBodyOptional =>
-      '仅 flash_full / flash_edge / barrage 通知允许 body 为空；普通通知必须提供 body。';
+      '仅 flash_full / flash_edge / barrage 通知允许 message 为空；普通通知必须提供 message。';
 
   @override
   String get httpApiNotesEdgeOnly =>

@@ -43,7 +43,7 @@ curl -X POST http://localhost:8642/api/notify \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Hello",
-    "body": "This is a notification",
+    "message": "This is a notification",
     "priority": "high"
   }'
 ```
@@ -61,7 +61,7 @@ curl -X POST http://localhost:8642/api/notify \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Alert",
-    "body": "Screen flash",
+    "message": "Screen flash",
     "category": "flash_full",
     "flashColor": "gray",
     "flashDuration": 100
@@ -91,7 +91,7 @@ curl -X POST http://localhost:8642/api/notify \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Barrage Alert",
-    "body": "Build passed",
+    "message": "Build passed",
     "category": "barrage",
     "barrageColor": "#FFD84D",
     "barrageDuration": 6000,
@@ -122,7 +122,7 @@ python3 scripts/test_http_api.py notify --mode flash_full --flash-color "#FF0000
 python3 scripts/test_http_api.py notify --mode flash_edge --flash-color "#00D1FF"
 
 # Send a barrage overlay notification
-python3 scripts/test_http_api.py notify --mode barrage --body "Deploy finished"
+python3 scripts/test_http_api.py notify --mode barrage --message "Deploy finished"
 
 # Run smoke test (status + normal notify + edge notify)
 python3 scripts/test_http_api.py smoke --include-edge
@@ -137,7 +137,8 @@ Supported `notify --mode` values:
 
 Request notes:
 
-- `body` is required for normal notifications, and optional for `flash_full`, `flash_edge`, and `barrage`.
+- `message` is required for normal notifications, and optional for `flash_full`, `flash_edge`, and `barrage`.
+- `body` is still accepted as a compatibility alias, but `message` is the canonical field.
 - `edgeWidth` / `edgeOpacity` / `edgeRepeat` are valid only when `category=flash_edge`.
 - `barrageColor` / `barrageDuration` / `barrageSpeed` / `barrageFontSize` /
   `barrageLane` / `barrageRepeat` are valid only when `category=barrage`.
@@ -160,7 +161,6 @@ Exposed MCP tools:
 - `snotice_send_notification`
 - `snotice_get_status`
 - `snotice_get_config`
-- `snotice_update_config`
 
 Quick probe:
 
@@ -186,7 +186,38 @@ Quick command examples:
 ```bash
 python3 skills/snotice-agent/scripts/snotice_call.py status
 python3 skills/snotice-agent/scripts/snotice_call.py config-get
-python3 skills/snotice-agent/scripts/snotice_call.py notify --title "Build Done" --body "Release package finished"
+python3 skills/snotice-agent/scripts/snotice_call.py notify --title "Build Done" --message "Release package finished"
+```
+
+### 3) Hook/Notify Adapter for Claude Code, Codex, OpenCode
+
+This repo also includes a lightweight adapter script:
+
+- `scripts/agent_notify.py`
+- `scripts/install_agent_hooks.py`
+
+It accepts hook payloads from agent CLIs, normalizes them, and forwards them
+to `POST /api/notify`.
+
+Quick dry-run example:
+
+```bash
+python3 scripts/agent_notify.py \
+  --agent codex \
+  --dry-run \
+  --input-json '{"event":"task_completed","message":"Build finished"}'
+```
+
+Integration guides:
+
+- [Claude Code](./docs/integrations/claude_code.md)
+- [Codex](./docs/integrations/codex.md)
+- [OpenCode](./docs/integrations/opencode.md)
+
+One-command install:
+
+```bash
+python3 scripts/install_agent_hooks.py install
 ```
 
 ## Documentation

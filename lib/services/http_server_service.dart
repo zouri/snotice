@@ -21,6 +21,7 @@ class HttpServerService {
   final JsonEncoder _prettyJson = const JsonEncoder.withIndent('  ');
   HttpServer? _server;
   AppConfig _config;
+  DateTime? _startedAt;
 
   HttpServerService({
     required NotificationService notificationService,
@@ -41,6 +42,7 @@ class HttpServerService {
 
     try {
       final router = Router()
+        ..get('/api/status', _handleStatus)
         ..post('/api/notify', _handleNotify)
         ..post('/api/mcp', _handleMcp)
         ..all('/<ignored|.*>', _handleNotFound);
@@ -56,6 +58,7 @@ class HttpServerService {
       );
 
       _logger.info('Server started on port ${_config.port}');
+      _startedAt = DateTime.now();
     } catch (e) {
       _logger.error('Failed to start server: $e');
       rethrow;
@@ -70,6 +73,7 @@ class HttpServerService {
 
     await _server!.close();
     _server = null;
+    _startedAt = null;
     _logger.info('Server stopped');
   }
 
@@ -111,6 +115,11 @@ class HttpServerService {
     } on FormatException {
       return ResponseUtil.badRequest('Request body must be valid JSON.');
     }
+  }
+
+  Future<Response> _handleStatus(Request request) async {
+    _logger.request('GET /api/status');
+    return _jsonResponse(200, _statusBody());
   }
 
   Future<Response> _handleMcp(Request request) async {
@@ -245,8 +254,11 @@ class HttpServerService {
     switch (name) {
       case 'snotice_send_notification':
         final payload = Map<String, dynamic>.from(arguments);
-        if (!payload.containsKey('body')) {
-          payload['body'] = '';
+        if (!payload.containsKey('message') && payload.containsKey('body')) {
+          payload['message'] = payload['body'];
+        }
+        if (!payload.containsKey('message')) {
+          payload['message'] = '';
         }
         final notifyResult = await _processNotifyPayload(
           payload,
@@ -255,6 +267,25 @@ class HttpServerService {
         return _mcpResult(
           id,
           _mcpToolResult('snotice_send_notification', notifyResult),
+        );
+      case 'snotice_get_status':
+        return _mcpResult(
+          id,
+          _mcpToolResult(
+            'snotice_get_status',
+            _ServiceCallResult(200, _statusBody()),
+          ),
+        );
+      case 'snotice_get_config':
+        return _mcpResult(
+          id,
+          _mcpToolResult(
+            'snotice_get_config',
+            _ServiceCallResult(200, {
+              'success': true,
+              'config': _config.toJson(),
+            }),
+          ),
         );
 
       default:
@@ -271,7 +302,7 @@ class HttpServerService {
           'type': 'object',
           'properties': {
             'title': {'type': 'string'},
-            'body': {'type': 'string'},
+            'message': {'type': 'string'},
             'priority': {
               'type': 'string',
               'enum': ['low', 'normal', 'high'],
@@ -302,7 +333,40 @@ class HttpServerService {
           'additionalProperties': false,
         },
       },
+      {
+        'name': 'snotice_get_status',
+        'description': 'Read server status, port, and uptime.',
+        'inputSchema': {
+          'type': 'object',
+          'properties': {},
+          'additionalProperties': false,
+        },
+      },
+      {
+        'name': 'snotice_get_config',
+        'description': 'Read the current SNotice configuration.',
+        'inputSchema': {
+          'type': 'object',
+          'properties': {},
+          'additionalProperties': false,
+        },
+      },
     ];
+  }
+
+  Map<String, dynamic> _statusBody() {
+    final startedAt = _startedAt;
+    final uptimeSeconds = startedAt == null
+        ? 0
+        : DateTime.now().difference(startedAt).inSeconds;
+
+    return {
+      'success': true,
+      'running': isRunning,
+      'port': _config.port,
+      'uptimeSeconds': uptimeSeconds,
+      if (startedAt != null) 'startedAt': startedAt.toIso8601String(),
+    };
   }
 
   Future<_ServiceCallResult> _processNotifyPayload(
