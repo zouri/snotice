@@ -9,25 +9,105 @@
 >
   <title id="title">SNotice Icon</title>
   <desc id="desc">
-    Rounded black square with a bold white S mark and a notification dot.
+    Rounded dark square with a minimal beacon symbol for local notifications.
   </desc>
 
-  <rect width="1024" height="1024" rx="224" fill="#050505" />
+  <defs>
+    <linearGradient
+      id="bgGradient"
+      x1="156"
+      y1="124"
+      x2="872"
+      y2="908"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#111827" />
+      <stop offset="0.52" stop-color="#0F2245" />
+      <stop offset="1" stop-color="#070C16" />
+    </linearGradient>
+    <linearGradient
+      id="surfaceGlow"
+      x1="244"
+      y1="194"
+      x2="730"
+      y2="744"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#A7C5FF" stop-opacity="0.28" />
+      <stop offset="1" stop-color="#A7C5FF" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient
+      id="ringGradient"
+      x1="336"
+      y1="316"
+      x2="712"
+      y2="730"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop offset="0" stop-color="#F7FBFF" />
+      <stop offset="0.55" stop-color="#CFE0FF" />
+      <stop offset="1" stop-color="#6EA0FF" />
+    </linearGradient>
+    <radialGradient
+      id="coreGradient"
+      cx="0"
+      cy="0"
+      r="1"
+      gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(490 574) rotate(90) scale(172)"
+    >
+      <stop offset="0" stop-color="#F7FBFF" />
+      <stop offset="1" stop-color="#7FB0FF" />
+    </radialGradient>
+    <radialGradient
+      id="signalGlow"
+      cx="0"
+      cy="0"
+      r="1"
+      gradientUnits="userSpaceOnUse"
+      gradientTransform="translate(726 328) rotate(90) scale(136)"
+    >
+      <stop offset="0" stop-color="#73A6FF" stop-opacity="0.56" />
+      <stop offset="1" stop-color="#73A6FF" stop-opacity="0" />
+    </radialGradient>
+  </defs>
 
-  <path
-    d="M700 280
-      C648 238 587 216 508 216
-      C362 216 270 290 270 392
-      C270 496 348 545 473 581
-      C582 612 656 636 656 711
-      C656 782 591 828 491 828
-      C410 828 339 798 280 744"
+  <rect width="1024" height="1024" rx="224" fill="url(#bgGradient)" />
+  <rect
+    x="56"
+    y="56"
+    width="912"
+    height="912"
+    rx="188"
     fill="none"
-    stroke="#F8F8F3"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    stroke-width="136"
+    stroke="#BFD3FF"
+    stroke-opacity="0.15"
+    stroke-width="8"
   />
 
-  <circle cx="766" cy="260" r="76" fill="#F8F8F3" />
+  <path
+    d="M204 214
+      C300 140 444 110 602 124
+      C742 138 856 220 920 348
+      C844 282 744 246 620 242
+      C450 236 300 304 204 420
+      C166 354 164 270 204 214 Z"
+    fill="url(#surfaceGlow)"
+  />
+
+  <path
+    d="M686 252
+      A262 262 0 1 1 296 824"
+    fill="none"
+    stroke="url(#ringGradient)"
+    stroke-linecap="round"
+    stroke-width="110"
+  />
+
+  <circle cx="490" cy="574" r="136" fill="url(#coreGradient)" />
+  <circle cx="490" cy="574" r="56" fill="#0E2A59" fill-opacity="0.18" />
+
+  <circle cx="726" cy="328" r="132" fill="url(#signalGlow)" />
+  <circle cx="726" cy="328" r="74" fill="#EAF3FF" />
+  <circle cx="726" cy="328" r="32" fill="#4F7BFF" />
 </svg>

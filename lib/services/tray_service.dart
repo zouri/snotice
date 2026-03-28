@@ -48,6 +48,7 @@ class TrayService {
         title: Platform.isMacOS ? '' : null,
         iconPath: path,
         toolTip: AppConstants.appName,
+        isTemplate: Platform.isMacOS,
       );
 
       _trayReady = true;
@@ -72,6 +73,9 @@ class TrayService {
   String _resolveTrayIconPath() {
     if (Platform.isWindows) {
       return 'assets/icons/tray_icon.ico';
+    }
+    if (Platform.isMacOS) {
+      return 'assets/icons/tray_icon_template.png';
     }
     return 'assets/icons/tray_icon.png';
   }
