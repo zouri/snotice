@@ -75,7 +75,7 @@ class TrayService {
       return 'assets/icons/tray_icon.ico';
     }
     if (Platform.isMacOS) {
-      return 'assets/icons/tray_icon_template.png';
+      return 'assets/icons/menubar_bell_template.png';
     }
     return 'assets/icons/tray_icon.png';
   }
