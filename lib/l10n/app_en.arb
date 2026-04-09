@@ -11,6 +11,7 @@
   "navHistory": "History",
   "navCallLogs": "Call Logs",
   "navHttpApi": "Usage",
+  "navNotificationTest": "Test Lab",
   "navSettings": "Settings",
   "httpApiIntroTitle": "API Overview",
   "httpApiIntroBody": "SNotice exposes HTTP APIs for system notifications, flash alerts, and barrage overlays. The server listens on the configured port, and you can change that port in Settings.",
@@ -212,6 +213,59 @@
   "titleRequired": "Please enter a title",
   "message": "Message",
   "messageRequired": "Please enter a message",
+  "notificationPriorityLabel": "Priority",
+  "notificationTestTitle": "Notification Test Lab",
+  "notificationTestSubtitle": "Compose a request, trigger it locally, and copy the exact curl command.",
+  "notificationTestRequestCardTitle": "Request Builder",
+  "notificationTestRequestCardDesc": "Switch between notification effects, adjust parameters, and generate a reusable request.",
+  "notificationTestEffectCardTitle": "Effect Parameters",
+  "notificationTestEffectCardDesc": "Overlay-only settings are shown here. Leave optional fields blank to fall back to saved defaults.",
+  "notificationTestPreviewCardTitle": "Preview",
+  "notificationTestPreviewCardDesc": "The JSON payload and curl command always stay in sync with the form on the left.",
+  "notificationTestResponseCardTitle": "Latest Response",
+  "notificationTestResponseEmpty": "No request has been sent from this page yet.",
+  "notificationTestEffectTypeLabel": "Effect",
+  "notificationTestEffectStandard": "Notification",
+  "notificationTestEffectFlashFull": "Flash Full",
+  "notificationTestEffectFlashEdge": "Flash Edge",
+  "notificationTestEffectBarrage": "Barrage",
+  "notificationTestSendButton": "Send Test",
+  "notificationTestCopyCurlButton": "Copy curl",
+  "notificationTestResetButton": "Reset",
+  "notificationTestCopiedCurl": "curl command copied.",
+  "notificationTestSent": "Test notification sent.",
+  "notificationTestLeaveBlankDefaults": "Leave optional effect fields blank to use the current server defaults.",
+  "notificationTestNoExtraSettings": "No extra parameters are required for a standard notification.",
+  "notificationTestServerStopped": "Service stopped",
+  "notificationTestPayloadLabel": "Payload (JSON object, optional)",
+  "notificationTestPayloadHint": "Example: source=test_lab",
+  "notificationTestIconLabel": "Icon (optional)",
+  "notificationTestBuildError": "Could not build request: {error}",
+  "@notificationTestBuildError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "notificationTestPayloadMustBeObject": "Payload must be a JSON object.",
+  "notificationTestServiceStartFailed": "Unable to start the local service.",
+  "notificationTestResponseStatus": "HTTP {status}",
+  "@notificationTestResponseStatus": {
+    "placeholders": {
+      "status": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationTestEndpointLabel": "Endpoint",
+  "notificationTestEndpointDesc": "Requests go through the same local HTTP API used by external curl clients.",
+  "notificationTestPreviewInvalid": "Fix the request errors below before sending or copying.",
+  "notificationTestInvalidNumber": "Enter a valid number for {label}.",
+  "@notificationTestInvalidNumber": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "notificationTestInvalidJson": "Payload must be valid JSON.",
   "flashSettings": "Flash Settings",
   "color": "Color",
   "duration": "Duration: {duration}ms",

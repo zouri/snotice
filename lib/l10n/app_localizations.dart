@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'Usage'**
   String get navHttpApi;
 
+  /// No description provided for @navNotificationTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Lab'**
+  String get navNotificationTest;
+
   /// No description provided for @navSettings.
   ///
   /// In en, this message translates to:
@@ -1111,6 +1117,222 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please enter a message'**
   String get messageRequired;
+
+  /// No description provided for @notificationPriorityLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get notificationPriorityLabel;
+
+  /// No description provided for @notificationTestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Test Lab'**
+  String get notificationTestTitle;
+
+  /// No description provided for @notificationTestSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Compose a request, trigger it locally, and copy the exact curl command.'**
+  String get notificationTestSubtitle;
+
+  /// No description provided for @notificationTestRequestCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Builder'**
+  String get notificationTestRequestCardTitle;
+
+  /// No description provided for @notificationTestRequestCardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch between notification effects, adjust parameters, and generate a reusable request.'**
+  String get notificationTestRequestCardDesc;
+
+  /// No description provided for @notificationTestEffectCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect Parameters'**
+  String get notificationTestEffectCardTitle;
+
+  /// No description provided for @notificationTestEffectCardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Overlay-only settings are shown here. Leave optional fields blank to fall back to saved defaults.'**
+  String get notificationTestEffectCardDesc;
+
+  /// No description provided for @notificationTestPreviewCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get notificationTestPreviewCardTitle;
+
+  /// No description provided for @notificationTestPreviewCardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The JSON payload and curl command always stay in sync with the form on the left.'**
+  String get notificationTestPreviewCardDesc;
+
+  /// No description provided for @notificationTestResponseCardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest Response'**
+  String get notificationTestResponseCardTitle;
+
+  /// No description provided for @notificationTestResponseEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No request has been sent from this page yet.'**
+  String get notificationTestResponseEmpty;
+
+  /// No description provided for @notificationTestEffectTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Effect'**
+  String get notificationTestEffectTypeLabel;
+
+  /// No description provided for @notificationTestEffectStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get notificationTestEffectStandard;
+
+  /// No description provided for @notificationTestEffectFlashFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash Full'**
+  String get notificationTestEffectFlashFull;
+
+  /// No description provided for @notificationTestEffectFlashEdge.
+  ///
+  /// In en, this message translates to:
+  /// **'Flash Edge'**
+  String get notificationTestEffectFlashEdge;
+
+  /// No description provided for @notificationTestEffectBarrage.
+  ///
+  /// In en, this message translates to:
+  /// **'Barrage'**
+  String get notificationTestEffectBarrage;
+
+  /// No description provided for @notificationTestSendButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Test'**
+  String get notificationTestSendButton;
+
+  /// No description provided for @notificationTestCopyCurlButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy curl'**
+  String get notificationTestCopyCurlButton;
+
+  /// No description provided for @notificationTestResetButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get notificationTestResetButton;
+
+  /// No description provided for @notificationTestCopiedCurl.
+  ///
+  /// In en, this message translates to:
+  /// **'curl command copied.'**
+  String get notificationTestCopiedCurl;
+
+  /// No description provided for @notificationTestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Test notification sent.'**
+  String get notificationTestSent;
+
+  /// No description provided for @notificationTestLeaveBlankDefaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave optional effect fields blank to use the current server defaults.'**
+  String get notificationTestLeaveBlankDefaults;
+
+  /// No description provided for @notificationTestNoExtraSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'No extra parameters are required for a standard notification.'**
+  String get notificationTestNoExtraSettings;
+
+  /// No description provided for @notificationTestServerStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Service stopped'**
+  String get notificationTestServerStopped;
+
+  /// No description provided for @notificationTestPayloadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payload (JSON object, optional)'**
+  String get notificationTestPayloadLabel;
+
+  /// No description provided for @notificationTestPayloadHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: source=test_lab'**
+  String get notificationTestPayloadHint;
+
+  /// No description provided for @notificationTestIconLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon (optional)'**
+  String get notificationTestIconLabel;
+
+  /// No description provided for @notificationTestBuildError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not build request: {error}'**
+  String notificationTestBuildError(Object error);
+
+  /// No description provided for @notificationTestPayloadMustBeObject.
+  ///
+  /// In en, this message translates to:
+  /// **'Payload must be a JSON object.'**
+  String get notificationTestPayloadMustBeObject;
+
+  /// No description provided for @notificationTestServiceStartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to start the local service.'**
+  String get notificationTestServiceStartFailed;
+
+  /// No description provided for @notificationTestResponseStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP {status}'**
+  String notificationTestResponseStatus(int status);
+
+  /// No description provided for @notificationTestEndpointLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Endpoint'**
+  String get notificationTestEndpointLabel;
+
+  /// No description provided for @notificationTestEndpointDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests go through the same local HTTP API used by external curl clients.'**
+  String get notificationTestEndpointDesc;
+
+  /// No description provided for @notificationTestPreviewInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix the request errors below before sending or copying.'**
+  String get notificationTestPreviewInvalid;
+
+  /// No description provided for @notificationTestInvalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid number for {label}.'**
+  String notificationTestInvalidNumber(Object label);
+
+  /// No description provided for @notificationTestInvalidJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Payload must be valid JSON.'**
+  String get notificationTestInvalidJson;
 
   /// No description provided for @flashSettings.
   ///

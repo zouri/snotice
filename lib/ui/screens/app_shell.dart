@@ -10,8 +10,9 @@ import '../widgets/main/shell_dimensions.dart';
 import 'call_log_page.dart';
 import 'home_screen.dart';
 import 'http_api_page.dart';
+import 'notification_test_page.dart';
 
-enum _ShellTab { callLogs, httpApi, settings }
+enum _ShellTab { callLogs, httpApi, notificationTest, settings }
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -55,6 +56,7 @@ class _AppShellState extends State<AppShell> {
                 },
                 callLogsLabel: l10n.navCallLogs,
                 httpApiLabel: l10n.navHttpApi,
+                notificationTestLabel: l10n.navNotificationTest,
                 settingsLabel: l10n.navSettings,
                 serverRunningLabel: l10n.trayServiceRunning,
                 serverStoppedLabel: l10n.trayServiceNotRunning,
@@ -67,6 +69,7 @@ class _AppShellState extends State<AppShell> {
                     children: const [
                       CallLogPage(),
                       HttpApiPage(),
+                      NotificationTestPage(),
                       HomeScreen(),
                     ],
                   ),
@@ -86,6 +89,7 @@ class _SideNav extends StatelessWidget {
     required this.onSelect,
     required this.callLogsLabel,
     required this.httpApiLabel,
+    required this.notificationTestLabel,
     required this.settingsLabel,
     required this.serverRunningLabel,
     required this.serverStoppedLabel,
@@ -95,6 +99,7 @@ class _SideNav extends StatelessWidget {
   final ValueChanged<_ShellTab> onSelect;
   final String callLogsLabel;
   final String httpApiLabel;
+  final String notificationTestLabel;
   final String settingsLabel;
   final String serverRunningLabel;
   final String serverStoppedLabel;
@@ -134,6 +139,13 @@ class _SideNav extends StatelessWidget {
               active: selectedTab == _ShellTab.httpApi,
               icon: Icons.menu_book_rounded,
               onTap: () => onSelect(_ShellTab.httpApi),
+            ),
+            const SizedBox(height: 8),
+            _SideNavItem(
+              label: notificationTestLabel,
+              active: selectedTab == _ShellTab.notificationTest,
+              icon: Icons.science_rounded,
+              onTap: () => onSelect(_ShellTab.notificationTest),
             ),
             const SizedBox(height: 8),
             _SideNavItem(

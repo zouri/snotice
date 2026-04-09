@@ -27,6 +27,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navHttpApi => 'Usage';
 
   @override
+  String get navNotificationTest => 'Test Lab';
+
+  @override
   String get navSettings => 'Settings';
 
   @override
@@ -549,6 +552,131 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get messageRequired => 'Please enter a message';
+
+  @override
+  String get notificationPriorityLabel => 'Priority';
+
+  @override
+  String get notificationTestTitle => 'Notification Test Lab';
+
+  @override
+  String get notificationTestSubtitle =>
+      'Compose a request, trigger it locally, and copy the exact curl command.';
+
+  @override
+  String get notificationTestRequestCardTitle => 'Request Builder';
+
+  @override
+  String get notificationTestRequestCardDesc =>
+      'Switch between notification effects, adjust parameters, and generate a reusable request.';
+
+  @override
+  String get notificationTestEffectCardTitle => 'Effect Parameters';
+
+  @override
+  String get notificationTestEffectCardDesc =>
+      'Overlay-only settings are shown here. Leave optional fields blank to fall back to saved defaults.';
+
+  @override
+  String get notificationTestPreviewCardTitle => 'Preview';
+
+  @override
+  String get notificationTestPreviewCardDesc =>
+      'The JSON payload and curl command always stay in sync with the form on the left.';
+
+  @override
+  String get notificationTestResponseCardTitle => 'Latest Response';
+
+  @override
+  String get notificationTestResponseEmpty =>
+      'No request has been sent from this page yet.';
+
+  @override
+  String get notificationTestEffectTypeLabel => 'Effect';
+
+  @override
+  String get notificationTestEffectStandard => 'Notification';
+
+  @override
+  String get notificationTestEffectFlashFull => 'Flash Full';
+
+  @override
+  String get notificationTestEffectFlashEdge => 'Flash Edge';
+
+  @override
+  String get notificationTestEffectBarrage => 'Barrage';
+
+  @override
+  String get notificationTestSendButton => 'Send Test';
+
+  @override
+  String get notificationTestCopyCurlButton => 'Copy curl';
+
+  @override
+  String get notificationTestResetButton => 'Reset';
+
+  @override
+  String get notificationTestCopiedCurl => 'curl command copied.';
+
+  @override
+  String get notificationTestSent => 'Test notification sent.';
+
+  @override
+  String get notificationTestLeaveBlankDefaults =>
+      'Leave optional effect fields blank to use the current server defaults.';
+
+  @override
+  String get notificationTestNoExtraSettings =>
+      'No extra parameters are required for a standard notification.';
+
+  @override
+  String get notificationTestServerStopped => 'Service stopped';
+
+  @override
+  String get notificationTestPayloadLabel => 'Payload (JSON object, optional)';
+
+  @override
+  String get notificationTestPayloadHint => 'Example: source=test_lab';
+
+  @override
+  String get notificationTestIconLabel => 'Icon (optional)';
+
+  @override
+  String notificationTestBuildError(Object error) {
+    return 'Could not build request: $error';
+  }
+
+  @override
+  String get notificationTestPayloadMustBeObject =>
+      'Payload must be a JSON object.';
+
+  @override
+  String get notificationTestServiceStartFailed =>
+      'Unable to start the local service.';
+
+  @override
+  String notificationTestResponseStatus(int status) {
+    return 'HTTP $status';
+  }
+
+  @override
+  String get notificationTestEndpointLabel => 'Endpoint';
+
+  @override
+  String get notificationTestEndpointDesc =>
+      'Requests go through the same local HTTP API used by external curl clients.';
+
+  @override
+  String get notificationTestPreviewInvalid =>
+      'Fix the request errors below before sending or copying.';
+
+  @override
+  String notificationTestInvalidNumber(Object label) {
+    return 'Enter a valid number for $label.';
+  }
+
+  @override
+  String get notificationTestInvalidJson => 'Payload must be valid JSON.';
 
   @override
   String get flashSettings => 'Flash Settings';

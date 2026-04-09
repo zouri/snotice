@@ -8,6 +8,7 @@
   "navHistory": "历史",
   "navCallLogs": "调用日志",
   "navHttpApi": "使用说明",
+  "navNotificationTest": "通知测试",
   "navSettings": "设置",
   "httpApiIntroTitle": "API 概览",
   "httpApiIntroBody": "SNotice 提供 HTTP 接口用于触发系统通知、闪屏提醒和弹幕覆盖提醒。服务监听在当前配置端口，可在设置页调整。",
@@ -185,6 +186,59 @@
   "titleRequired": "请输入标题",
   "message": "内容",
   "messageRequired": "请输入内容",
+  "notificationPriorityLabel": "优先级",
+  "notificationTestTitle": "通知测试台",
+  "notificationTestSubtitle": "组合请求参数，直接触发本地通知效果，并一键复制对应的 curl 命令。",
+  "notificationTestRequestCardTitle": "请求构造",
+  "notificationTestRequestCardDesc": "切换不同通知效果，调整参数，并实时生成可复用请求。",
+  "notificationTestEffectCardTitle": "效果参数",
+  "notificationTestEffectCardDesc": "这里显示覆盖层相关参数。可选字段留空时会回退到当前保存的默认值。",
+  "notificationTestPreviewCardTitle": "预览",
+  "notificationTestPreviewCardDesc": "右侧 JSON 与 curl 预览会和左侧表单保持同步。",
+  "notificationTestResponseCardTitle": "最近一次响应",
+  "notificationTestResponseEmpty": "这个页面还没有发出过请求。",
+  "notificationTestEffectTypeLabel": "效果类型",
+  "notificationTestEffectStandard": "普通通知",
+  "notificationTestEffectFlashFull": "全屏闪烁",
+  "notificationTestEffectFlashEdge": "边缘闪烁",
+  "notificationTestEffectBarrage": "弹幕",
+  "notificationTestSendButton": "发送测试",
+  "notificationTestCopyCurlButton": "复制 curl",
+  "notificationTestResetButton": "重置",
+  "notificationTestCopiedCurl": "已复制 curl 命令。",
+  "notificationTestSent": "测试通知已发送。",
+  "notificationTestLeaveBlankDefaults": "可选效果字段留空时，将使用当前服务保存的默认值。",
+  "notificationTestNoExtraSettings": "普通通知不需要额外的覆盖层参数。",
+  "notificationTestServerStopped": "服务未运行",
+  "notificationTestPayloadLabel": "Payload（JSON 对象，可选）",
+  "notificationTestPayloadHint": "示例：source=test_lab",
+  "notificationTestIconLabel": "图标（可选）",
+  "notificationTestBuildError": "构造请求失败：{error}",
+  "@notificationTestBuildError": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "notificationTestPayloadMustBeObject": "Payload 必须是 JSON 对象。",
+  "notificationTestServiceStartFailed": "无法启动本地服务。",
+  "notificationTestResponseStatus": "HTTP {status}",
+  "@notificationTestResponseStatus": {
+    "placeholders": {
+      "status": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationTestEndpointLabel": "请求地址",
+  "notificationTestEndpointDesc": "这里会走和外部 curl 客户端完全相同的本地 HTTP API。",
+  "notificationTestPreviewInvalid": "请先修复请求错误，再发送或复制。",
+  "notificationTestInvalidNumber": "{label} 请输入有效数字。",
+  "@notificationTestInvalidNumber": {
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "notificationTestInvalidJson": "Payload 必须是合法 JSON。",
   "flashSettings": "闪屏设置",
   "color": "颜色",
   "duration": "持续时间：{duration}毫秒",

@@ -27,6 +27,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get navHttpApi => '使用说明';
 
   @override
+  String get navNotificationTest => '通知测试';
+
+  @override
   String get navSettings => '设置';
 
   @override
@@ -533,6 +536,122 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get messageRequired => '请输入内容';
+
+  @override
+  String get notificationPriorityLabel => '优先级';
+
+  @override
+  String get notificationTestTitle => '通知测试台';
+
+  @override
+  String get notificationTestSubtitle => '组合请求参数，直接触发本地通知效果，并一键复制对应的 curl 命令。';
+
+  @override
+  String get notificationTestRequestCardTitle => '请求构造';
+
+  @override
+  String get notificationTestRequestCardDesc => '切换不同通知效果，调整参数，并实时生成可复用请求。';
+
+  @override
+  String get notificationTestEffectCardTitle => '效果参数';
+
+  @override
+  String get notificationTestEffectCardDesc =>
+      '这里显示覆盖层相关参数。可选字段留空时会回退到当前保存的默认值。';
+
+  @override
+  String get notificationTestPreviewCardTitle => '预览';
+
+  @override
+  String get notificationTestPreviewCardDesc => '右侧 JSON 与 curl 预览会和左侧表单保持同步。';
+
+  @override
+  String get notificationTestResponseCardTitle => '最近一次响应';
+
+  @override
+  String get notificationTestResponseEmpty => '这个页面还没有发出过请求。';
+
+  @override
+  String get notificationTestEffectTypeLabel => '效果类型';
+
+  @override
+  String get notificationTestEffectStandard => '普通通知';
+
+  @override
+  String get notificationTestEffectFlashFull => '全屏闪烁';
+
+  @override
+  String get notificationTestEffectFlashEdge => '边缘闪烁';
+
+  @override
+  String get notificationTestEffectBarrage => '弹幕';
+
+  @override
+  String get notificationTestSendButton => '发送测试';
+
+  @override
+  String get notificationTestCopyCurlButton => '复制 curl';
+
+  @override
+  String get notificationTestResetButton => '重置';
+
+  @override
+  String get notificationTestCopiedCurl => '已复制 curl 命令。';
+
+  @override
+  String get notificationTestSent => '测试通知已发送。';
+
+  @override
+  String get notificationTestLeaveBlankDefaults => '可选效果字段留空时，将使用当前服务保存的默认值。';
+
+  @override
+  String get notificationTestNoExtraSettings => '普通通知不需要额外的覆盖层参数。';
+
+  @override
+  String get notificationTestServerStopped => '服务未运行';
+
+  @override
+  String get notificationTestPayloadLabel => 'Payload（JSON 对象，可选）';
+
+  @override
+  String get notificationTestPayloadHint => '示例：source=test_lab';
+
+  @override
+  String get notificationTestIconLabel => '图标（可选）';
+
+  @override
+  String notificationTestBuildError(Object error) {
+    return '构造请求失败：$error';
+  }
+
+  @override
+  String get notificationTestPayloadMustBeObject => 'Payload 必须是 JSON 对象。';
+
+  @override
+  String get notificationTestServiceStartFailed => '无法启动本地服务。';
+
+  @override
+  String notificationTestResponseStatus(int status) {
+    return 'HTTP $status';
+  }
+
+  @override
+  String get notificationTestEndpointLabel => '请求地址';
+
+  @override
+  String get notificationTestEndpointDesc =>
+      '这里会走和外部 curl 客户端完全相同的本地 HTTP API。';
+
+  @override
+  String get notificationTestPreviewInvalid => '请先修复请求错误，再发送或复制。';
+
+  @override
+  String notificationTestInvalidNumber(Object label) {
+    return '$label 请输入有效数字。';
+  }
+
+  @override
+  String get notificationTestInvalidJson => 'Payload 必须是合法 JSON。';
 
   @override
   String get flashSettings => '闪屏设置';
